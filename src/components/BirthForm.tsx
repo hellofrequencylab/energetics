@@ -2,16 +2,15 @@
 
 import { useState } from "react";
 import type { ComputeResponse } from "@/lib/api-types";
-import type { GeoResult } from "@/lib/geocode";
+import { PlaceSearch, type SelectedPlace } from "./PlaceSearch";
 import { SynthesisView } from "./SynthesisView";
 
+// Offline fallback cities (the live search needs the geocoding host reachable).
 const PRESETS = [
   { label: "London, UK", lat: 51.5074, lng: -0.1278 },
   { label: "New York, USA", lat: 40.7128, lng: -74.006 },
-  { label: "Los Angeles, USA", lat: 34.0522, lng: -118.2437 },
   { label: "Mumbai, India", lat: 19.076, lng: 72.8777 },
   { label: "Tokyo, Japan", lat: 35.6762, lng: 139.6503 },
-  { label: "Sydney, Australia", lat: -33.8688, lng: 151.2093 },
 ];
 
 export function BirthForm() {
@@ -29,12 +28,12 @@ export function BirthForm() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ComputeResponse | null>(null);
   const [intakeBody, setIntakeBody] = useState<unknown>(null);
-
-  // Place search (geocoding)
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [placeResults, setPlaceResults] = useState<GeoResult[]>([]);
-  const [searching, setSearching] = useState(false);
   const [placeLabel, setPlaceLabel] = useState("");
+
+  function selectPlace(p: SelectedPlace) {
+    setForm((f) => ({ ...f, latitude: String(p.latitude), longitude: String(p.longitude), timeZone: p.timezone, noPlace: false }));
+    setPlaceLabel(p.label);
+  }
 
   function applyPreset(label: string) {
     const p = PRESETS.find((x) => x.label === label);
@@ -42,33 +41,6 @@ export function BirthForm() {
       setForm((f) => ({ ...f, latitude: String(p.lat), longitude: String(p.lng), timeZone: "", noPlace: false }));
       setPlaceLabel(label);
     }
-  }
-
-  async function searchPlace() {
-    if (!placeQuery.trim()) return;
-    setSearching(true);
-    setPlaceResults([]);
-    try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(placeQuery)}`);
-      const json = await res.json();
-      setPlaceResults(json.results ?? []);
-    } catch {
-      setPlaceResults([]);
-    } finally {
-      setSearching(false);
-    }
-  }
-
-  function selectPlace(r: GeoResult) {
-    setForm((f) => ({
-      ...f,
-      latitude: String(r.latitude),
-      longitude: String(r.longitude),
-      timeZone: r.timezone,
-      noPlace: false,
-    }));
-    setPlaceLabel([r.name, r.admin1, r.country].filter(Boolean).join(", "));
-    setPlaceResults([]);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -132,60 +104,14 @@ export function BirthForm() {
           />
         </Field>
 
-        <Field label="Search birthplace" className="sm:col-span-2">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={placeQuery}
-              onChange={(e) => setPlaceQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  searchPlace();
-                }
-              }}
-              placeholder="e.g. Ulm, Germany"
-              className={inputClass}
-            />
-            <button
-              type="button"
-              onClick={searchPlace}
-              disabled={searching}
-              className="shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-muted transition hover:text-foreground disabled:opacity-50"
-            >
-              {searching ? "…" : "Search"}
-            </button>
-          </div>
-          {placeResults.length > 0 && (
-            <ul className="mt-1 max-h-44 overflow-auto rounded-lg border border-border bg-surface">
-              {placeResults.map((r, i) => (
-                <li key={i}>
-                  <button
-                    type="button"
-                    onClick={() => selectPlace(r)}
-                    className="block w-full px-3 py-2 text-left text-sm hover:bg-surface-2"
-                  >
-                    {[r.name, r.admin1, r.country].filter(Boolean).join(", ")}
-                    <span className="ml-2 text-xs text-muted">{r.timezone}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+        <Field label="Birthplace" className="sm:col-span-2">
+          <PlaceSearch onSelect={selectPlace} placeholder="Start typing any city in the world…" />
+          {placeLabel && (
+            <p className="mt-1 text-xs text-accent">
+              ✓ {placeLabel}
+              {form.timeZone ? ` · ${form.timeZone}` : ""}
+            </p>
           )}
-          {placeLabel && <p className="mt-1 text-xs text-accent">Selected: {placeLabel}</p>}
-        </Field>
-
-        <Field label="Birthplace preset">
-          <select onChange={(e) => applyPreset(e.target.value)} className={inputClass} defaultValue="">
-            <option value="" disabled>
-              Or choose a city…
-            </option>
-            {PRESETS.map((p) => (
-              <option key={p.label} value={p.label}>
-                {p.label}
-              </option>
-            ))}
-          </select>
         </Field>
 
         <div className="flex flex-col justify-end gap-2 text-sm text-muted">
@@ -199,27 +125,42 @@ export function BirthForm() {
           </label>
         </div>
 
-        <Field label="Latitude">
-          <input
-            type="number"
-            step="any"
-            value={form.latitude}
-            disabled={form.noPlace}
-            onChange={(e) => setForm({ ...form, latitude: e.target.value })}
-            className={`${inputClass} disabled:opacity-40`}
-          />
+        <Field label="Or pick a preset">
+          <select onChange={(e) => applyPreset(e.target.value)} className={inputClass} defaultValue="">
+            <option value="" disabled>
+              Offline fallback…
+            </option>
+            {PRESETS.map((p) => (
+              <option key={p.label} value={p.label}>
+                {p.label}
+              </option>
+            ))}
+          </select>
         </Field>
 
-        <Field label="Longitude">
-          <input
-            type="number"
-            step="any"
-            value={form.longitude}
-            disabled={form.noPlace}
-            onChange={(e) => setForm({ ...form, longitude: e.target.value })}
-            className={`${inputClass} disabled:opacity-40`}
-          />
-        </Field>
+        <details className="sm:col-span-2 text-sm text-muted">
+          <summary className="cursor-pointer text-xs uppercase tracking-wide">Enter coordinates manually</summary>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <input
+              type="number"
+              step="any"
+              value={form.latitude}
+              disabled={form.noPlace}
+              onChange={(e) => setForm({ ...form, latitude: e.target.value })}
+              placeholder="Latitude"
+              className={`${inputClass} disabled:opacity-40`}
+            />
+            <input
+              type="number"
+              step="any"
+              value={form.longitude}
+              disabled={form.noPlace}
+              onChange={(e) => setForm({ ...form, longitude: e.target.value })}
+              placeholder="Longitude"
+              className={`${inputClass} disabled:opacity-40`}
+            />
+          </div>
+        </details>
 
         <div className="sm:col-span-2">
           <button
@@ -235,9 +176,7 @@ export function BirthForm() {
         </div>
       </form>
 
-      {error && (
-        <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
-      )}
+      {error && <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>}
 
       {result && <SynthesisView data={result} intakeBody={intakeBody} />}
     </div>

@@ -10,6 +10,9 @@ export default async function Home() {
         <a href="/synastry" className="rounded border border-border px-2 py-1 hover:text-foreground">
           Synastry
         </a>
+        <a href="/glossary" className="rounded border border-border px-2 py-1 hover:text-foreground">
+          Glossary
+        </a>
         <a href="/about" className="rounded border border-border px-2 py-1 hover:text-foreground">
           About
         </a>
