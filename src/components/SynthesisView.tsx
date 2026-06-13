@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ComputeResponse, NarrateResponse } from "@/lib/api-types";
 import type { NarrativeResult } from "@/lib/synthesis/narrative";
-import { westernToWheel } from "@/lib/wheel";
+import { vedicToWheel, westernToWheel } from "@/lib/wheel";
 import { ChartWheel } from "./ChartWheel";
 import { EthicsPanel } from "./EthicsPanel";
 
@@ -20,6 +20,8 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
 
   const western = computations.find((c) => c.meta.id === "western-tropical");
   const wheel = western ? westernToWheel(western.native) : null;
+  const vedic = computations.find((c) => c.meta.id === "vedic-jyotish");
+  const vedicWheel = vedic ? vedicToWheel(vedic.native) : null;
 
   return (
     <div className="space-y-10">
@@ -33,14 +35,23 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
         </p>
       </header>
 
-      {/* Chart wheel (Western) ---------------------------------------------- */}
-      {wheel && (
-        <section className="rounded-xl border border-border bg-surface/40 p-4">
-          <ChartWheel data={wheel} />
-          {!wheel.cusps && (
-            <p className="mt-1 text-center text-xs text-muted">
-              Add a birth time + place to see houses and the Ascendant.
-            </p>
+      {/* Chart wheels (Western tropical + Vedic sidereal) ------------------- */}
+      {(wheel || vedicWheel) && (
+        <section className="grid gap-4 sm:grid-cols-2">
+          {wheel && (
+            <div className="rounded-xl border border-border bg-surface/40 p-4">
+              <p className="mb-1 text-center text-xs uppercase tracking-wide text-muted">Tropical · Western</p>
+              <ChartWheel data={wheel} />
+              {!wheel.cusps && (
+                <p className="mt-1 text-center text-xs text-muted">Add a birth time + place for houses & Ascendant.</p>
+              )}
+            </div>
+          )}
+          {vedicWheel && (
+            <div className="rounded-xl border border-border bg-surface/40 p-4">
+              <p className="mb-1 text-center text-xs uppercase tracking-wide text-muted">Sidereal · Vedic</p>
+              <ChartWheel data={vedicWheel} />
+            </div>
           )}
         </section>
       )}

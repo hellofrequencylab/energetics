@@ -69,9 +69,9 @@ within their group so a derived system never double-counts its parent.
 - ✅ **Geocoding** — place search → lat/lng/tz via Open-Meteo (`/api/geocode` +
   form search). ⚠️ Needs `geocoding-api.open-meteo.com` on the egress allowlist
   (works on Vercel; falls back to presets/manual otherwise).
-- 🟡 **Shared presentation** — ✅ chart wheel (SVG; `ChartWheel.tsx` + `wheel.ts`),
-  ✅ ethics/lineage panel (`EthicsPanel.tsx` + `ethics.ts`, on results + `/about`).
-  ⬜ bodygraph (HD), aspect grid.
+- 🟡 **Shared presentation** — ✅ chart wheel (SVG; renders BOTH the Western
+  tropical and Vedic sidereal charts via `westernToWheel`/`vedicToWheel`),
+  ✅ ethics/lineage panel (on results + `/about`). ⬜ bodygraph (HD), aspect grid.
 
 ## Deep-build notes (specs received)
 
