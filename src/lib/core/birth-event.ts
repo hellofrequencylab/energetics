@@ -21,6 +21,8 @@ export interface BirthEvent {
   time?: string; // local time at place (HH:mm), gates time-dependent engines
   place?: GeoPoint;
   precision: Precision; // derived
+  /** Subject's name — required only by name-derived systems (e.g. Chaldean). */
+  name?: string;
 }
 
 /** Raw intake shape accepted at the API/form boundary (precision is derived). */
@@ -73,6 +75,7 @@ export function intake(raw: unknown): { event: BirthEvent; name?: string } {
     time: data.time,
     place,
     precision: precisionOf({ time: data.time, place }),
+    name: data.name,
   };
   return { event, name: data.name };
 }
