@@ -18,7 +18,7 @@ export interface GeoResult {
 
 const ENDPOINT = "https://geocoding-api.open-meteo.com/v1/search";
 
-export async function geocodePlace(query: string, count = 6): Promise<GeoResult[]> {
+export async function geocodePlace(query: string, count = 8): Promise<GeoResult[]> {
   const q = query.trim();
   if (!q) return [];
   const url = `${ENDPOINT}?name=${encodeURIComponent(q)}&count=${count}&language=en&format=json`;

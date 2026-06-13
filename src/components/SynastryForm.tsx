@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { SynastryResult } from "@/lib/synastry";
+import { PlaceSearch, type SelectedPlace } from "./PlaceSearch";
 
 interface Person {
   name: string;
@@ -10,6 +11,8 @@ interface Person {
   unknownTime: boolean;
   latitude: string;
   longitude: string;
+  timeZone: string;
+  placeLabel: string;
 }
 
 const emptyPerson = (name: string, date: string): Person => ({
@@ -19,6 +22,8 @@ const emptyPerson = (name: string, date: string): Person => ({
   unknownTime: false,
   latitude: "51.5074",
   longitude: "-0.1278",
+  timeZone: "",
+  placeLabel: "",
 });
 
 function humanize(value: string): string {
@@ -30,7 +35,9 @@ function toIntake(p: Person) {
   const body: Record<string, unknown> = { date: p.date };
   if (p.name.trim()) body.name = p.name.trim();
   if (!p.unknownTime && p.time) body.time = p.time;
-  if (p.latitude && p.longitude) body.place = { lat: Number(p.latitude), lng: Number(p.longitude) };
+  if (p.latitude && p.longitude) {
+    body.place = { lat: Number(p.latitude), lng: Number(p.longitude), ...(p.timeZone ? { tz: p.timeZone } : {}) };
+  }
   return body;
 }
 
@@ -90,6 +97,8 @@ export function SynastryForm() {
 function PersonFields({ person, onChange }: { person: Person; onChange: (p: Person) => void }) {
   const set = (patch: Partial<Person>) => onChange({ ...person, ...patch });
   const input = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
+  const onPlace = (p: SelectedPlace) =>
+    set({ latitude: String(p.latitude), longitude: String(p.longitude), timeZone: p.timezone, placeLabel: p.label });
   return (
     <div className="space-y-3 rounded-xl border border-border bg-surface/50 p-5">
       <input className={input} value={person.name} onChange={(e) => set({ name: e.target.value })} placeholder="Name" />
@@ -107,10 +116,15 @@ function PersonFields({ person, onChange }: { person: Person; onChange: (p: Pers
         <input type="checkbox" checked={person.unknownTime} onChange={(e) => set({ unknownTime: e.target.checked })} />
         Time unknown
       </label>
-      <div className="grid grid-cols-2 gap-2">
-        <input type="number" step="any" className={input} value={person.latitude} onChange={(e) => set({ latitude: e.target.value })} placeholder="Latitude" />
-        <input type="number" step="any" className={input} value={person.longitude} onChange={(e) => set({ longitude: e.target.value })} placeholder="Longitude" />
-      </div>
+      <PlaceSearch onSelect={onPlace} placeholder="Birthplace — type any city…" />
+      {person.placeLabel && <p className="text-xs text-accent">✓ {person.placeLabel}</p>}
+      <details className="text-xs text-muted">
+        <summary className="cursor-pointer">Coordinates</summary>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <input type="number" step="any" className={input} value={person.latitude} onChange={(e) => set({ latitude: e.target.value })} placeholder="Latitude" />
+          <input type="number" step="any" className={input} value={person.longitude} onChange={(e) => set({ longitude: e.target.value })} placeholder="Longitude" />
+        </div>
+      </details>
     </div>
   );
 }
