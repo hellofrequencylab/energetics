@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ComputeResponse } from "@/lib/api-types";
+import type { GeoResult } from "@/lib/geocode";
 import { SynthesisView } from "./SynthesisView";
 
 const PRESETS = [
@@ -21,6 +22,7 @@ export function BirthForm() {
     unknownTime: false,
     latitude: "48.4011",
     longitude: "9.9876",
+    timeZone: "",
     noPlace: false,
   });
   const [loading, setLoading] = useState(false);
@@ -28,9 +30,45 @@ export function BirthForm() {
   const [result, setResult] = useState<ComputeResponse | null>(null);
   const [intakeBody, setIntakeBody] = useState<unknown>(null);
 
+  // Place search (geocoding)
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeResults, setPlaceResults] = useState<GeoResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [placeLabel, setPlaceLabel] = useState("");
+
   function applyPreset(label: string) {
     const p = PRESETS.find((x) => x.label === label);
-    if (p) setForm((f) => ({ ...f, latitude: String(p.lat), longitude: String(p.lng), noPlace: false }));
+    if (p) {
+      setForm((f) => ({ ...f, latitude: String(p.lat), longitude: String(p.lng), timeZone: "", noPlace: false }));
+      setPlaceLabel(label);
+    }
+  }
+
+  async function searchPlace() {
+    if (!placeQuery.trim()) return;
+    setSearching(true);
+    setPlaceResults([]);
+    try {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(placeQuery)}`);
+      const json = await res.json();
+      setPlaceResults(json.results ?? []);
+    } catch {
+      setPlaceResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function selectPlace(r: GeoResult) {
+    setForm((f) => ({
+      ...f,
+      latitude: String(r.latitude),
+      longitude: String(r.longitude),
+      timeZone: r.timezone,
+      noPlace: false,
+    }));
+    setPlaceLabel([r.name, r.admin1, r.country].filter(Boolean).join(", "));
+    setPlaceResults([]);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -43,7 +81,11 @@ export function BirthForm() {
     if (form.name.trim()) body.name = form.name.trim();
     if (!form.unknownTime && form.time) body.time = form.time;
     if (!form.noPlace && form.latitude && form.longitude) {
-      body.place = { lat: Number(form.latitude), lng: Number(form.longitude) };
+      body.place = {
+        lat: Number(form.latitude),
+        lng: Number(form.longitude),
+        ...(form.timeZone ? { tz: form.timeZone } : {}),
+      };
     }
 
     try {
@@ -90,10 +132,53 @@ export function BirthForm() {
           />
         </Field>
 
+        <Field label="Search birthplace" className="sm:col-span-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={placeQuery}
+              onChange={(e) => setPlaceQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  searchPlace();
+                }
+              }}
+              placeholder="e.g. Ulm, Germany"
+              className={inputClass}
+            />
+            <button
+              type="button"
+              onClick={searchPlace}
+              disabled={searching}
+              className="shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-muted transition hover:text-foreground disabled:opacity-50"
+            >
+              {searching ? "…" : "Search"}
+            </button>
+          </div>
+          {placeResults.length > 0 && (
+            <ul className="mt-1 max-h-44 overflow-auto rounded-lg border border-border bg-surface">
+              {placeResults.map((r, i) => (
+                <li key={i}>
+                  <button
+                    type="button"
+                    onClick={() => selectPlace(r)}
+                    className="block w-full px-3 py-2 text-left text-sm hover:bg-surface-2"
+                  >
+                    {[r.name, r.admin1, r.country].filter(Boolean).join(", ")}
+                    <span className="ml-2 text-xs text-muted">{r.timezone}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {placeLabel && <p className="mt-1 text-xs text-accent">Selected: {placeLabel}</p>}
+        </Field>
+
         <Field label="Birthplace preset">
           <select onChange={(e) => applyPreset(e.target.value)} className={inputClass} defaultValue="">
             <option value="" disabled>
-              Choose a city…
+              Or choose a city…
             </option>
             {PRESETS.map((p) => (
               <option key={p.label} value={p.label}>

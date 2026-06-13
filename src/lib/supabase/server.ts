@@ -32,3 +32,13 @@ export async function createClient() {
     },
   });
 }
+
+/** The signed-in user, or null when not authenticated / not configured. */
+export async function getUser() {
+  const supabase = await createClient();
+  if (!supabase) return null;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+}

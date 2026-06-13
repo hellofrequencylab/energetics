@@ -60,9 +60,14 @@ within their group so a derived system never double-counts its parent.
 - ✅ API: `/api/systems`, `/api/charts/compute`, `/api/charts/narrate`
 - ✅ DB schema (pgvector for retrieval only) + RLS — `supabase/migrations/0001_init.sql`
 - ✅ Tests: engine golden, independence grouping, synthesis snapshot
-- ⬜ **Persistence path** — `/api/birth-events`, cache `chart_computations` + `system_primitives`, store `syntheses`
-- ⬜ **Auth** — Supabase auth + per-user RLS in the UI
-- ⬜ **Geocoding** — place name → lat/lng/tz (currently preset cities)
+- ✅ **Persistence path** — `/api/birth-events` (+ GET list); compute caches
+  `chart_computations` + `system_primitives` + `syntheses` best-effort for
+  signed-in users (`src/lib/db/queries.ts`). Activates when Supabase is configured.
+- ✅ **Auth** — Supabase magic-link sign-in (`/login`), session-refresh middleware,
+  `getUser()` server helper, sign-out. No-ops gracefully without env.
+- ✅ **Geocoding** — place search → lat/lng/tz via Open-Meteo (`/api/geocode` +
+  form search). ⚠️ Needs `geocoding-api.open-meteo.com` on the egress allowlist
+  (works on Vercel; falls back to presets/manual otherwise).
 - ⬜ **Shared presentation** — chart wheel (SVG), bodygraph, aspect grid, ethics panel
 
 ## Deep-build notes (specs received)
@@ -102,10 +107,10 @@ within their group so a derived system never double-counts its parent.
 
 ## Open decisions
 
-1. **Human Design validation reference** — need one known-good chart (birth data +
-   Type/Authority/Profile/Incarnation Cross from Jovian Archive or equivalent) to
-   lock the golden test. Blocks trustworthy HD output.
-2. **North Node** — mean vs true (affects node gate activations). Currently true.
+1. **Human Design** — DECIDED: encode the standard public gate/channel/center
+   tables, self-validate via golden tests, and flag HD as "needs external
+   validation against Jovian Archive" until a known-good reference is supplied.
+2. **North Node** — DECIDED (for now): true node (affects node gate activations).
 3. **House system default** — Whole Sign (chosen) vs Placidus config.
 4. **Name capture at intake** — enables `numerology-chaldean` (name-sourced
    independence group). Currently optional/unused.
