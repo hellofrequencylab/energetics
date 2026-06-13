@@ -14,21 +14,21 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 |---|---|---|---|---|---|---|---|
 | `western-tropical` | ✅ | traditional | (✓) | (✓) | ephemeris | — | 1 |
 | `vedic-jyotish` | ✅ | traditional | ✓ | ✓ | ephemeris | — | 2 |
-| `hellenistic` | ⬜ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
+| `hellenistic` | ✅ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
 | `chinese-bazi` | ✅ | traditional | ✓ | — | date | — | 2 |
 | `zi-wei-dou-shu` | ⬜ | traditional | ✓ | — | date | — | 3 |
 | `tzolkin` | ✅ | traditional | — | — | date | — | 1 |
 | `dreamspell` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
 | `human-design` | ✅† | hybrid | ✓ | ✓ | ephemeris | — | 1 |
-| `gene-keys` | ⬜ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
+| `gene-keys` | ✅ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
 | `numerology-pythagorean` | ✅ | traditional | — | — | date | — | 1 |
 | `numerology-chaldean` | ✅ | traditional | — | — | name | — | 2 |
 | `tarot-birth-cards` | ✅ | hybrid | — | — | date | numerology-pythagorean | 2 |
-| `nine-star-ki` | ⬜ | traditional | — | — | date | — | 3 |
-| `celtic-tree` | ⬜ | modern-reconstruction | — | — | date | — | 3 |
-| `mahabote` | ⬜ | traditional | — | — | date | — | 3 |
+| `nine-star-ki` | ✅ | traditional | — | — | date | — | 3 |
+| `celtic-tree` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
+| `mahabote` | ✅ | traditional | — | — | date | — | 3 |
 | `akan-day-names` | ✅ | traditional | — | — | date | — | 3 |
-| `norse-runes` | ⬜ | modern-reconstruction | — | — | date | — | 3 |
+| `norse-runes` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
 | `egyptian-decans` | ✅ | traditional | — | — | ephemeris | — | 3 |
 
 `(✓)` = optional but enriches output: `western-tropical` now runs date-only and
