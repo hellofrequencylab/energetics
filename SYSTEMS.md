@@ -19,7 +19,7 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 | `zi-wei-dou-shu` | ⬜ | traditional | ✓ | — | date | — | 3 |
 | `tzolkin` | ✅ | traditional | — | — | date | — | 1 |
 | `dreamspell` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
-| `human-design` | ⬜ / 🟡 | hybrid | ✓ | ✓ | ephemeris | — | 1 |
+| `human-design` | ✅† | hybrid | ✓ | ✓ | ephemeris | — | 1 |
 | `gene-keys` | ⬜ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
 | `numerology-pythagorean` | ✅ | traditional | — | — | date | — | 1 |
 | `numerology-chaldean` | ✅ | traditional | — | — | name | — | 2 |
@@ -34,7 +34,9 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 `(✓)` = optional but enriches output: `western-tropical` now runs date-only and
 adds detail as precision rises (signs → degrees+aspects → houses/angles).
 `dreamspell` ✅\* is built but emits no synthesis primitives by design
-(informational, modern-reconstruction).
+(informational, modern-reconstruction). `human-design` ✅† is fully built
+(BodyGraph: Type/Authority/Profile/Definition/centers/channels) but its reference
+tables are **compiled, not yet externally validated** — it emits a validation note.
 
 **Independence groups** (how synthesis counts sources): `ephemeris` =
 {western-tropical, vedic-jyotish, hellenistic, human-design, gene-keys,
@@ -124,9 +126,10 @@ within their group so a derived system never double-counts its parent.
 
 ## Open decisions
 
-1. **Human Design** — DECIDED: encode the standard public gate/channel/center
-   tables, self-validate via golden tests, and flag HD as "needs external
-   validation against Jovian Archive" until a known-good reference is supplied.
+1. **Human Design** — DONE (encode + flag): gate wheel + 36 channels + 9-center
+   memberships compiled and built into the full BodyGraph; self-validated via
+   golden tests; emits a validation note pending confirmation against a trusted
+   calculator. Gene Keys is now unblockable (reuses these activations).
 2. **North Node** — DECIDED (for now): true node (affects node gate activations).
 3. **House system default** — Whole Sign (chosen) vs Placidus config.
 4. **Name capture at intake** — DONE: `name` is on `BirthEvent`; `numerology-chaldean`
