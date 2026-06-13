@@ -5,6 +5,7 @@ import type { ComputeResponse, NarrateResponse } from "@/lib/api-types";
 import type { NarrativeResult } from "@/lib/synthesis/narrative";
 import { westernToWheel } from "@/lib/wheel";
 import { ChartWheel } from "./ChartWheel";
+import { EthicsPanel } from "./EthicsPanel";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
 function humanizeValue(value: string): string {
@@ -151,6 +152,21 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
           </div>
         )}
       </section>
+
+      <details className="rounded-xl border border-border bg-surface/40 p-5">
+        <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wider text-accent">
+          About these systems & ethics
+        </summary>
+        <div className="mt-4">
+          <EthicsPanel
+            systems={[...computations.map((c) => c.meta), ...unavailable.map((u) => u.meta)].map((m) => ({
+              id: m.id,
+              displayName: m.displayName,
+              lineage: m.lineage,
+            }))}
+          />
+        </div>
+      </details>
 
       <footer className="text-xs text-muted">
         Ephemeris: {ephemerisVersion} · ontology v{synthesis.ontologyVersion}
