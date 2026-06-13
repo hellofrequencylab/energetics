@@ -49,15 +49,21 @@ describe("independence grouping (spec §7.3)", () => {
   });
   it("merges a hard-derivation dependent into its parent's group", () => {
     expect(independenceGroupOf("gene-keys")).toBe(independenceGroupOf("human-design"));
+    expect(independenceGroupOf("tarot-birth-cards")).toBe(independenceGroupOf("numerology-pythagorean"));
+  });
+  it("puts the name-derived system in its own group", () => {
+    const name = independenceGroupOf("numerology-chaldean");
+    expect(name).not.toBe(independenceGroupOf("western-tropical"));
+    expect(name).not.toBe(independenceGroupOf("numerology-pythagorean"));
   });
 });
 
 describe("deterministic synthesis", () => {
-  it("never stacks two ephemeris systems beyond one independent group", () => {
+  it("never stacks systems beyond their distinct independence groups", () => {
     for (const conv of synthesis.convergences) {
       const groups = new Set(conv.contributors.map((a) => independenceGroupOf(a.systemId)));
       expect(conv.independentGroups).toBe(groups.size);
-      expect(conv.independentGroups).toBeLessThanOrEqual(2); // ephemeris + date present here
+      expect(conv.independentGroups).toBeLessThanOrEqual(3); // ephemeris + date + name
     }
   });
 

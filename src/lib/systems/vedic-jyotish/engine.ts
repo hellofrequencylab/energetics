@@ -1,5 +1,5 @@
 import type { BirthEvent } from "@/lib/core/birth-event";
-import type { EngineDeps, NativeResult, SystemEngine, SystemMeta } from "@/lib/core/contracts";
+import type { CoreBody, EngineDeps, NativeFactor, NativeResult, SystemEngine, SystemMeta } from "@/lib/core/contracts";
 import { toUtcInstant } from "@/lib/core/time";
 import { norm360, toSignPosition } from "@/lib/core/zodiac";
 
@@ -28,20 +28,35 @@ export const NAKSHATRAS = [
 
 const NAK_ARC = 360 / 27;
 
-function nakshatra(sidLon: number): { name: string; pada: number; index: number } {
+function nakshatra(sidLon: number): { name: string; pada: number } {
   const lon = norm360(sidLon);
   const index = Math.floor(lon / NAK_ARC);
-  const pada = Math.floor((lon % NAK_ARC) / (NAK_ARC / 4)) + 1;
-  return { name: NAKSHATRAS[index], pada, index };
+  return { name: NAKSHATRAS[index], pada: Math.floor((lon % NAK_ARC) / (NAK_ARC / 4)) + 1 };
 }
 
-interface RasiPlacement {
+/** The 9 grahas: 7 classical + Rahu (North Node) / Ketu (South Node). */
+const GRAHAS: { id: string; label: string; body: CoreBody }[] = [
+  { id: "sun", label: "Sun (Surya)", body: "sun" },
+  { id: "moon", label: "Moon (Chandra)", body: "moon" },
+  { id: "mercury", label: "Mercury (Budha)", body: "mercury" },
+  { id: "venus", label: "Venus (Shukra)", body: "venus" },
+  { id: "mars", label: "Mars (Mangala)", body: "mars" },
+  { id: "jupiter", label: "Jupiter (Guru)", body: "jupiter" },
+  { id: "saturn", label: "Saturn (Shani)", body: "saturn" },
+  { id: "rahu", label: "Rahu (N. Node)", body: "northNode" },
+  { id: "ketu", label: "Ketu (S. Node)", body: "southNode" },
+];
+
+export interface VedicPlacement {
   rasi: string;
   signIndex: number;
-  longitude: number;
+  longitude: number; // sidereal
+  nakshatra: string;
+  pada: number;
+  house: number; // whole-sign bhava from the Lagna
+  retrograde: boolean;
 }
 
-/** Phase 1 minimal output: Lagna + Moon (rasi & nakshatra). */
 export const engine: SystemEngine = {
   meta,
   compute(birth: BirthEvent, { ephemeris }: EngineDeps): NativeResult {
@@ -52,29 +67,44 @@ export const engine: SystemEngine = {
 
     const lagnaLon = norm360(houses.ascendant - ayan);
     const lagnaSign = toSignPosition(lagnaLon).sign;
-    const moonLon = sidereal.moon.longitude;
-    const moonSign = toSignPosition(moonLon).sign;
-    const nak = nakshatra(moonLon);
+    const houseOf = (signIndex: number) => ((signIndex - lagnaSign.index + 12) % 12) + 1;
 
-    const lagna: RasiPlacement = { rasi: RASI[lagnaSign.index], signIndex: lagnaSign.index, longitude: lagnaLon };
-    const moon: RasiPlacement & { nakshatra: string; pada: number } = {
-      rasi: RASI[moonSign.index],
-      signIndex: moonSign.index,
-      longitude: moonLon,
-      nakshatra: nak.name,
-      pada: nak.pada,
+    const factors: Record<string, NativeFactor> = {
+      lagna: {
+        key: "lagna",
+        label: "Lagna (Asc)",
+        value: { rasi: RASI[lagnaSign.index], signIndex: lagnaSign.index, longitude: lagnaLon },
+        display: RASI[lagnaSign.index],
+      },
     };
 
+    for (const graha of GRAHAS) {
+      const pos = sidereal[graha.body];
+      const sign = toSignPosition(pos.longitude).sign;
+      const nak = nakshatra(pos.longitude);
+      const placement: VedicPlacement = {
+        rasi: RASI[sign.index],
+        signIndex: sign.index,
+        longitude: pos.longitude,
+        nakshatra: nak.name,
+        pada: nak.pada,
+        house: houseOf(sign.index),
+        retrograde: pos.retrograde,
+      };
+      factors[graha.id] = {
+        key: graha.id,
+        label: graha.label,
+        value: placement,
+        display: `${RASI[sign.index]} · ${nak.name} (${placement.house}H)${pos.retrograde ? " ℞" : ""}`,
+      };
+    }
+
+    const moonNak = (factors.moon.value as VedicPlacement).nakshatra;
     return {
       systemId: meta.id,
       factors: {
-        lagna: { key: "lagna", label: "Lagna (Asc)", value: lagna, display: RASI[lagnaSign.index] },
-        moon: {
-          key: "moon",
-          label: "Moon",
-          value: moon,
-          display: `${RASI[moonSign.index]} · ${nak.name} (pada ${nak.pada})`,
-        },
+        ...factors,
+        janma: { key: "janma", label: "Janma Nakshatra", value: moonNak, display: moonNak },
       },
     };
   },

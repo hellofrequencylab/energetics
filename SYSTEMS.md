@@ -22,8 +22,8 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 | `human-design` | ⬜ / 🟡 | hybrid | ✓ | ✓ | ephemeris | — | 1 |
 | `gene-keys` | ⬜ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
 | `numerology-pythagorean` | ✅ | traditional | — | — | date | — | 1 |
-| `numerology-chaldean` | ⬜ | traditional | — | — | name | — | 2 |
-| `tarot-birth-cards` | ⬜ | hybrid | — | — | date | numerology-pythagorean | 2 |
+| `numerology-chaldean` | ✅ | traditional | — | — | name | — | 2 |
+| `tarot-birth-cards` | ✅ | hybrid | — | — | date | numerology-pythagorean | 2 |
 | `nine-star-ki` | ⬜ | traditional | — | — | date | — | 3 |
 | `celtic-tree` | ⬜ | modern-reconstruction | — | — | date | — | 3 |
 | `mahabote` | ⬜ | traditional | — | — | date | — | 3 |
@@ -69,9 +69,16 @@ within their group so a derived system never double-counts its parent.
 - ✅ **Geocoding** — place search → lat/lng/tz via Open-Meteo (`/api/geocode` +
   form search). ⚠️ Needs `geocoding-api.open-meteo.com` on the egress allowlist
   (works on Vercel; falls back to presets/manual otherwise).
-- 🟡 **Shared presentation** — ✅ chart wheel (SVG: zodiac ring, houses, planets,
-  aspect lines; `src/components/ChartWheel.tsx` + `src/lib/wheel.ts`).
-  ⬜ bodygraph (HD), aspect grid, ethics panel.
+- 🟡 **Shared presentation** — ✅ chart wheel (SVG; renders BOTH the Western
+  tropical and Vedic sidereal charts via `westernToWheel`/`vedicToWheel`),
+  ✅ ethics/lineage panel (on results + `/about`). ⬜ bodygraph (HD), aspect grid.
+
+### Original-vision features (beyond per-person charts)
+- ✅ **Transits (daily / seasonal advice)** — current sky vs natal: transit→natal
+  aspects + seasonal Sun/Moon/phase (`src/lib/transits`, `/api/transits`, Today
+  panel). Detects e.g. the solar return.
+- ⬜ **Synastry (connections with others)** — compare two charts (cross-aspects +
+  cross-system convergence). The remaining big original-vision feature.
 
 ## Deep-build notes (specs received)
 
@@ -115,8 +122,9 @@ within their group so a derived system never double-counts its parent.
    validation against Jovian Archive" until a known-good reference is supplied.
 2. **North Node** — DECIDED (for now): true node (affects node gate activations).
 3. **House system default** — Whole Sign (chosen) vs Placidus config.
-4. **Name capture at intake** — enables `numerology-chaldean` (name-sourced
-   independence group). Currently optional/unused.
+4. **Name capture at intake** — DONE: `name` is on `BirthEvent`; `numerology-chaldean`
+   now forms the third independence group (ephemeris + date + name three-source
+   convergences confirmed at runtime).
 
 ## Build order (next)
 
@@ -125,5 +133,5 @@ within their group so a derived system never double-counts its parent.
    aspects, balances, lunar phase; cardinal-point + damping golden tests pass).
 3. `human-design` — encode standard tables + flag (decided); validate later.
 4. Persistence path + geocoding + shared chart-wheel component.
-5. Remaining Phase-2 systems (gene-keys, numerology-chaldean, tarot-birth-cards),
-   then Phase-3 breadth.
+5. ~~numerology-chaldean + tarot-birth-cards~~ — ✅ done (name group unlocked).
+   gene-keys remains blocked on human-design; then Phase-3 breadth.

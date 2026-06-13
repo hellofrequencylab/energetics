@@ -3,8 +3,10 @@
 import { useState } from "react";
 import type { ComputeResponse, NarrateResponse } from "@/lib/api-types";
 import type { NarrativeResult } from "@/lib/synthesis/narrative";
-import { westernToWheel } from "@/lib/wheel";
+import { vedicToWheel, westernToWheel } from "@/lib/wheel";
+import type { TransitsResult } from "@/lib/transits";
 import { ChartWheel } from "./ChartWheel";
+import { EthicsPanel } from "./EthicsPanel";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
 function humanizeValue(value: string): string {
@@ -19,6 +21,8 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
 
   const western = computations.find((c) => c.meta.id === "western-tropical");
   const wheel = western ? westernToWheel(western.native) : null;
+  const vedic = computations.find((c) => c.meta.id === "vedic-jyotish");
+  const vedicWheel = vedic ? vedicToWheel(vedic.native) : null;
 
   return (
     <div className="space-y-10">
@@ -32,14 +36,23 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
         </p>
       </header>
 
-      {/* Chart wheel (Western) ---------------------------------------------- */}
-      {wheel && (
-        <section className="rounded-xl border border-border bg-surface/40 p-4">
-          <ChartWheel data={wheel} />
-          {!wheel.cusps && (
-            <p className="mt-1 text-center text-xs text-muted">
-              Add a birth time + place to see houses and the Ascendant.
-            </p>
+      {/* Chart wheels (Western tropical + Vedic sidereal) ------------------- */}
+      {(wheel || vedicWheel) && (
+        <section className="grid gap-4 sm:grid-cols-2">
+          {wheel && (
+            <div className="rounded-xl border border-border bg-surface/40 p-4">
+              <p className="mb-1 text-center text-xs uppercase tracking-wide text-muted">Tropical · Western</p>
+              <ChartWheel data={wheel} />
+              {!wheel.cusps && (
+                <p className="mt-1 text-center text-xs text-muted">Add a birth time + place for houses & Ascendant.</p>
+              )}
+            </div>
+          )}
+          {vedicWheel && (
+            <div className="rounded-xl border border-border bg-surface/40 p-4">
+              <p className="mb-1 text-center text-xs uppercase tracking-wide text-muted">Sidereal · Vedic</p>
+              <ChartWheel data={vedicWheel} />
+            </div>
           )}
         </section>
       )}
@@ -112,6 +125,9 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
         </section>
       )}
 
+      {/* Daily / seasonal transits ----------------------------------------- */}
+      <TransitsSection intakeBody={intakeBody} />
+
       {/* Narrative (LLM layer over the deterministic synthesis) -------------- */}
       <NarrativeSection intakeBody={intakeBody} />
 
@@ -152,6 +168,21 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
         )}
       </section>
 
+      <details className="rounded-xl border border-border bg-surface/40 p-5">
+        <summary className="cursor-pointer text-sm font-semibold uppercase tracking-wider text-accent">
+          About these systems & ethics
+        </summary>
+        <div className="mt-4">
+          <EthicsPanel
+            systems={[...computations.map((c) => c.meta), ...unavailable.map((u) => u.meta)].map((m) => ({
+              id: m.id,
+              displayName: m.displayName,
+              lineage: m.lineage,
+            }))}
+          />
+        </div>
+      </details>
+
       <footer className="text-xs text-muted">
         Ephemeris: {ephemerisVersion} · ontology v{synthesis.ontologyVersion}
       </footer>
@@ -165,6 +196,80 @@ function Pole({ value, sources }: { value: string; sources: string[] }) {
       <div className="font-medium">{humanizeValue(value)}</div>
       <div className="text-[11px] text-muted">{[...new Set(sources)].join(", ")}</div>
     </div>
+  );
+}
+
+function TransitsSection({ intakeBody }: { intakeBody: unknown }) {
+  const [state, setState] = useState<"idle" | "loading" | "done">("idle");
+  const [transits, setTransits] = useState<TransitsResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    setState("loading");
+    setError(null);
+    try {
+      const res = await fetch("/api/transits", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(intakeBody),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error || "Request failed");
+      setTransits(json.transits as TransitsResult);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load transits");
+    } finally {
+      setState("done");
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-border bg-surface/40 p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-accent">Today · Transits</h3>
+        {state === "idle" && (
+          <button
+            onClick={load}
+            className="rounded-lg border border-accent/40 px-3 py-1 text-xs font-medium text-accent transition hover:bg-accent/10"
+          >
+            Load current sky
+          </button>
+        )}
+      </div>
+
+      {state === "idle" && (
+        <p className="text-sm text-muted">The current sky read against this chart — daily & seasonal movement.</p>
+      )}
+      {state === "loading" && <p className="text-sm text-muted">Reading the sky…</p>}
+      {error && <p className="text-sm text-red-300">{error}</p>}
+
+      {transits && (
+        <div className="space-y-3">
+          <p className="text-sm text-foreground/90">
+            <span className="text-muted">Season:</span> Sun in {transits.season.sunSign} · Moon in{" "}
+            {transits.season.moonSign} · {transits.season.moonPhase}
+          </p>
+          {transits.hits.length > 0 ? (
+            <ul className="space-y-1">
+              {transits.hits.map((h, i) => (
+                <li key={i} className="flex justify-between gap-3 text-sm">
+                  <span>
+                    transiting <span className="text-foreground">{h.transiting}</span> {h.aspect}{" "}
+                    natal <span className="text-foreground">{h.natal}</span>
+                  </span>
+                  <span className="text-muted">
+                    {h.orb.toFixed(1)}° {h.applying ? "applying" : "separating"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted">No tight transits right now.</p>
+          )}
+          <p className="text-xs text-muted">As of {new Date(transits.date).toLocaleString()}</p>
+        </div>
+      )}
+    </section>
   );
 }
 

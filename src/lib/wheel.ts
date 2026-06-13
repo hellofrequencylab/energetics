@@ -82,3 +82,27 @@ export function westernToWheel(native: NativeResult): WheelData | null {
 
   return { planets, ascendant: angle("ascendant"), midheaven: angle("midheaven"), cusps, aspects };
 }
+
+const GRAHA_GLYPH: Record<string, string> = {
+  sun: "☉", moon: "☽", mercury: "☿", venus: "♀", mars: "♂",
+  jupiter: "♃", saturn: "♄", rahu: "☊", ketu: "☋",
+};
+
+/** Build wheel geometry from a vedic-jyotish NativeResult (sidereal, whole-sign). */
+export function vedicToWheel(native: NativeResult): WheelData | null {
+  const planets: WheelPlanet[] = [];
+  for (const id of Object.keys(GRAHA_GLYPH)) {
+    const factor = native.factors[id];
+    if (!factor) continue;
+    const v = factor.value as { longitude: number; retrograde?: boolean };
+    planets.push({ body: id, glyph: GRAHA_GLYPH[id], longitude: v.longitude, retrograde: !!v.retrograde });
+  }
+  if (planets.length === 0) return null;
+
+  const lagna = native.factors.lagna?.value as { longitude: number; signIndex: number } | undefined;
+  // Whole-sign houses: cusps sit at the 0° boundary of each sign from the Lagna.
+  const cusps = lagna ? Array.from({ length: 12 }, (_, i) => ((lagna.signIndex + i) % 12) * 30) : null;
+
+  // Graha drishti differs from Western angular aspects — omit aspect lines here.
+  return { planets, ascendant: lagna?.longitude ?? null, midheaven: null, cusps, aspects: [] };
+}
