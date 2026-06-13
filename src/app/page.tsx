@@ -7,6 +7,9 @@ export default async function Home() {
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-12 sm:py-16">
       <div className="mb-6 flex items-center justify-end gap-3 text-xs text-muted">
+        <a href="/synastry" className="rounded border border-border px-2 py-1 hover:text-foreground">
+          Synastry
+        </a>
         <a href="/about" className="rounded border border-border px-2 py-1 hover:text-foreground">
           About
         </a>
