@@ -12,7 +12,7 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 
 | id | status | lineage | time | place | source | dependsOn | phase |
 |---|---|---|---|---|---|---|---|
-| `western-tropical` | ✅ / 🟡 | traditional | ✓\* | ✓\* | ephemeris | — | 1 |
+| `western-tropical` | ✅ | traditional | (✓) | (✓) | ephemeris | — | 1 |
 | `vedic-jyotish` | ✅ | traditional | ✓ | ✓ | ephemeris | — | 2 |
 | `hellenistic` | ⬜ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
 | `chinese-bazi` | ✅ | traditional | ✓ | — | date | — | 2 |
@@ -31,10 +31,10 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 | `norse-runes` | ⬜ | modern-reconstruction | — | — | date | — | 3 |
 | `egyptian-decans` | ⬜ | traditional | — | — | ephemeris | — | 3 |
 
-\* `western-tropical` currently requires time+place (minimal Sun/Moon/Rising).
-Its full spec changes this to **`requires: {time:false, place:false}`** with
-graceful precision tiering — see deep-build notes. `dreamspell` ✅\* is built but
-emits no synthesis primitives by design (informational, modern-reconstruction).
+`(✓)` = optional but enriches output: `western-tropical` now runs date-only and
+adds detail as precision rises (signs → degrees+aspects → houses/angles).
+`dreamspell` ✅\* is built but emits no synthesis primitives by design
+(informational, modern-reconstruction).
 
 **Independence groups** (how synthesis counts sources): `ephemeris` =
 {western-tropical, vedic-jyotish, hellenistic, human-design, gene-keys,
@@ -119,7 +119,8 @@ within their group so a derived system never double-counts its parent.
 ## Build order (next)
 
 1. ~~Maya (`tzolkin` full + `dreamspell`)~~ — ✅ done (verified core, anchor tests pass).
-2. `western-tropical` full per spec — high value, validates cleanly.
+2. ~~`western-tropical` full per spec~~ — ✅ done (precision tiering, 12 bodies,
+   aspects, balances, lunar phase; cardinal-point + damping golden tests pass).
 3. `human-design` — encode standard tables + flag (decided); validate later.
 4. Persistence path + geocoding + shared chart-wheel component.
 5. Remaining Phase-2 systems (gene-keys, numerology-chaldean, tarot-birth-cards),
