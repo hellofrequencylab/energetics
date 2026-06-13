@@ -73,6 +73,11 @@ within their group so a derived system never double-counts its parent.
   tropical and Vedic sidereal charts via `westernToWheel`/`vedicToWheel`),
   ✅ ethics/lineage panel (on results + `/about`). ⬜ bodygraph (HD), aspect grid.
 
+- 🟡 **Interpretation corpus** — ✅ quick-guide tier: original prose for signs,
+  planets, numbers, day-signs, tones, arcana; surfaced inline ("Meanings" per
+  system card) + `GET /api/interpretations/:kind/:key`. ⬜ deep-dive tier +
+  pgvector retrieval (and nakshatra/animal/center prose).
+
 ### Original-vision features (beyond per-person charts)
 - ✅ **Transits (daily / seasonal advice)** — current sky vs natal: transit→natal
   aspects + seasonal Sun/Moon/phase (`src/lib/transits`, `/api/transits`, Today
