@@ -82,8 +82,8 @@ export interface RegisteredSystem {
 
 // --- Ephemeris utility (consumed by all ephemeris-derived engines) ----------
 
-/** Bodies the ephemeris resolves. South Node is derived (North + 180°). */
-export type Body =
+/** Always-resolvable bodies. South Node is derived (North + 180°). */
+export type CoreBody =
   | "sun"
   | "moon"
   | "mercury"
@@ -97,13 +97,22 @@ export type Body =
   | "northNode"
   | "southNode";
 
+/** All bodies, including ones that need ephemeris data files (Chiron). */
+export type Body = CoreBody | "chiron";
+
 export interface BodyLongitude {
   longitude: number; // ecliptic longitude 0-360°
   speed: number; // °/day; negative = retrograde
   retrograde: boolean;
 }
 
-export type PlanetaryLongitudes = Record<Body, BodyLongitude>;
+/**
+ * Core bodies are guaranteed; Chiron is optional because it requires the
+ * seas_*.se1 data file and is unavailable under the Moshier fallback.
+ */
+export type PlanetaryLongitudes = Record<CoreBody, BodyLongitude> & {
+  chiron?: BodyLongitude;
+};
 
 export interface HouseData {
   system: string;

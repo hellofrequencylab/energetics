@@ -10,8 +10,8 @@
  */
 import * as sweph from "sweph";
 import type {
-  Body,
   BodyLongitude,
+  CoreBody,
   EphemerisService,
   HouseData,
   PlanetaryLongitudes,
@@ -30,8 +30,8 @@ function init(): void {
   initialized = true;
 }
 
-/** sweph body ids. South Node is derived (North Node + 180°). */
-const BODY_IDS: Record<Exclude<Body, "southNode">, number> = {
+/** sweph body ids for the always-resolvable core. South Node is derived. */
+const BODY_IDS: Record<Exclude<CoreBody, "southNode">, number> = {
   sun: C.SE_SUN,
   moon: C.SE_MOON,
   mercury: C.SE_MERCURY,
@@ -42,8 +42,10 @@ const BODY_IDS: Record<Exclude<Body, "southNode">, number> = {
   uranus: C.SE_URANUS,
   neptune: C.SE_NEPTUNE,
   pluto: C.SE_PLUTO,
-  northNode: C.SE_TRUE_NODE,
+  northNode: C.SE_TRUE_NODE, // §8: defaulting to true node
 };
+
+const CHIRON_ID = C.SE_CHIRON;
 
 class SwissEphemerisService implements EphemerisService {
   readonly version: string;
@@ -64,12 +66,20 @@ class SwissEphemerisService implements EphemerisService {
     }
 
     const result = {} as PlanetaryLongitudes;
-    for (const body of Object.keys(BODY_IDS) as Exclude<Body, "southNode">[]) {
+    for (const body of Object.keys(BODY_IDS) as Exclude<CoreBody, "southNode">[]) {
       result[body] = this.bodyAt(jd, BODY_IDS[body], flags);
     }
     // Derive South Node opposite the North Node.
     const nn = result.northNode;
     result.southNode = { ...nn, longitude: norm360(nn.longitude + 180) };
+
+    // Chiron is optional: it needs the seas_*.se1 data file and is unavailable
+    // under the Moshier fallback — omit it cleanly rather than throwing.
+    try {
+      result.chiron = this.bodyAt(jd, CHIRON_ID, flags);
+    } catch {
+      /* Chiron unavailable without ephemeris data files. */
+    }
     return result;
   }
 

@@ -45,8 +45,23 @@ export const THEMES = [
 
 export type Theme = (typeof THEMES)[number];
 
-/** Phase 2 axes (declared now, populated as those systems land). */
-export const CENTERS: readonly string[] = [];
+/**
+ * Energy/body centers. Human Design natively fills this axis with its 9 centers
+ * (namespaced `hd:*`). A conservative crosswalk to a future 7-chakra set lives in
+ * crosswalks.ts — 9 ≠ 7, so it is deliberately partial.
+ */
+export const CENTERS = [
+  "hd:head",
+  "hd:ajna",
+  "hd:throat",
+  "hd:g",
+  "hd:heart",
+  "hd:sacral",
+  "hd:solar-plexus",
+  "hd:spleen",
+  "hd:root",
+] as const;
+
 export const DOMAINS = [
   "self",
   "resources",
