@@ -73,6 +73,13 @@ within their group so a derived system never double-counts its parent.
   tropical and Vedic sidereal charts via `westernToWheel`/`vedicToWheel`),
   ✅ ethics/lineage panel (on results + `/about`). ⬜ bodygraph (HD), aspect grid.
 
+### Original-vision features (beyond per-person charts)
+- ✅ **Transits (daily / seasonal advice)** — current sky vs natal: transit→natal
+  aspects + seasonal Sun/Moon/phase (`src/lib/transits`, `/api/transits`, Today
+  panel). Detects e.g. the solar return.
+- ⬜ **Synastry (connections with others)** — compare two charts (cross-aspects +
+  cross-system convergence). The remaining big original-vision feature.
+
 ## Deep-build notes (specs received)
 
 ### `western-tropical` 🟡 (flagship; primary ephemeris consumer)
