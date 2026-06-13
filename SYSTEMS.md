@@ -17,8 +17,8 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 | `hellenistic` | ⬜ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
 | `chinese-bazi` | ✅ | traditional | ✓ | — | date | — | 2 |
 | `zi-wei-dou-shu` | ⬜ | traditional | ✓ | — | date | — | 3 |
-| `tzolkin` | ✅ / 🟡 | traditional | — | — | date | — | 1 |
-| `dreamspell` | ⬜ / 🟡 | modern-reconstruction | — | — | date | — | 3 |
+| `tzolkin` | ✅ | traditional | — | — | date | — | 1 |
+| `dreamspell` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
 | `human-design` | ⬜ / 🟡 | hybrid | ✓ | ✓ | ephemeris | — | 1 |
 | `gene-keys` | ⬜ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
 | `numerology-pythagorean` | ✅ | traditional | — | — | date | — | 1 |
@@ -33,7 +33,8 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 
 \* `western-tropical` currently requires time+place (minimal Sun/Moon/Rising).
 Its full spec changes this to **`requires: {time:false, place:false}`** with
-graceful precision tiering — see deep-build notes.
+graceful precision tiering — see deep-build notes. `dreamspell` ✅\* is built but
+emits no synthesis primitives by design (informational, modern-reconstruction).
 
 **Independence groups** (how synthesis counts sources): `ephemeris` =
 {western-tropical, vedic-jyotish, hellenistic, human-design, gene-keys,
@@ -117,9 +118,9 @@ within their group so a derived system never double-counts its parent.
 
 ## Build order (next)
 
-1. Maya (`tzolkin` full + `dreamspell`) — verified drop-in, low risk.
+1. ~~Maya (`tzolkin` full + `dreamspell`)~~ — ✅ done (verified core, anchor tests pass).
 2. `western-tropical` full per spec — high value, validates cleanly.
-3. `human-design` — once a validation reference is supplied.
+3. `human-design` — encode standard tables + flag (decided); validate later.
 4. Persistence path + geocoding + shared chart-wheel component.
 5. Remaining Phase-2 systems (gene-keys, numerology-chaldean, tarot-birth-cards),
    then Phase-3 breadth.
