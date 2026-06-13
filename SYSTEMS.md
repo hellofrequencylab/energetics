@@ -77,8 +77,10 @@ within their group so a derived system never double-counts its parent.
 - ✅ **Transits (daily / seasonal advice)** — current sky vs natal: transit→natal
   aspects + seasonal Sun/Moon/phase (`src/lib/transits`, `/api/transits`, Today
   panel). Detects e.g. the solar return.
-- ⬜ **Synastry (connections with others)** — compare two charts (cross-aspects +
-  cross-system convergence). The remaining big original-vision feature.
+- ✅ **Synastry (connections with others)** — compare two charts: shared ground
+  (both charts converge on the same axis/value), complementary tensions (declared
+  oppositions split across the pair), and cross-chart aspects. `src/lib/synastry`,
+  `/api/synastry`, `/synastry` page. No single compatibility score.
 
 ## Deep-build notes (specs received)
 
