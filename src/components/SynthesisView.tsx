@@ -4,7 +4,9 @@ import { useState } from "react";
 import type { ComputeResponse, NarrateResponse } from "@/lib/api-types";
 import type { NarrativeResult } from "@/lib/synthesis/narrative";
 import { vedicToWheel, westernToWheel } from "@/lib/wheel";
+import { interpretationsFor } from "@/lib/corpus";
 import type { TransitsResult } from "@/lib/transits";
+import type { ComputedSystem } from "@/lib/synthesis/types";
 import { ChartWheel } from "./ChartWheel";
 import { EthicsPanel } from "./EthicsPanel";
 
@@ -153,6 +155,7 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
               ) : (
                 <p className="text-xs italic text-muted">Registered · no output yet (scaffold).</p>
               )}
+              <Meanings computation={c} />
               {c.meta.lineage !== "traditional" && (
                 <p className="mt-3 text-[10px] uppercase tracking-wide text-accent-2">{c.meta.lineage}</p>
               )}
@@ -196,6 +199,24 @@ function Pole({ value, sources }: { value: string; sources: string[] }) {
       <div className="font-medium">{humanizeValue(value)}</div>
       <div className="text-[11px] text-muted">{[...new Set(sources)].join(", ")}</div>
     </div>
+  );
+}
+
+function Meanings({ computation }: { computation: ComputedSystem }) {
+  const lines = interpretationsFor(computation.meta.id, computation.native);
+  if (lines.length === 0) return null;
+  return (
+    <details className="mt-3">
+      <summary className="cursor-pointer text-xs text-muted hover:text-foreground">Meanings</summary>
+      <ul className="mt-2 space-y-1.5">
+        {lines.map((l, i) => (
+          <li key={i} className="text-xs">
+            <span className="font-medium text-foreground/90">{l.label}</span>
+            <span className="text-muted"> — {l.text}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
