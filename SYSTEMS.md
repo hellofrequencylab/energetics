@@ -27,9 +27,9 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 | `nine-star-ki` | ⬜ | traditional | — | — | date | — | 3 |
 | `celtic-tree` | ⬜ | modern-reconstruction | — | — | date | — | 3 |
 | `mahabote` | ⬜ | traditional | — | — | date | — | 3 |
-| `akan-day-names` | ⬜ | traditional | — | — | date | — | 3 |
+| `akan-day-names` | ✅ | traditional | — | — | date | — | 3 |
 | `norse-runes` | ⬜ | modern-reconstruction | — | — | date | — | 3 |
-| `egyptian-decans` | ⬜ | traditional | — | — | ephemeris | — | 3 |
+| `egyptian-decans` | ✅ | traditional | — | — | ephemeris | — | 3 |
 
 `(✓)` = optional but enriches output: `western-tropical` now runs date-only and
 adds detail as precision rises (signs → degrees+aspects → houses/angles).
