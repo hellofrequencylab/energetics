@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { ComputeResponse, NarrateResponse } from "@/lib/api-types";
 import type { NarrativeResult } from "@/lib/synthesis/narrative";
+import { westernToWheel } from "@/lib/wheel";
+import { ChartWheel } from "./ChartWheel";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
 function humanizeValue(value: string): string {
@@ -15,6 +17,9 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
   const crossConfirmed = synthesis.convergences.filter((c) => c.independentGroups >= 2);
   const singleLens = synthesis.convergences.filter((c) => c.independentGroups < 2);
 
+  const western = computations.find((c) => c.meta.id === "western-tropical");
+  const wheel = western ? westernToWheel(western.native) : null;
+
   return (
     <div className="space-y-10">
       <header className="border-b border-border pb-4">
@@ -26,6 +31,18 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
           precision: {event.precision}
         </p>
       </header>
+
+      {/* Chart wheel (Western) ---------------------------------------------- */}
+      {wheel && (
+        <section className="rounded-xl border border-border bg-surface/40 p-4">
+          <ChartWheel data={wheel} />
+          {!wheel.cusps && (
+            <p className="mt-1 text-center text-xs text-muted">
+              Add a birth time + place to see houses and the Ascendant.
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Deterministic synthesis map ----------------------------------------- */}
       <section>

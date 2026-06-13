@@ -69,7 +69,9 @@ within their group so a derived system never double-counts its parent.
 - ✅ **Geocoding** — place search → lat/lng/tz via Open-Meteo (`/api/geocode` +
   form search). ⚠️ Needs `geocoding-api.open-meteo.com` on the egress allowlist
   (works on Vercel; falls back to presets/manual otherwise).
-- ⬜ **Shared presentation** — chart wheel (SVG), bodygraph, aspect grid, ethics panel
+- 🟡 **Shared presentation** — ✅ chart wheel (SVG: zodiac ring, houses, planets,
+  aspect lines; `src/components/ChartWheel.tsx` + `src/lib/wheel.ts`).
+  ⬜ bodygraph (HD), aspect grid, ethics panel.
 
 ## Deep-build notes (specs received)
 
