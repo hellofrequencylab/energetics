@@ -18,6 +18,20 @@ const ANIMAL_THEME: Record<string, string> = {
   Pig: "nurture",
 };
 
+/**
+ * Five-phase element → curated theme (registered in ontology THEMES). Defensible
+ * readings of each phase: wood grows and reaches outward, fire expresses and
+ * inspires, earth holds and tends, metal refines and discerns, water flows and
+ * senses beneath the surface.
+ */
+const ELEMENT_THEME: Record<string, string> = {
+  wood: "vision",
+  fire: "leadership",
+  earth: "nurture",
+  metal: "structure",
+  water: "intuition",
+};
+
 export const adapter: SemanticAdapter = {
   systemId: meta.id,
   ontologyVersion: ONTOLOGY_VERSION,
@@ -28,7 +42,7 @@ export const adapter: SemanticAdapter = {
     if (dm) {
       const { element, polarity } = dm.value as { element: string; polarity: string };
       if (element) {
-        // Namespaced Chinese element — links to Western elements only via crosswalks.
+        // Namespaced Chinese element, links to Western elements only via crosswalks.
         primitives.push({
           axis: "element",
           value: `chinese:${element}`,
@@ -37,8 +51,22 @@ export const adapter: SemanticAdapter = {
           derivedFrom: "date",
           native: { factorKey: "day-master", raw: dm.value },
         });
+        // Day Master element → theme. The element of the day stem is the core of a
+        // BaZi reading, so it earns a strong theme weight.
+        const elementTheme = ELEMENT_THEME[element];
+        if (elementTheme) {
+          primitives.push({
+            axis: "theme",
+            value: elementTheme,
+            weight: 0.8,
+            source: meta.id,
+            derivedFrom: "date",
+            native: { factorKey: "day-master", raw: dm.value },
+          });
+        }
       }
       if (polarity) {
+        // Yang → active, Yin → receptive.
         primitives.push({
           axis: "polarity",
           value: polarity === "Yang" ? "active" : "receptive",
@@ -46,6 +74,24 @@ export const adapter: SemanticAdapter = {
           source: meta.id,
           derivedFrom: "date",
           native: { factorKey: "day-master", raw: dm.value },
+        });
+      }
+    }
+
+    // Dominant element across the four pillars, a chart-wide element signal that
+    // complements the single Day Master element above. Carries a lighter weight
+    // since it is an aggregate rather than the core day stem.
+    const elementsFactor = native.factors.elements;
+    if (elementsFactor) {
+      const { dominant } = elementsFactor.value as { dominant: string };
+      if (dominant) {
+        primitives.push({
+          axis: "element",
+          value: `chinese:${dominant}`,
+          weight: 0.5,
+          source: meta.id,
+          derivedFrom: "date",
+          native: { factorKey: "elements", raw: elementsFactor.value },
         });
       }
     }

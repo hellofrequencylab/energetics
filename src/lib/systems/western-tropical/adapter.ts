@@ -48,6 +48,24 @@ const MODALITY_THEME: Record<string, string> = {
   mutable: "exploration",
 };
 
+/**
+ * §5b element → theme crosswalk. Each Western element has a natural keynote: fire
+ * initiates, earth builds, air connects, water feels. Used for the overall chart
+ * signature so a dominant element adds a cross-system theme, not just an element.
+ */
+const ELEMENT_THEME: Record<string, string> = {
+  fire: "leadership",
+  earth: "structure",
+  air: "communication",
+  water: "sensitivity",
+};
+
+/**
+ * Chart-level signature weights. Damped below any single luminary (0.9) so the
+ * whole-chart read informs convergence without drowning out specific placements.
+ */
+const SIGNATURE_WEIGHT = 0.5;
+
 /** §5c body → themes. */
 const BODY_THEMES: Record<string, string[]> = {
   sun: ["sovereignty", "leadership"],
@@ -128,6 +146,22 @@ export const adapter: SemanticAdapter = {
         const themes = new Set([...(SIGN_THEMES[a.signIndex] ?? []), MODALITY_THEME[sign.modality]]);
         for (const t of themes) if (t) emit("theme", t, w, "ascendant", a);
       }
+    }
+
+    // Overall chart signature: one element, one polarity, one modality theme, and
+    // one element theme for the whole nativity. Damped so it nudges convergence
+    // rather than dominating. `balanced` polarity is a registered, meaningful term.
+    const dominant = native.factors.dominant;
+    if (dominant) {
+      const d = dominant.value as {
+        element: string;
+        modality: string;
+        polarity: string;
+      };
+      if (d.element) emit("element", `western:${d.element}`, SIGNATURE_WEIGHT, "dominant", d);
+      if (d.polarity) emit("polarity", d.polarity, SIGNATURE_WEIGHT, "dominant", d);
+      const signatureThemes = new Set([ELEMENT_THEME[d.element], MODALITY_THEME[d.modality]]);
+      for (const t of signatureThemes) if (t) emit("theme", t, SIGNATURE_WEIGHT, "dominant", d);
     }
 
     return primitives;

@@ -23,9 +23,21 @@ export const MAJOR_ARCANA = [
 
 const sumDigits = (n: number) => String(n).split("").reduce((s, d) => s + Number(d), 0);
 
+/** Build the native card value for a Major Arcana index (0..21). */
+const cardAt = (index: number) => ({ card: MAJOR_ARCANA[index], number: index });
+
 /**
  * Birth cards from the full date digits: reduce to ≤22 for the Personality card
  * (22 ≡ The Fool/0), then to a single digit for the Soul card.
+ *
+ * A teacher card is surfaced from the same numeric family as the Soul card: the
+ * Major Arcana whose number is the single-digit Soul number plus nine. Soul (1..9)
+ * and Soul+9 reduce to the same root, so they form a constellation, two octaves
+ * of one lesson. The teacher is the higher-numbered octave, the more demanding
+ * face of the same theme. It is emitted only when Soul+9 is a real Major (<= 21)
+ * and differs from the Personality card, so it never just repeats another factor.
+ * This is a pure function of the birth date and reuses the existing reduction
+ * logic only (no clock, no current-year input).
  */
 export const engine: SystemEngine = {
   meta,
@@ -40,22 +52,33 @@ export const engine: SystemEngine = {
     while (soulN > 9) soulN = sumDigits(soulN);
     const soul = soulN % 22;
 
-    return {
-      systemId: meta.id,
-      factors: {
-        personality: {
-          key: "personality",
-          label: "Personality Card",
-          value: { card: MAJOR_ARCANA[personality], number: personality },
-          display: `${MAJOR_ARCANA[personality]} (${personality})`,
-        },
-        soul: {
-          key: "soul",
-          label: "Soul Card",
-          value: { card: MAJOR_ARCANA[soul], number: soul },
-          display: `${MAJOR_ARCANA[soul]} (${soul})`,
-        },
+    const factors: NativeResult["factors"] = {
+      personality: {
+        key: "personality",
+        label: "Personality Card",
+        value: cardAt(personality),
+        display: `${MAJOR_ARCANA[personality]} (${personality})`,
+      },
+      soul: {
+        key: "soul",
+        label: "Soul Card",
+        value: cardAt(soul),
+        display: `${MAJOR_ARCANA[soul]} (${soul})`,
       },
     };
+
+    // Teacher card: the higher octave in the Soul card's numeric family (Soul+9).
+    // Emitted only when it is a real Major and not already the Personality card.
+    const teacherN = soul + 9;
+    if (teacherN <= 21 && teacherN !== personality) {
+      factors.teacher = {
+        key: "teacher",
+        label: "Teacher Card",
+        value: cardAt(teacherN),
+        display: `${MAJOR_ARCANA[teacherN]} (${teacherN})`,
+      };
+    }
+
+    return { systemId: meta.id, factors };
   },
 };

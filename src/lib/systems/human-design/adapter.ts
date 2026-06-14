@@ -21,21 +21,30 @@ const AUTHORITY_THEME: Record<string, string> = {
   Lunar: "sensitivity",
 };
 
-/** Center → namespaced ontology value + functional theme(s). */
-const CENTER_MAP: Record<CenterId, { value: string; themes: string[] }> = {
-  Head: { value: "hd:head", themes: ["vision"] },
-  Ajna: { value: "hd:ajna", themes: ["analysis"] },
-  Throat: { value: "hd:throat", themes: ["communication"] },
-  G: { value: "hd:g", themes: ["sovereignty", "vision"] },
-  Heart: { value: "hd:heart", themes: ["discipline", "sovereignty"] },
-  Sacral: { value: "hd:sacral", themes: ["nurture", "structure"] },
-  SolarPlexus: { value: "hd:solar-plexus", themes: ["sensitivity"] },
-  Spleen: { value: "hd:spleen", themes: ["intuition"] },
-  Root: { value: "hd:root", themes: ["discipline"] },
+/** Center → namespaced ontology value + functional theme(s) + life domain. */
+const CENTER_MAP: Record<CenterId, { value: string; themes: string[]; domain: string }> = {
+  Head: { value: "hd:head", themes: ["vision"], domain: "philosophy" },
+  Ajna: { value: "hd:ajna", themes: ["analysis"], domain: "philosophy" },
+  Throat: { value: "hd:throat", themes: ["communication"], domain: "communication" },
+  G: { value: "hd:g", themes: ["sovereignty", "vision"], domain: "self" },
+  Heart: { value: "hd:heart", themes: ["discipline", "sovereignty"], domain: "resources" },
+  Sacral: { value: "hd:sacral", themes: ["nurture", "structure"], domain: "vocation" },
+  SolarPlexus: { value: "hd:solar-plexus", themes: ["sensitivity"], domain: "relationship" },
+  Spleen: { value: "hd:spleen", themes: ["intuition"], domain: "service-health" },
+  Root: { value: "hd:root", themes: ["discipline"], domain: "transformation" },
 };
 
 const PROFILE_LINE_THEME: Record<number, string> = {
   1: "analysis", 2: "intuition", 3: "exploration", 4: "devotion", 5: "leadership", 6: "vision",
+};
+
+/** Definition (how defined centers connect) → a structural theme + polarity. */
+const DEFINITION_MAP: Record<string, { theme?: string; polarity?: string }> = {
+  None: { polarity: "receptive" }, // Reflector: nothing fixed, all open
+  Single: { theme: "sovereignty" }, // one self-contained, continuous flow
+  Split: { theme: "communication" }, // two areas that look for a bridge
+  "Triple Split": { theme: "communication" },
+  "Quadruple Split": { theme: "communication" },
 };
 
 export const adapter: SemanticAdapter = {
@@ -62,7 +71,8 @@ export const adapter: SemanticAdapter = {
         const m = CENTER_MAP[center];
         emit("center", m.value, 0.7, "centers", center);
         for (const t of m.themes) emit("theme", t, 0.7, "centers", center);
-        if (center === "Spleen") emit("domain", "service-health", 0.6, "centers", center);
+        // A defined center is a consistent, self-generated area of life.
+        emit("domain", m.domain, 0.6, "centers", center);
       }
     }
 
@@ -72,6 +82,13 @@ export const adapter: SemanticAdapter = {
         const theme = PROFILE_LINE_THEME[Number(part)];
         if (theme) emit("theme", theme, 0.5, "profile", profile);
       }
+    }
+
+    const definition = native.factors.definition?.value as string | undefined;
+    if (definition && DEFINITION_MAP[definition]) {
+      const d = DEFINITION_MAP[definition];
+      if (d.theme) emit("theme", d.theme, 0.55, "definition", definition);
+      if (d.polarity) emit("polarity", d.polarity, 0.55, "definition", definition);
     }
 
     return primitives;

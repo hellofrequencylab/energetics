@@ -386,6 +386,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "A real page for each system",
+    notes: [
+      "Every system now has an in-depth page: what it is, how to read your result, how it applies to your life, and a plain meaning for each of your stats.",
+      "We added more detail to each reading and more connections between systems, so it is easier to see what is strong, what is a tension, and who you are in each tradition.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Name numerology is here",
     notes: [
       "Add your full name to read name numerology, the numbers in the letters of your name.",
