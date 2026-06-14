@@ -53,6 +53,8 @@ const STEPS = [
 const ctaPrimary =
   "inline-block rounded-[12px] bg-horizon-amber px-7 py-3.5 text-base font-semibold text-ink shadow-[0_10px_45px_-10px_rgba(231,177,126,0.6)] transition-[transform,filter] duration-[160ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:brightness-110";
 
+const eyebrow = "text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber";
+
 export default function WelcomePage() {
   const counts = lineageCounts();
 
@@ -75,33 +77,31 @@ export default function WelcomePage() {
         </nav>
       </header>
 
-      <section className="relative flex min-h-[92svh] items-center overflow-hidden">
-        {/* Cinematic photo: optimized + preloaded, slow Ken Burns, scroll parallax. */}
-        <div className="absolute inset-0 -z-20 par-slow">
-          <div className="absolute inset-0 kenburns">
-            <Image src="/hero-sky.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
-          </div>
+      {/* Cinematic hero. isolate + positive z so the photo layers correctly. */}
+      <section className="relative isolate flex min-h-[92svh] items-center overflow-hidden bg-midnight">
+        <div className="absolute inset-0 par-slow">
+          <Image src="/hero-sky.jpg" alt="" fill priority sizes="100vw" className="kenburns object-cover" />
         </div>
         <div
-          className="absolute inset-0 -z-10"
+          className="absolute inset-0"
           aria-hidden="true"
           style={{
             background:
-              "radial-gradient(58% 50% at 50% 52%, rgba(10,10,20,0.55), transparent 72%), linear-gradient(to bottom, rgba(18,21,53,0.35) 0%, rgba(18,21,53,0) 28%, rgba(18,21,53,0.86) 90%, var(--midnight) 100%)",
+              "radial-gradient(58% 45% at 50% 50%, rgba(8,8,18,0.5), transparent 74%), linear-gradient(to bottom, rgba(18,21,53,0.25) 0%, rgba(18,21,53,0.05) 28%, rgba(18,21,53,0.82) 88%, var(--midnight) 100%)",
           }}
         />
-        <Starfield count={40} className="absolute inset-0 -z-10 opacity-60" />
+        <Starfield count={36} className="absolute inset-0 opacity-50" />
 
-        <div className="mx-auto max-w-2xl px-5 py-20 text-center">
-          <div className="relative mx-auto mb-9 aspect-[4/3] w-full max-w-xs">
+        <div className="relative z-10 mx-auto max-w-2xl px-5 py-20 text-center">
+          <div className="relative mx-auto mb-8 aspect-[5/4] w-full max-w-sm">
             <svg
-              viewBox="0 0 400 300"
+              viewBox="0 0 400 320"
               className="spin-slow absolute inset-0 h-full w-full opacity-40"
-              style={{ "--spin-dur": "90s" } as React.CSSProperties}
+              style={{ "--spin-dur": "100s" } as React.CSSProperties}
               aria-hidden="true"
             >
-              <ellipse cx="200" cy="150" rx="150" ry="112" fill="none" stroke="var(--horizon-amber)" strokeOpacity="0.25" strokeWidth="0.75" />
-              <ellipse cx="200" cy="150" rx="120" ry="90" fill="none" stroke="var(--star)" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="2 6" />
+              <ellipse cx="200" cy="160" rx="158" ry="120" fill="none" stroke="var(--horizon-amber)" strokeOpacity="0.22" strokeWidth="0.6" />
+              <ellipse cx="200" cy="160" rx="125" ry="95" fill="none" stroke="var(--star)" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="2 7" />
             </svg>
             <ConvergenceGraph className="relative h-full w-full" />
           </div>
@@ -109,8 +109,8 @@ export default function WelcomePage() {
           <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">
             Many traditions. <span className="shimmer-text">One sky.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-star/80 sm:text-xl">
-            See your birth moment through every tradition, and where they agree.
+          <p className="mx-auto mt-6 max-w-xl text-lg text-star/85 sm:text-xl">
+            See your birth moment through every tradition, and read where they agree.
           </p>
           <div className="mt-9 flex flex-col items-center gap-3">
             <CenterCTA className={ctaPrimary}>{CTA_LABEL}</CenterCTA>
@@ -118,10 +118,9 @@ export default function WelcomePage() {
           </div>
         </div>
 
-        {/* Quiet scroll cue (replaces the tab). */}
         <CenterCTA
           ariaLabel="Scroll to begin"
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-star/50 transition hover:text-star"
+          className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-star/50 transition hover:text-star"
         >
           <svg viewBox="0 0 24 14" className="float h-3.5 w-7" aria-hidden="true">
             <path d="M2 3 L12 11 L22 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -142,11 +141,14 @@ export default function WelcomePage() {
         </Reveal>
       </section>
 
-      <section id="how" className="relative scroll-mt-20 overflow-hidden border-t border-white/5 px-5 py-24 sm:py-28">
+      <section id="how" className="relative isolate scroll-mt-20 overflow-hidden border-t border-white/5 px-5 py-24 sm:py-28">
         <Starfield count={24} className="par-fast absolute inset-0 -z-10 opacity-25" />
         <div className="mx-auto max-w-5xl">
           <Reveal>
-            <h2 className="text-center font-display text-3xl font-semibold sm:text-4xl">How it works</h2>
+            <div className="text-center">
+              <p className={eyebrow}>Three steps</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">How it works</h2>
+            </div>
           </Reveal>
           <ol className="mt-12 grid gap-6 sm:grid-cols-3">
             {STEPS.map((s, i) => (
@@ -177,7 +179,8 @@ export default function WelcomePage() {
           </Reveal>
           <Reveal delay={120}>
             <div>
-              <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl">
+              <p className={eyebrow}>The difference</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">
                 When separate traditions land on the same truth
               </h2>
               <p className="mt-5 text-star/75">
@@ -196,7 +199,8 @@ export default function WelcomePage() {
       <section id="systems" className="scroll-mt-20 bg-bone px-5 py-28 text-ink">
         <div className="mx-auto max-w-3xl">
           <Reveal>
-            <h2 className="font-display text-3xl font-semibold sm:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#9a7b53]">Integrity</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Each tradition, true to its roots
             </h2>
             <p className="mt-5 text-ink/75">
@@ -213,7 +217,7 @@ export default function WelcomePage() {
               { n: counts.modernReconstruction, label: "Modern reconstructions" },
             ].map((stat, i) => (
               <Reveal key={i} delay={i * 120}>
-                <div className="rounded-[16px] border border-ink/10 bg-white/50 p-6">
+                <div className="rounded-[16px] border border-ink/10 bg-white/60 p-6 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
                   <div className="font-display text-4xl font-semibold">
                     <CountUp to={stat.n} />
                   </div>
@@ -223,20 +227,14 @@ export default function WelcomePage() {
             ))}
           </div>
           <Reveal delay={200}>
-            <Link href="/help#systems" className="mt-8 inline-block text-sm font-semibold text-ink underline">
+            <Link href="/help#systems" className="mt-8 inline-block text-sm font-semibold text-ink underline underline-offset-4">
               See every system
             </Link>
           </Reveal>
         </div>
       </section>
 
-      <section
-        className="relative overflow-hidden px-5 py-28 text-center"
-        style={{
-          background:
-            "radial-gradient(120% 90% at 50% 0%, rgba(231,177,126,0.2), transparent 60%), var(--midnight)",
-        }}
-      >
+      <section className="relative isolate overflow-hidden px-5 py-28 text-center" style={{ background: "radial-gradient(120% 90% at 50% 0%, rgba(231,177,126,0.2), transparent 60%), var(--midnight)" }}>
         <Starfield count={30} className="absolute inset-0 -z-10 opacity-50" />
         <Reveal>
           <div className="mx-auto max-w-2xl">
@@ -255,29 +253,29 @@ export default function WelcomePage() {
 
   const footer = (
     <>
-    <footer className="border-t border-white/5 px-5 py-12 text-sm text-star/60">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-star">
-            <ConvergenceGraph animated={false} className="h-5 w-7" label="OneSky" />
-            <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
+      <footer className="border-t border-white/5 px-5 py-12 text-sm text-star/60">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-star">
+              <ConvergenceGraph animated={false} className="h-5 w-7" label="OneSky" />
+              <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
+            </div>
+            <p className="mt-2">Many traditions. One sky.</p>
           </div>
-          <p className="mt-2">Many traditions. One sky.</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/help" className="hover:text-star">Help</Link>
+            <Link href="/about" className="hover:text-star">About</Link>
+            <a href="mailto:hello@onesky.app" className="hover:text-star">Contact</a>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <Link href="/help" className="hover:text-star">Help</Link>
-          <Link href="/about" className="hover:text-star">About</Link>
-          <a href="mailto:hello@onesky.app" className="hover:text-star">Contact</a>
-        </div>
-      </div>
-      <p className="mx-auto mt-8 w-full max-w-5xl text-star/40">Your birth data stays yours.</p>
-    </footer>
+        <p className="mx-auto mt-8 w-full max-w-5xl text-star/40">Your birth data stays yours.</p>
+      </footer>
 
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
-      <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink">
-        {CTA_LABEL}
-      </CenterCTA>
-    </div>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
+        <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink">
+          {CTA_LABEL}
+        </CenterCTA>
+      </div>
     </>
   );
 
