@@ -197,6 +197,25 @@ export const CATEGORIES: HelpCategory[] = [
           },
         ],
       },
+      {
+        slug: "your-reading",
+        title: "Your reading, written live",
+        summary: "Optional prose over the synthesis. It reads the structure, never computes it.",
+        body: [
+          {
+            type: "p",
+            text: "After the convergences and tensions are computed, you can ask for a reading: plain prose that walks through what the structure shows. Choose write my reading and it streams in live, a little at a time, so you can start reading right away.",
+          },
+          {
+            type: "p",
+            text: "The reading only describes the synthesis above it. It never invents a convergence, a tension, or a score, and it leads with the threads the most independent traditions agree on. The resonance page has its own reading, written through the lens you pick, platonic or intimate.",
+          },
+          {
+            type: "p",
+            text: "A reading is saved once it is written, so opening the same chart again brings it back instantly without writing it from scratch. Pick rewrite any time you want to see it again.",
+          },
+        ],
+      },
     ],
   },
   {
@@ -235,6 +254,21 @@ export const CATEGORIES: HelpCategory[] = [
           {
             type: "p",
             text: "When you sign in and save a chart, your birth data is stored under your account and protected by row level security, so only you can read it. You can ask us to remove it at any time.",
+          },
+        ],
+      },
+      {
+        slug: "edit-a-chart",
+        title: "Edit or correct a saved chart",
+        summary: "Fix a birth date, time, or place, and the reading updates.",
+        body: [
+          {
+            type: "p",
+            text: "Open a saved chart and find edit birth data under manage. You can change the date, the time, or the birthplace, or mark the time or place as unknown.",
+          },
+          {
+            type: "p",
+            text: "When you save, OneSky recomputes the chart from the corrected data. The precision and timezone are worked out for you, and the synthesis and reading update to match. You can also rename a chart or, for practitioner accounts, keep private notes on it.",
           },
         ],
       },
@@ -332,6 +366,16 @@ export const FAQ: FaqItem[] = [
  * CHANGELOG.md.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-14",
+    title: "Readings write live, and you can edit a chart",
+    notes: [
+      "Your reading now streams in live as it is written, over the synthesis it reads and never computes.",
+      "The resonance page has its own reading, written through the lens you pick, platonic or intimate.",
+      "A reading is saved once written, so reopening a chart brings it back instantly.",
+      "Edit a saved chart's birth date, time, or place, and the reading updates to match.",
+    ],
+  },
   {
     date: "2026-06-14",
     title: "OneSky is live",

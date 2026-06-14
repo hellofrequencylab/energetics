@@ -9,6 +9,7 @@ import type { ComputeResponse } from "@/lib/api-types";
 import { SynthesisView } from "@/components/SynthesisView";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
 import { ChartManager } from "@/components/account/ChartManager";
+import { EditBirthData } from "@/components/account/EditBirthData";
 
 export const runtime = "nodejs";
 
@@ -64,7 +65,7 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
           {row.name || "Saved chart"}
         </h1>
 
-        <div className="mt-6">
+        <div className="mt-6 grid gap-4">
           <ChartManager
             id={row.id}
             initialName={row.name ?? ""}
@@ -72,6 +73,14 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
             practitioner={practitioner}
             isPrimary={profile?.primary_chart_id === row.id}
             primaryChartId={profile?.primary_chart_id ?? null}
+          />
+          <EditBirthData
+            id={row.id}
+            date={row.date}
+            time={row.time}
+            lat={row.lat}
+            lng={row.lng}
+            tz={row.tz}
           />
         </div>
 

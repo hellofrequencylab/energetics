@@ -7,6 +7,7 @@ Format: Status, Context, Decision, Consequences. Keep each to a page.
 
 | ADR | Title | Status |
 |---|---|---|
+| 0005 | [Stream the narrative and cache it content-addressed](0005-narrative-streaming-cache.md) | Accepted |
 | 0004 | [Bundle the sweph native binary into serverless functions](0004-bundle-sweph-prebuilds.md) | Accepted |
 | 0003 | [PKCE magic-link sign in with a server callback](0003-pkce-magic-link-callback.md) | Accepted |
 | 0002 | [Host OneSky in an isolated `energetics` schema](0002-isolated-energetics-schema.md) | Accepted |

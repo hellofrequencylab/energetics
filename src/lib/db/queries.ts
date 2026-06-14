@@ -177,15 +177,34 @@ export async function listSavedCharts(supabase: DbClient, limit = 50) {
   }[];
 }
 
-/** Update a saved chart's editable fields (name, practitioner notes). RLS-scoped. */
+/**
+ * Update a saved chart's editable fields. RLS-scoped. Covers the metadata
+ * (name, practitioner notes) and the birth data itself (date, time, place, with
+ * its derived precision), so a chart can be corrected after saving.
+ */
 export async function updateBirthEvent(
   supabase: DbClient,
   id: string,
-  input: { name?: string | null; notes?: string | null },
+  input: {
+    name?: string | null;
+    notes?: string | null;
+    date?: string;
+    time?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    tz?: string | null;
+    precision?: string;
+  },
 ): Promise<void> {
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name;
   if (input.notes !== undefined) patch.notes = input.notes;
+  if (input.date !== undefined) patch.date = input.date;
+  if (input.time !== undefined) patch.time = input.time;
+  if (input.lat !== undefined) patch.lat = input.lat;
+  if (input.lng !== undefined) patch.lng = input.lng;
+  if (input.tz !== undefined) patch.tz = input.tz;
+  if (input.precision !== undefined) patch.precision = input.precision;
   if (Object.keys(patch).length === 0) return;
   const { error } = await supabase.from("birth_events").update(patch).eq("id", id);
   if (error) throw error;
