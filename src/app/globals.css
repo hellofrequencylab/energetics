@@ -113,11 +113,131 @@ body {
 .cg-node {
   transform-box: fill-box;
   transform-origin: center;
-  animation: cg-node-light var(--dur-base) var(--ease) both;
-  animation-delay: var(--cg-node-delay, 650ms);
+  /* Entrance plays once, then a gentle ambient pulse keeps the node alive. */
+  animation:
+    cg-node-light var(--dur-base) var(--ease) var(--cg-node-delay, 650ms) both,
+    node-pulse 3s ease-in-out 2s infinite alternate;
 }
 
-/* Reduced motion: render the settled state at once. No drawing, no looping. */
+@keyframes node-pulse {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
+}
+
+/* Scroll reveal: hidden, then rises and fades in when it enters the viewport.
+   GPU-only (transform and opacity). Stagger via --reveal-delay. */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity var(--dur-base) var(--ease),
+    transform var(--dur-base) var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: transform, opacity;
+}
+.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Ambient vector motion (subtle, GPU-only). */
+@keyframes twinkle {
+  from { opacity: var(--tw-min, 0.2); }
+  to { opacity: var(--tw-max, 0.9); }
+}
+.star-twinkle {
+  animation: twinkle var(--tw-dur, 3s) ease-in-out var(--tw-delay, 0ms) infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -8px, 0); }
+}
+.float {
+  animation: drift var(--float-dur, 7s) ease-in-out var(--float-delay, 0ms) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.spin-slow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin-slow var(--spin-dur, 80s) linear infinite;
+}
+.spin-rev {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin-slow var(--spin-dur, 120s) linear infinite reverse;
+}
+
+@keyframes aurora {
+  0% { transform: translate3d(-3%, 0, 0) scale(1.05); }
+  50% { transform: translate3d(3%, 2%, 0) scale(1.12); }
+  100% { transform: translate3d(-3%, 0, 0) scale(1.05); }
+}
+.aurora {
+  animation: aurora 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(
+    100deg,
+    var(--star) 30%,
+    var(--horizon-amber) 50%,
+    var(--star) 70%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Scroll-linked parallax via the Scroll-driven Animations API where supported.
+   Progressive enhancement: static elsewhere, and off under reduced motion. */
+@keyframes par-up {
+  to { transform: translateY(-70px); }
+}
+@keyframes par-up-fast {
+  to { transform: translateY(-150px); }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .par-slow {
+      animation: par-up linear both;
+      animation-timeline: scroll(root block);
+    }
+    .par-fast {
+      animation: par-up-fast linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+/* Hero photograph: cinematic slow zoom (Ken Burns). The file lives at
+   public/hero-sky.jpg. If absent, the layer is simply empty over the twilight
+   base, so the hero degrades gracefully. */
+.hero-photo {
+  background-image: url("/hero-sky.jpg");
+  background-size: cover;
+  background-position: center;
+}
+@keyframes kenburns {
+  from { transform: scale(1.06); }
+  to { transform: scale(1.2) translate3d(0, -2%, 0); }
+}
+.kenburns {
+  animation: kenburns 30s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Reduced motion: render settled states at once. No drawing, looping, or drift. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -126,5 +246,9 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
