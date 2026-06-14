@@ -81,7 +81,10 @@ export default function WelcomePage() {
 
   const hero = (
     <>
-      <header className="sticky top-0 z-30 border-b border-white/5 bg-midnight/60 backdrop-blur">
+      <header
+        data-welcome-header
+        className="sticky top-0 z-30 border-b border-white/5 bg-midnight/60 backdrop-blur"
+      >
         <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-3">
           <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">
             <ConvergenceGraph animated={false} className="h-6 w-8" label="OneSky" />
@@ -312,7 +315,10 @@ export default function WelcomePage() {
     <>
       <SiteFooter />
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
+      <div
+        data-welcome-cta
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden"
+      >
         <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
           {CTA_LABEL}
         </CenterCTA>

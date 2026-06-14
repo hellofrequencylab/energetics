@@ -6,6 +6,13 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Fixed
+- Welcome page on mobile: when the birth form locks into view, the competing chrome
+  (the welcome header and the bottom call-to-action bar) now hides and the form
+  becomes a focused, full-height panel, so only the form fills the screen. The form
+  also snaps to the top of the screen instead of the center. (`WelcomeShell.tsx`,
+  `welcome/page.tsx`, and the `intake-focus` rule in `globals.css`.)
+
 ### Added
 - A real design system (foundation). New UI primitives in `src/components/ui/`
   (`Container`/`PageHeader`, `Button`, `Card`, `Badge`, `Field`/`Input`/`Textarea`/
