@@ -13,7 +13,13 @@ const PRESETS = [
   { label: "Tokyo, Japan", lat: 35.6762, lng: 139.6503 },
 ];
 
-export function BirthForm() {
+export function BirthForm({
+  onResult,
+  submitLabel,
+}: {
+  onResult?: (data: ComputeResponse, intakeBody: unknown) => void;
+  submitLabel?: string;
+} = {}) {
   const [form, setForm] = useState({
     name: "",
     date: "1879-03-14",
@@ -68,8 +74,12 @@ export function BirthForm() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.details || json.error || "Request failed");
-      setIntakeBody(body);
-      setResult(json as ComputeResponse);
+      if (onResult) {
+        onResult(json as ComputeResponse, body);
+      } else {
+        setIntakeBody(body);
+        setResult(json as ComputeResponse);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -168,7 +178,7 @@ export function BirthForm() {
             disabled={loading}
             className="w-full rounded-lg bg-accent px-4 py-2.5 font-semibold text-[#1a1410] transition hover:brightness-110 disabled:opacity-50"
           >
-            {loading ? "Computing…" : "Compute chart & synthesize"}
+            {loading ? "Computing…" : (submitLabel ?? "Compute chart & synthesize")}
           </button>
           <p className="mt-2 text-center text-xs text-muted">
             More precision unlocks more systems: date · date+time · date+time+place.
