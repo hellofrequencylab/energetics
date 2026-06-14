@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { allMeta } from "@/lib/core/registry";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
+import { HeroConvergence } from "@/components/marketing/HeroConvergence";
 import { Starfield } from "@/components/marketing/Starfield";
 import { Reveal } from "@/components/marketing/Reveal";
 import { CenterCTA } from "@/components/marketing/CenterCTA";
@@ -88,25 +89,13 @@ export default function WelcomePage() {
           aria-hidden="true"
           style={{
             background:
-              "radial-gradient(58% 45% at 50% 50%, rgba(8,8,18,0.5), transparent 74%), linear-gradient(to bottom, rgba(18,21,53,0.25) 0%, rgba(18,21,53,0.05) 28%, rgba(18,21,53,0.82) 88%, var(--midnight) 100%)",
+              "radial-gradient(58% 45% at 50% 50%, rgba(8,8,18,0.42), transparent 76%), linear-gradient(to bottom, rgba(18,21,53,0.2) 0%, rgba(18,21,53,0.04) 28%, rgba(18,21,53,0.82) 88%, var(--midnight) 100%)",
           }}
         />
-        <Starfield count={36} className="absolute inset-0 opacity-50" />
+        <Starfield count={30} className="absolute inset-0 z-0 opacity-40" />
+        <HeroConvergence className="pointer-events-none absolute inset-0 z-0" />
 
         <div className="relative z-10 mx-auto max-w-2xl px-5 py-12 text-center">
-          <div className="relative mx-auto mb-6 aspect-[5/4] w-full max-w-xs">
-            <svg
-              viewBox="0 0 400 320"
-              className="spin-slow absolute inset-0 h-full w-full opacity-40"
-              style={{ "--spin-dur": "100s" } as React.CSSProperties}
-              aria-hidden="true"
-            >
-              <ellipse cx="200" cy="160" rx="158" ry="120" fill="none" stroke="var(--horizon-amber)" strokeOpacity="0.22" strokeWidth="0.6" />
-              <ellipse cx="200" cy="160" rx="125" ry="95" fill="none" stroke="var(--star)" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="2 7" />
-            </svg>
-            <ConvergenceGraph className="relative h-full w-full" />
-          </div>
-
           <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">
             Many traditions. <span className="shimmer-text">One sky.</span>
           </h1>
