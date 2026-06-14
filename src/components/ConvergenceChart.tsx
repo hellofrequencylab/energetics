@@ -228,8 +228,8 @@ export function ConvergenceChart({
       }
       const ax = pts.reduce((s, p) => s + p.x, 0) / pts.length;
       const ay = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-      const pull = 0.64; // out toward the supporting systems, clear of the center
-      return { key, ...g, x: C.x + (ax - C.x) * pull + Math.cos(a) * 10, y: C.y + (ay - C.y) * pull + Math.sin(a) * 10 };
+      const pull = 0.78; // out near the supporting systems, well clear of the central themes
+      return { key, ...g, x: C.x + (ax - C.x) * pull + Math.cos(a) * 6, y: C.y + (ay - C.y) * pull + Math.sin(a) * 6 };
     });
     return spreadGhosts(placed, convNodes);
   }, [synthesis.tensions, nodeByKey, posOf, convNodes]);
@@ -459,6 +459,8 @@ export function ConvergenceChart({
                       const b = poleXY(n.b);
                       const active = isSel(sel, "tension", n.i) || hover?.label === "Tension";
                       const featured = lens === "tensions";
+                      const mx = (a.x + b.x) / 2;
+                      const my = (a.y + b.y) / 2;
                       return (
                         <g key={`x${n.i}`}>
                           <line
@@ -470,25 +472,39 @@ export function ConvergenceChart({
                             strokeWidth={active || featured ? 2.6 : 1.4}
                             strokeOpacity={active ? 0.95 : 0.5}
                             strokeDasharray="5 5"
+                            style={{ pointerEvents: "none" }}
                           />
-                          <g
+                          {/* a wide invisible line makes the whole tension easy to hover or click */}
+                          <line
+                            x1={a.x}
+                            y1={a.y}
+                            x2={b.x}
+                            y2={b.y}
+                            stroke="#000"
+                            strokeOpacity={0}
+                            strokeWidth={16}
                             role="button"
                             tabIndex={0}
                             aria-label={`Tension: ${humanize(n.t.sides[0].value)} versus ${humanize(n.t.sides[1].value)}`}
                             className="cursor-pointer focus:outline-none"
+                            style={{ pointerEvents: "stroke" }}
                             onClick={() => setSel({ kind: "tension", i: n.i })}
                             onKeyDown={keyActivate(() => setSel({ kind: "tension", i: n.i }))}
                             onPointerEnter={() =>
                               !dragging &&
-                              setHover({ label: "Tension", sub: `${humanize(n.t.sides[0].value)} ⟷ ${humanize(n.t.sides[1].value)}`, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
+                              setHover({ label: "Tension", sub: `${humanize(n.t.sides[0].value)} ⟷ ${humanize(n.t.sides[1].value)}`, x: mx, y: my })
                             }
                             onPointerLeave={() => setHover(null)}
-                          >
-                            <circle cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={9} fill={VIOLET} fillOpacity={active ? 0.9 : 0.6} />
-                            <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 + 4} textAnchor="middle" fontSize={12} fill={INK} fontWeight={700} style={{ pointerEvents: "none" }}>
-                              ⟷
-                            </text>
-                          </g>
+                          />
+                          {/* the ⟷ badge appears only on hover or selection, so the map stays clean */}
+                          {active && (
+                            <g style={{ pointerEvents: "none" }}>
+                              <circle cx={mx} cy={my} r={9} fill={VIOLET} fillOpacity={0.95} />
+                              <text x={mx} y={my + 4} textAnchor="middle" fontSize={12} fill={INK} fontWeight={700}>
+                                ⟷
+                              </text>
+                            </g>
+                          )}
                         </g>
                       );
                     })}

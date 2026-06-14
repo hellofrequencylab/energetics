@@ -386,6 +386,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Cleaner tension lines",
+    notes: [
+      "The poles of a tension now sit out near the systems that hold them, so each tension reads as a clean line instead of crowding the center.",
+      "The ⟷ marker shows when you hover or select a tension, and drag either end to move the line with it.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Tidy a busy map, and lines that follow",
     notes: [
       "A new min connections slider on the map lets you show only the themes that connect a number of points you choose, so you can thin out a crowded chart.",
