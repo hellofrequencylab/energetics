@@ -6,6 +6,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Changed
+- Convergence map: cleaner tensions. Single-source tension poles (the small violet
+  "ghost" points) now sit out near the systems that hold them, clear of the central
+  themes, so each tension line reads as a clean diagonal instead of piling up in the
+  middle. The "⟷" marker now appears only when you hover or select a tension, rather
+  than sitting on every line. Both ends of every tension stay draggable and the line
+  follows, now covered by component tests (`ConvergenceChart.test.tsx`, run under
+  `npm run test` via a happy-dom docblock). (`ConvergenceChart.tsx`.)
+
 ### Added
 - Convergence map: a "min connections" control. A slider sets how many points a
   theme must connect (its threads to systems) before it shows, from 2 up to the
