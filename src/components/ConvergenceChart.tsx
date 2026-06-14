@@ -57,12 +57,11 @@ interface ConvNode {
   systemIds: string[];
 }
 type XY = { x: number; y: number };
-type Anchor = { node: ConvNode } | { xy: XY };
 interface TensionLink {
   t: Tension;
   i: number;
-  a: Anchor;
-  b: Anchor;
+  a: ConvNode;
+  b: ConvNode;
 }
 type View = "map" | "bars" | "arc" | "table";
 type Lens = "all" | "strengths" | "tensions";
@@ -171,24 +170,19 @@ export function ConvergenceChart({
   }, [synthesis.tensions]);
 
   const convPos = (n: ConvNode): XY => drag[n.i] ?? { x: n.bx, y: n.by };
-  const anchorPos = (a: Anchor): XY => ("node" in a ? convPos(a.node) : a.xy);
 
+  // A tension is only drawn between two visible convergence points, so it always
+  // connects two real, spread-out nodes (never collapsing onto the center).
+  // Tensions whose poles are not both convergences live in the table and below.
   const tensionLinks: TensionLink[] = useMemo(() => {
-    const centroid = (ids: string[]): XY => {
-      const pts = ids.map((id) => posOf.get(id)).filter((p): p is SystemNode => !!p);
-      if (!pts.length) return { ...C };
-      return {
-        x: C.x + (pts.reduce((s, p) => s + p.x, 0) / pts.length - C.x) * 0.5,
-        y: C.y + (pts.reduce((s, p) => s + p.y, 0) / pts.length - C.y) * 0.5,
-      };
-    };
-    const anchorFor = (axis: string, side: Tension["sides"][number]): Anchor => {
-      const node = nodeByKey.get(`${axis}::${side.value}`);
-      if (node) return { node };
-      return { xy: centroid([...new Set(side.contributors.map((c) => c.systemId))]) };
-    };
-    return synthesis.tensions.map((t, i) => ({ t, i, a: anchorFor(t.axis, t.sides[0]), b: anchorFor(t.axis, t.sides[1]) }));
-  }, [synthesis.tensions, nodeByKey, posOf]);
+    return synthesis.tensions
+      .map((t, i) => {
+        const a = nodeByKey.get(`${t.axis}::${t.sides[0].value}`);
+        const b = nodeByKey.get(`${t.axis}::${t.sides[1].value}`);
+        return a && b ? { t, i, a, b } : null;
+      })
+      .filter((n): n is TensionLink => !!n);
+  }, [synthesis.tensions, nodeByKey]);
 
   const showTensions = lens !== "strengths";
 
@@ -366,8 +360,8 @@ export function ConvergenceChart({
                   {/* tensions */}
                   {showTensions &&
                     tensionLinks.map((n) => {
-                      const a = anchorPos(n.a);
-                      const b = anchorPos(n.b);
+                      const a = convPos(n.a);
+                      const b = convPos(n.b);
                       const active = isSel(sel, "tension", n.i) || hover?.label === "Tension";
                       const featured = lens === "tensions";
                       return (

@@ -6,6 +6,12 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Fixed
+- Convergence map: tensions no longer collapse onto the center node. A tension is
+  drawn only between two visible convergence points, so it always connects two
+  real, spread-out themes. Tensions whose poles are not both convergences stay in
+  the table and the tensions list, not piled on the self node.
+
 ### Changed
 - The convergence map now shows only true convergences (themes two or more
   independent groups reached); single-source values stay in the system cards
