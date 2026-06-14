@@ -12,6 +12,7 @@ describe("system catalog", () => {
         "western-tropical",
         "human-design",
         "numerology-pythagorean",
+        "numerology-chaldean",
         "tzolkin",
         "chinese-bazi",
         "tarot-birth-cards",

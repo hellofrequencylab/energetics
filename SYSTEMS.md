@@ -27,7 +27,7 @@ and admin" below). `status` is the build state, independent of whether it is off
 | `hellenistic` | — | ✅ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
 | `gene-keys` | — | ✅ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
 | `zi-wei-dou-shu` | — | ✅† | traditional | ✓ | — | date | — | 3 |
-| `numerology-chaldean` | — | ✅ | traditional | — | — | name | — | 2 |
+| `numerology-chaldean` | ✅ | ✅ | traditional | — | — | name | — | 2 |
 | `nine-star-ki` | — | ✅ | traditional | — | — | date | — | 3 |
 | `celtic-tree` | — | ✅\* | modern-reconstruction | — | — | date | — | 3 |
 | `mahabote` | — | ✅ | traditional | — | — | date | — | 3 |

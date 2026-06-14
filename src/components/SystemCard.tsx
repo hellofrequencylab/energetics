@@ -90,6 +90,10 @@ export function SystemCard({
                 </li>
               )}
             </ul>
+          ) : c.meta.derivedFrom === "name" ? (
+            <p className="text-sm text-muted">
+              Add your full name to unlock this reading. Open this chart, edit it, and enter a name.
+            </p>
           ) : (
             <p className="text-sm italic text-muted">Registered, no output yet (scaffold).</p>
           )}
