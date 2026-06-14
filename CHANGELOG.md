@@ -6,6 +6,17 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Fixed
+- Convergence map: tensions whose poles are both single-source (for example
+  air vs earth when one tradition holds both) drew as a stray dot or a tiny line,
+  because both poles piled onto the same system and the spread scattered them. Now
+  every tension that involves a non-convergence pole gets its own angular slot out
+  near the ring: a two-pole-ghost tension is a clear chord, a one-ghost tension runs
+  from its central convergence out to the edge. Ghost poles are now fixed (not
+  draggable), so they no longer feel like loose, unconnected dots; the convergence
+  ends stay draggable and their lines follow. Covered by `ConvergenceChart.test.tsx`
+  (every tension draws a line longer than a threshold). (`ConvergenceChart.tsx`.)
+
 ### Changed
 - Convergence map: cleaner tensions. Single-source tension poles (the small violet
   "ghost" points) now sit out near the systems that hold them, clear of the central

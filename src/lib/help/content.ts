@@ -386,6 +386,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Every tension reads as a clear line",
+    notes: [
+      "Tensions held entirely by one tradition now spread out around the edge instead of bunching up, so each one is a clear line you can read.",
+      "Tension endpoints are now fixed in place; drag a theme to move its lines, and the rest stay put.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Cleaner tension lines",
     notes: [
       "The poles of a tension now sit out near the systems that hold them, so each tension reads as a clean line instead of crowding the center.",

@@ -204,38 +204,39 @@ export function ConvergenceChart({
   }, [maxConn]);
   const meetsConn = (n: ConvNode): boolean => n.systemIds.length >= minConn;
 
-  // Ghost poles: any tension pole whose value is not itself a convergence node
-  // gets a placed endpoint near the systems that hold it, so every tension can be
-  // drawn (not just the ones whose both poles cross-confirmed). Spread against the
-  // convergence nodes so nothing piles on the center or another point.
+  // Ghost poles: a tension pole whose value is not itself a convergence node still
+  // needs an endpoint to draw to. Rather than scatter them by their (often shared)
+  // systems, give each tension that involves a ghost its own angular slot out near
+  // the ring, so every tension reads as a clear, separated line: a two-ghost tension
+  // is a chord, a one-ghost tension runs from its central convergence out to the
+  // edge. Ghost poles are fixed (not draggable); the draggable convergence ends move
+  // and their lines follow.
   const ghostPoles: GhostPole[] = useMemo(() => {
-    const wanted = new Map<string, { axis: string; value: string; systemIds: string[] }>();
-    for (const t of synthesis.tensions) {
-      for (const side of t.sides) {
+    const ghostTensions = synthesis.tensions.filter((t) =>
+      t.sides.some((s) => !nodeByKey.has(`${t.axis}::${s.value}`)),
+    );
+    const N = Math.max(ghostTensions.length, 1);
+    const R = R_SYS * 0.84;
+    const DELTA = 0.5; // half-angle of a two-ghost chord (~29 degrees)
+    const placed: GhostPole[] = [];
+    const seen = new Set<string>();
+    ghostTensions.forEach((t, idx) => {
+      const slot = (idx / N) * Math.PI * 2 - Math.PI / 2;
+      const bothGhost = t.sides.every((s) => !nodeByKey.has(`${t.axis}::${s.value}`));
+      t.sides.forEach((side, sideIdx) => {
         const key = `${t.axis}::${side.value}`;
-        if (nodeByKey.has(key) || wanted.has(key)) continue;
+        if (nodeByKey.has(key) || seen.has(key)) return; // a convergence end, or already placed
+        seen.add(key);
         const systemIds = [...new Set(side.contributors.map((a) => a.systemId))].filter((id) => posOf.has(id));
-        wanted.set(key, { axis: t.axis, value: side.value, systemIds });
-      }
-    }
-    let k = 0;
-    const placed: GhostPole[] = [...wanted.entries()].map(([key, g]) => {
-      const pts = g.systemIds.map((id) => posOf.get(id)!).filter(Boolean);
-      const a = k++ * 2.39996;
-      if (!pts.length) {
-        // No known systems for this pole: seat it on the inner ring deterministically.
-        return { key, ...g, x: C.x + Math.cos(a) * R_SYS * 0.6, y: C.y + Math.sin(a) * R_SYS * 0.6 };
-      }
-      const ax = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-      const ay = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-      const pull = 0.78; // out near the supporting systems, well clear of the central themes
-      return { key, ...g, x: C.x + (ax - C.x) * pull + Math.cos(a) * 6, y: C.y + (ay - C.y) * pull + Math.sin(a) * 6 };
+        const ang = slot + (bothGhost ? (sideIdx === 0 ? -DELTA : DELTA) : 0);
+        placed.push({ key, axis: t.axis, value: side.value, systemIds, x: C.x + Math.cos(ang) * R, y: C.y + Math.sin(ang) * R });
+      });
     });
     return spreadGhosts(placed, convNodes);
   }, [synthesis.tensions, nodeByKey, posOf, convNodes]);
 
   const ghostByKey = useMemo(() => new Map(ghostPoles.map((g) => [g.key, g])), [ghostPoles]);
-  const ghostPos = (g: GhostPole): XY => drag[g.key] ?? { x: g.x, y: g.y };
+  const ghostPos = (g: GhostPole): XY => ({ x: g.x, y: g.y });
   const poleXY = (p: TensionPole): XY => (p.conv ? convPos(p.conv) : ghostPos(p.ghost!));
 
   // Every tension draws: each pole resolves to a convergence node (draggable) or a
@@ -509,8 +510,9 @@ export function ConvergenceChart({
                       );
                     })}
 
-                  {/* ghost poles: the tension endpoints that are not convergences.
-                      Draggable, so the tension line follows them too. */}
+                  {/* ghost poles: fixed endpoints for tension poles that are not
+                      convergences. Click to read the tension; the convergence end (if
+                      any) is the draggable one. */}
                   {showTensions &&
                     ghostPoles.map((g) => {
                       const p = ghostPos(g);
@@ -524,9 +526,9 @@ export function ConvergenceChart({
                           key={`g${g.key}`}
                           role="button"
                           tabIndex={0}
-                          aria-label={`${humanize(g.value)} tension pole. Drag to move, click for details.`}
-                          className="cursor-grab focus:outline-none active:cursor-grabbing"
-                          onPointerDown={(e) => onNodePointerDown(e, g.key, selectGhost)}
+                          aria-label={`${humanize(g.value)} tension pole. Click for details.`}
+                          className="cursor-pointer focus:outline-none"
+                          onClick={selectGhost}
                           onKeyDown={keyActivate(selectGhost)}
                           onPointerEnter={() => !dragging && setHover({ label: humanize(g.value), sub: "tension pole", x: p.x, y: p.y })}
                           onPointerLeave={() => setHover(null)}
@@ -841,7 +843,7 @@ function Legend() {
       {item("#6aa0cf", "Sky")}
       {item("#d4b072", "Calendar")}
       {item("#8b7dff", "Name")}
-      <span className="text-muted/70">Drag any point to move it; lines follow.</span>
+      <span className="text-muted/70">Drag a theme to move it; its tension lines follow.</span>
     </div>
   );
 }
