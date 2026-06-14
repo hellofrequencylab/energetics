@@ -144,6 +144,24 @@ Marketing: `SiteNav`, `Hero`, `EmpathyBeat`, `HowItWorks`, `ConvergenceShowcase`
 Web app shell: `AuthForms`, `BirthIntake`, `ChartView`, `ConvergenceGlimpse`,
 `Paywall`.
 
+## Standardized chrome
+
+Every page outside the immersive landing uses one shared chrome
+(`src/components/site/`): `SiteHeader` (wordmark, primary navigation, an
+auth-aware action), `SiteFooter` (brand, link columns, the plain privacy line),
+composed by `SiteShell` on the single app background. The landing keeps its
+bespoke hero header but shares `SiteFooter`. The palette is warm and high
+contrast: a warm dark background, warm off-white body text, and lighter secondary
+text, with a comfortable base type scale (see the tokens above).
+
+## Per-system diagrams
+
+Each tradition is drawn in its own traditional form from the computed data
+(`src/components/diagrams/`): the Human Design bodygraph, the BaZi four pillars,
+the Maya kin with a bar-and-dot tone, the Dreamspell signature, the Tarot birth
+cards, the numerology life path, and the Western chart wheel. All artwork is
+original and schematic, never a reproduction of a published deck or carved glyph.
+
 ## Landing page, section by section
 
 1. Hero (twilight). H1: "Many traditions. One sky." Subhead: "See your birth

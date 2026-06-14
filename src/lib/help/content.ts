@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "A warmer look, and a page for every system",
+    notes: [
+      "OneSky has a warmer, more readable look, with one consistent header and footer across the site.",
+      "Each system now has its own page: your details, the system and its lineage, your chart drawn in its traditional form, and how it connects to the other systems.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Each system now shows its own chart",
     notes: [
       "Every tradition draws in its own traditional form, from your data: the Human Design bodygraph, the BaZi four pillars, the Maya kin, the Dreamspell signature, your Tarot birth cards, and your numerology life path.",

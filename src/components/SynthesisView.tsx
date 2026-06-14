@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { ComputeResponse } from "@/lib/api-types";
 import { vedicToWheel, westernToWheel } from "@/lib/wheel";
 import { interpretationsFor } from "@/lib/corpus";
@@ -17,7 +18,16 @@ function humanizeValue(value: string): string {
   return bare.charAt(0).toUpperCase() + bare.slice(1);
 }
 
-export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; intakeBody: unknown }) {
+export function SynthesisView({
+  data,
+  intakeBody,
+  chartId,
+}: {
+  data: ComputeResponse;
+  intakeBody: unknown;
+  /** When set (a saved chart), each system links to its detail page. */
+  chartId?: string;
+}) {
   const { computations, unavailable, synthesis, event, name, ephemerisVersion } = data;
   const crossConfirmed = synthesis.convergences.filter((c) => c.independentGroups >= 2);
   const singleLens = synthesis.convergences.filter((c) => c.independentGroups < 2);
@@ -148,10 +158,27 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
           {computations.map((c) => (
             <div key={c.meta.id} className="rounded-xl border border-border bg-surface/40 p-5">
               <div className="mb-2 flex items-baseline justify-between gap-2">
-                <h4 className="font-semibold">{c.meta.displayName}</h4>
+                {chartId ? (
+                  <Link
+                    href={`/account/chart/${chartId}/system/${c.meta.id}`}
+                    className="font-semibold transition hover:text-accent"
+                  >
+                    {c.meta.displayName}
+                  </Link>
+                ) : (
+                  <h4 className="font-semibold">{c.meta.displayName}</h4>
+                )}
                 <span className="text-[10px] uppercase tracking-wide text-muted">{c.meta.derivedFrom}</span>
               </div>
               <SystemDiagram computation={c} />
+              {chartId && (
+                <Link
+                  href={`/account/chart/${chartId}/system/${c.meta.id}`}
+                  className="mb-2 inline-block text-xs text-accent transition hover:underline"
+                >
+                  View details and connections →
+                </Link>
+              )}
               {Object.values(c.native.factors).length ? (
                 <ul className="space-y-1.5">
                   {Object.values(c.native.factors).map((f) => (

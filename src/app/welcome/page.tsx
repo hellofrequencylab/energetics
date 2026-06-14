@@ -9,6 +9,7 @@ import { Reveal } from "@/components/marketing/Reveal";
 import { CenterCTA } from "@/components/marketing/CenterCTA";
 import { CountUp } from "@/components/marketing/CountUp";
 import { WelcomeShell } from "@/components/marketing/WelcomeShell";
+import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const metadata: Metadata = {
   title: "OneSky · Many traditions. One sky.",
@@ -254,23 +255,7 @@ export default function WelcomePage() {
 
   const footer = (
     <>
-      <footer className="border-t border-white/5 px-5 py-12 text-sm text-star/60">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-star">
-              <ConvergenceGraph animated={false} className="h-5 w-7" label="OneSky" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
-            </div>
-            <p className="mt-2">Many traditions. One sky.</p>
-          </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="/help" className="hover:text-star">Help</Link>
-            <Link href="/about" className="hover:text-star">About</Link>
-            <a href="mailto:hello@onesky.app" className="hover:text-star">Contact</a>
-          </div>
-        </div>
-        <p className="mx-auto mt-8 w-full max-w-5xl text-star/40">Your birth data stays yours.</p>
-      </footer>
+      <SiteFooter />
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
         <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">

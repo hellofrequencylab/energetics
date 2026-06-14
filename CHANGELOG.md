@@ -7,6 +7,13 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- A standardized site header (wordmark, navigation, auth-aware action) and a
+  comprehensive footer (`src/components/site/`), applied across every page through
+  a shared `SiteShell`.
+- A per-system detail page (`/account/chart/[id]/system/[systemId]`): the person,
+  the system and its lineage, their details within it, the system drawn in its
+  traditional form, and the crossover connections to other systems (shared
+  convergences and complementary tensions). Linked from each system in the reader.
 - Per-system diagrams: each tradition now renders in its own traditional form from
   the computed data, in the reader's per-system cards. Human Design draws the
   bodygraph (defined centers and channels), BaZi the four pillars, the Maya count
@@ -54,6 +61,9 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- Warmer, more readable styling: warmer dark background and surfaces, higher-
+  contrast body and secondary text, a comfortable base type scale, and balanced
+  headings. A single app background now sits under every page.
 - Public surfaces (welcome, help, about, `/api/systems`) list the offered set
   (`offeredMeta()`) rather than the whole registry, so off systems are not
   advertised. Compute uses the live effective set.

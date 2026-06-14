@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent, getProfile, listSavedCharts } from "@/lib/db/queries";
 import { SynastryForm, fromSaved, type Person, type ResonanceMode, type SavedChart } from "@/components/SynastryForm";
+import { SiteShell } from "@/components/site/SiteShell";
 
 export const metadata = {
   title: "Resonance · ONESKY",
@@ -49,11 +49,8 @@ export default async function SynastryPage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-12 sm:py-16">
-      <Link href="/account" className="text-xs text-muted hover:text-foreground">
-        ← Account
-      </Link>
-      <div className="mb-8 mt-4 text-center">
+    <SiteShell width="max-w-4xl">
+      <div className="mb-8 text-center">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-accent">Resonance</p>
         <h1 className="text-3xl font-bold sm:text-4xl">Two charts, one field.</h1>
         <p className="mx-auto mt-3 max-w-xl text-muted">
@@ -67,6 +64,6 @@ export default async function SynastryPage({
         )}
       </div>
       <SynastryForm savedCharts={saved} initialA={initialA} initialB={initialB} initialMode={resonanceMode} />
-    </main>
+    </SiteShell>
   );
 }
