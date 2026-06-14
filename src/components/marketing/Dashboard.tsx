@@ -66,7 +66,7 @@ export function Dashboard({
               New reading
             </button>
             <Link
-              href="/login"
+              href="/login?next=/account"
               className="rounded-[10px] bg-horizon-amber px-3 py-1.5 font-semibold text-ink transition hover:brightness-110"
             >
               Sign in to save

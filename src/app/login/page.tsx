@@ -18,11 +18,17 @@ export default function LoginPage() {
       return;
     }
     setStatus("sending");
+    const next =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("next") || "/account"
+        : "/account";
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
         emailRedirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
+          typeof window !== "undefined"
+            ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+            : undefined,
       },
     });
     if (error) {
