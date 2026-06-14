@@ -6,10 +6,20 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
-### Changed
-- Convergence chart gets more room: the chart column is wider relative to the
-  Quick info panel, and the reader page is wider overall, so there is more space
-  to explore every theme and tension at once.
+### Added
+- The Convergence Explorer: the chart became a small, empowerment-framed dashboard.
+  - Four views: the map, ranked Strengths bars, system Arcs (co-occurrence), and an
+    accessible Table that doubles as the screen-reader fallback.
+  - A lens toggle (Everything / Strengths / Tensions) and source-group filters
+    (Sky / Calendar / Name).
+  - Draggable theme points with the layout remembered per chart, a Reset, and a
+    Save image (PNG) button.
+  - The Quick info panel now names the strength and the growth edge for each theme
+    (`src/lib/convergence-meaning.ts`), and a "Tell me more" button streams a
+    grounded reading of a single theme on demand
+    (`/api/themes/narrate`, translate-not-compute).
+  - New components under `src/components/chart/` (StrengthsBar, ArcView,
+    ChartDataTable) and a PNG export util (`src/lib/svg-export.ts`).
 - Convergence chart, round two: it now plots every theme (not only the
   cross-confirmed ones), tension lines connect the two themes that pull apart and
   follow them as you drag, tensions can be toggled on or off, the system dots no

@@ -371,6 +371,15 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Explore your strengths and tensions",
+    notes: [
+      "The convergence chart is now an explorer: switch between a map, ranked strength bars, system arcs, and a table.",
+      "Choose a lens for everything, just your strengths, or just your tensions, and filter by what each system reads from.",
+      "Click any theme to see your strength and your growth edge, and ask for a deeper reading. Drag the map around (it remembers your layout) and save it as an image.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Every theme on the chart, and what it means for you",
     notes: [
       "The convergence chart now shows every theme it found, with tension lines that connect opposing themes and follow them as you drag.",
