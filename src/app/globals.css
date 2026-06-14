@@ -231,16 +231,6 @@ body {
   will-change: transform;
 }
 
-/* Scroll snap: only the input app is a snap target, so the page reads normally
-   but the input settles to center when you scroll near it (proximity, gentle). */
-html {
-  scroll-snap-type: y proximity;
-}
-.snap-center {
-  scroll-snap-align: center;
-  scroll-margin-block: 10vh;
-}
-
 /* Reduced motion: render settled states at once. No drawing, looping, or drift. */
 @media (prefers-reduced-motion: reduce) {
   *,

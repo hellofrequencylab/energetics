@@ -79,7 +79,7 @@ export default function WelcomePage() {
       </header>
 
       {/* Cinematic hero. isolate + positive z so the photo layers correctly. */}
-      <section className="relative isolate flex min-h-[92svh] items-center overflow-hidden bg-midnight">
+      <section className="relative isolate flex min-h-[80svh] items-center overflow-hidden bg-midnight">
         <div className="absolute inset-0 par-slow">
           <Image src="/hero-sky.jpg" alt="" fill priority sizes="100vw" className="kenburns object-cover" />
         </div>
@@ -93,8 +93,8 @@ export default function WelcomePage() {
         />
         <Starfield count={36} className="absolute inset-0 opacity-50" />
 
-        <div className="relative z-10 mx-auto max-w-2xl px-5 py-20 text-center">
-          <div className="relative mx-auto mb-8 aspect-[5/4] w-full max-w-sm">
+        <div className="relative z-10 mx-auto max-w-2xl px-5 py-12 text-center">
+          <div className="relative mx-auto mb-6 aspect-[5/4] w-full max-w-xs">
             <svg
               viewBox="0 0 400 320"
               className="spin-slow absolute inset-0 h-full w-full opacity-40"
