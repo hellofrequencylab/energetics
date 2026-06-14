@@ -113,17 +113,31 @@ export type AccountType = "personal" | "practitioner";
 export interface Profile {
   account_type: AccountType;
   display_name: string | null;
+  primary_chart_id: string | null;
 }
 
 /** The signed-in user's profile, or null if they have not chosen one yet. */
 export async function getProfile(supabase: DbClient, userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("account_type, display_name")
+    .select("account_type, display_name, primary_chart_id")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw error;
   return (data as Profile | null) ?? null;
+}
+
+/** Pin (or clear) the user's primary chart, their "My Sky." */
+export async function setPrimaryChart(
+  supabase: DbClient,
+  userId: string,
+  chartId: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ primary_chart_id: chartId, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
+  if (error) throw error;
 }
 
 /** Create or update the user's profile (account type is switchable). */

@@ -1,25 +1,45 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-/** Manage one saved chart: rename, edit practitioner notes, or delete. */
+/** Manage one saved chart: rename, notes, My Sky, compare, or delete. */
 export function ChartManager({
   id,
   initialName,
   initialNotes,
   practitioner,
+  isPrimary,
+  primaryChartId,
 }: {
   id: string;
   initialName: string;
   initialNotes: string;
   practitioner: boolean;
+  isPrimary: boolean;
+  primaryChartId: string | null;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [notes, setNotes] = useState(initialNotes);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [deleting, setDeleting] = useState(false);
+  const [pinning, setPinning] = useState(false);
+
+  async function togglePrimary() {
+    setPinning(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ primaryChartId: isPrimary ? null : id }),
+      });
+      if (res.ok) router.refresh();
+    } finally {
+      setPinning(false);
+    }
+  }
 
   async function save() {
     setStatus("saving");
@@ -103,6 +123,28 @@ export function ChartManager({
         >
           {deleting ? "Deleting…" : "Delete chart"}
         </button>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-5 text-sm">
+        <button
+          type="button"
+          onClick={togglePrimary}
+          disabled={pinning}
+          className={`font-medium transition disabled:opacity-50 ${isPrimary ? "text-horizon-amber" : "text-star/70 hover:text-star"}`}
+        >
+          {isPrimary ? "★ Your sky (unpin)" : "☆ Set as My Sky"}
+        </button>
+        <Link href={`/synastry?a=${id}`} className="text-star/70 transition hover:text-star">
+          Compare
+        </Link>
+        {primaryChartId && primaryChartId !== id && (
+          <Link
+            href={`/synastry?a=${id}&b=${primaryChartId}`}
+            className="text-star/70 transition hover:text-star"
+          >
+            Compare with My Sky
+          </Link>
+        )}
       </div>
     </div>
   );

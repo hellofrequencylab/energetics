@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { listSavedCharts } from "@/lib/db/queries";
-import { SynastryForm, type SavedChart } from "@/components/SynastryForm";
+import { getBirthEvent, getProfile, listSavedCharts } from "@/lib/db/queries";
+import { SynastryForm, fromSaved, type Person, type SavedChart } from "@/components/SynastryForm";
 
 export const metadata = {
   title: "Resonance · ONESKY",
@@ -9,14 +9,42 @@ export const metadata = {
 };
 export const runtime = "nodejs";
 
-export default async function SynastryPage() {
+export default async function SynastryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ a?: string; b?: string }>;
+}) {
+  const { a, b } = await searchParams;
   const supabase = await createClient();
+
   let saved: SavedChart[] = [];
+  let initialA: Person | undefined;
+  let initialB: Person | undefined;
+
   if (supabase) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (user) saved = await listSavedCharts(supabase).catch(() => []);
+    if (user) {
+      saved = await listSavedCharts(supabase).catch(() => []);
+      const profile = await getProfile(supabase, user.id).catch(() => null);
+
+      const aId = a;
+      // If only one chart is named, compare it against My Sky by default.
+      const bId =
+        b ?? (aId && profile?.primary_chart_id && profile.primary_chart_id !== aId
+          ? profile.primary_chart_id
+          : undefined);
+
+      if (aId) {
+        const row = await getBirthEvent(supabase, aId).catch(() => null);
+        if (row) initialA = fromSaved(row);
+      }
+      if (bId) {
+        const row = await getBirthEvent(supabase, bId).catch(() => null);
+        if (row) initialB = fromSaved(row);
+      }
+    }
   }
 
   return (
@@ -37,7 +65,7 @@ export default async function SynastryPage() {
           </p>
         )}
       </div>
-      <SynastryForm savedCharts={saved} />
+      <SynastryForm savedCharts={saved} initialA={initialA} initialB={initialB} />
     </main>
   );
 }
