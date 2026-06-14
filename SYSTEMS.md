@@ -96,7 +96,12 @@ full registry, so it is unaffected by which systems are currently offered.
   (works on Vercel; falls back to presets/manual otherwise).
 - 🟡 **Shared presentation** — ✅ chart wheel (SVG; renders BOTH the Western
   tropical and Vedic sidereal charts via `westernToWheel`/`vedicToWheel`),
-  ✅ ethics/lineage panel (on results + `/about`). ⬜ bodygraph (HD), aspect grid.
+  ✅ ethics/lineage panel (on results + `/about`), ✅ per-system diagrams
+  (`src/components/diagrams/`): each tradition drawn in its traditional form from
+  native data (HD bodygraph, BaZi four pillars, Maya kin with bar-and-dot tone,
+  Dreamspell signature, Tarot birth cards, numerology life path; original
+  schematic artwork). ⬜ diagrams for the off-by-default systems (Vedic square,
+  Lo Shu grid, runes, Tree of Life) as they are offered.
 
 - 🟡 **Interpretation corpus** — ✅ quick-guide tier: original prose for signs,
   planets, numbers, day-signs, tones, arcana; surfaced inline ("Meanings" per

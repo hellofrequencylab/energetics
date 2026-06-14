@@ -42,6 +42,22 @@ export const engine: SystemEngine = {
     const dayElement = STEM_ELEMENT[dayGan] ?? "";
     const dayPolarity = STEM_POLARITY[dayGan] ?? "";
 
+    // The Four Pillars themselves (year, month, day, hour), each a heavenly stem
+    // over an earthly branch. Native display data for the chart diagram.
+    const pillar = (stem: string, branch: string): Pillar => ({
+      stem,
+      branch,
+      element: STEM_ELEMENT[stem] ?? "",
+      polarity: STEM_POLARITY[stem] ?? "",
+      animal: BRANCH_ANIMAL[branch] ?? branch,
+    });
+    const pillars = {
+      year: pillar(ec.getYearGan(), ec.getYearZhi()),
+      month: pillar(ec.getMonthGan(), ec.getMonthZhi()),
+      day: pillar(ec.getDayGan(), ec.getDayZhi()),
+      hour: pillar(ec.getTimeGan(), ec.getTimeZhi()),
+    };
+
     return {
       systemId: meta.id,
       factors: {
@@ -52,10 +68,24 @@ export const engine: SystemEngine = {
           value: { element: dayElement, polarity: dayPolarity, stem: dayGan },
           display: `${dayPolarity} ${cap(dayElement)}`,
         },
+        pillars: {
+          key: "pillars",
+          label: "Four Pillars",
+          value: pillars,
+          display: `${pillars.year.stem}${pillars.year.branch} ${pillars.month.stem}${pillars.month.branch} ${pillars.day.stem}${pillars.day.branch} ${pillars.hour.stem}${pillars.hour.branch}`,
+        },
       },
     };
   },
 };
+
+export interface Pillar {
+  stem: string;
+  branch: string;
+  element: string; // wood | fire | earth | metal | water
+  polarity: string; // Yang | Yin
+  animal: string;
+}
 
 function cap(s: string): string {
   return s ? s[0].toUpperCase() + s.slice(1) : s;

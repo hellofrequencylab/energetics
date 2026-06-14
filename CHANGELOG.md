@@ -7,6 +7,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- Per-system diagrams: each tradition now renders in its own traditional form from
+  the computed data, in the reader's per-system cards. Human Design draws the
+  bodygraph (defined centers and channels), BaZi the four pillars, the Maya count
+  a kin with an authentic bar-and-dot tone, Dreamspell the galactic signature,
+  Tarot the birth cards, and Pythagorean numerology the life-path medallion.
+  Western keeps its chart wheel. Artwork is original and schematic, never a
+  reproduction of a published deck or carved glyph. (`src/components/diagrams/`.)
+  The Human Design engine now exposes its defined `channels`, and the BaZi engine
+  its full four `pillars`, as native display data (no synthesis change).
 - Systems catalog with a live admin (`/admin/systems`, gated by `profiles.is_admin`).
   Most systems are now registered but off by default; the core set (Western
   tropical, Human Design, Pythagorean numerology, Maya Tzolk'in, Chinese BaZi,
