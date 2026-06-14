@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "The convergence chart is now interactive",
+    notes: [
+      "Hover any point for a label, click a theme or tension to read about it in the panel beside the chart, and click a system to see its chart and stats.",
+      "Themes are spread out so they are all visible, and you can drag any one to move it around.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "A clearer systems dashboard",
     notes: [
       "Each system now reads as a tidy card: your chart on the left, your energy at a glance on the right, how it applies underneath.",
