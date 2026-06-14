@@ -71,7 +71,7 @@ export const engine: SystemEngine = {
         key: s.key,
         label: s.title,
         value: { gate: gl.gate, line: gl.line },
-        display: `Gate ${gl.gate}.${gl.line} — ${s.desc}`,
+        display: `Gate ${gl.gate}.${gl.line}: ${s.desc}`,
       };
     }
     factors.note = {

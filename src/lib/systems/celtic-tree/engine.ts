@@ -41,7 +41,7 @@ export const engine: SystemEngine = {
     return {
       systemId: meta.id,
       factors: {
-        tree: { key: "tree", label: "Tree", value: { tree: t.tree, keyword: t.keyword }, display: `${t.tree} — ${t.keyword}` },
+        tree: { key: "tree", label: "Tree", value: { tree: t.tree, keyword: t.keyword }, display: `${t.tree}: ${t.keyword}` },
       },
     };
   },

@@ -53,7 +53,7 @@ export const engine: SystemEngine = {
     return {
       systemId: meta.id,
       factors: {
-        rune: { key: "rune", label: "Birth Rune", value: { rune: r.rune, keyword: r.keyword }, display: `${r.rune} — ${r.keyword}` },
+        rune: { key: "rune", label: "Birth Rune", value: { rune: r.rune, keyword: r.keyword }, display: `${r.rune}: ${r.keyword}` },
       },
     };
   },

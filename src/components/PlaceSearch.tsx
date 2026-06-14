@@ -138,7 +138,7 @@ export function PlaceSearch({
       )}
       {open && !loading && query.trim().length >= 2 && results.length === 0 && (
         <p className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-muted">
-          No matches (or geocoding offline) — you can enter coordinates manually below.
+          No matches (or geocoding offline). You can enter coordinates manually below.
         </p>
       )}
     </div>

@@ -37,7 +37,7 @@ export default function GlossaryPage() {
       </Link>
       <h1 className="mb-2 mt-4 text-2xl font-bold">Glossary & search</h1>
       <p className="mb-6 text-muted">
-        Search the interpretation corpus — signs, planets, numbers, day-signs, tones, and arcana.
+        Search the interpretation corpus: signs, planets, numbers, day-signs, tones, and arcana.
       </p>
 
       <input

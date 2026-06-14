@@ -1,8 +1,8 @@
 /**
- * Corpus search — a flat, searchable index over the quick-guide + deep-dive
+ * Corpus search: a flat, searchable index over the quick-guide + deep-dive
  * tiers. Uses deterministic scored text matching (no external calls). In
  * production this is where pgvector semantic retrieval slots in (spec §9: search
- * only — never structural synthesis).
+ * only, never structural synthesis).
  */
 import {
   ARCANA_GUIDE,
@@ -36,7 +36,7 @@ export const CORPUS_ENTRIES: CorpusEntry[] = [
   ...Object.entries(NUMBER_GUIDE).map(([k, v]) => ({ kind: "number" as const, key: k, label: `Number ${k}`, quick: v })),
   ...Object.entries(DAYSIGN_GUIDE).map(([k, v]) => ({ kind: "daysign" as const, key: k, label: k, quick: v })),
   ...Object.entries(TONE_GUIDE).map(([k, v]) => ({ kind: "tone" as const, key: k, label: `Tone ${k}`, quick: v })),
-  ...Object.entries(ARCANA_GUIDE).map(([k, v]) => ({ kind: "arcana" as const, key: k, label: v.split(" — ")[0], quick: v })),
+  ...Object.entries(ARCANA_GUIDE).map(([k, v]) => ({ kind: "arcana" as const, key: k, label: v.split(": ")[0], quick: v })),
 ];
 
 /** Scored substring search over labels + quick + deep text. */
