@@ -16,7 +16,7 @@ spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold*
 | `vedic-jyotish` | ✅ | traditional | ✓ | ✓ | ephemeris | — | 2 |
 | `hellenistic` | ✅ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
 | `chinese-bazi` | ✅ | traditional | ✓ | — | date | — | 2 |
-| `zi-wei-dou-shu` | ⬜ | traditional | ✓ | — | date | — | 3 |
+| `zi-wei-dou-shu` | ✅† | traditional | ✓ | — | date | — | 3 |
 | `tzolkin` | ✅ | traditional | — | — | date | — | 1 |
 | `dreamspell` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
 | `human-design` | ✅† | hybrid | ✓ | ✓ | ephemeris | — | 1 |
