@@ -136,6 +136,7 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
         body={intakeBody}
         title="Your reading"
         ctaLabel="Write my reading"
+        autoStart
         idleBlurb="Optional prose over the synthesis above. It reads the convergences and tensions and never computes them. It streams in live, and is saved so reopening this chart is instant."
       />
 
