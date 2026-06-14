@@ -13,6 +13,9 @@ export default async function Home() {
         <a href="/glossary" className="rounded border border-border px-2 py-1 hover:text-foreground">
           Glossary
         </a>
+        <a href="/help" className="rounded border border-border px-2 py-1 hover:text-foreground">
+          Help
+        </a>
         <a href="/about" className="rounded border border-border px-2 py-1 hover:text-foreground">
           About
         </a>

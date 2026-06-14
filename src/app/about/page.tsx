@@ -3,7 +3,7 @@ import { allMeta } from "@/lib/core/registry";
 import { EthicsPanel } from "@/components/EthicsPanel";
 
 export const metadata = {
-  title: "About the systems — ONESKY",
+  title: "About the systems · ONESKY",
   description: "How ONESKY treats each tradition: named, lineage-labeled, predisposition not fate.",
 };
 

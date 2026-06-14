@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SynastryForm } from "@/components/SynastryForm";
 
 export const metadata = {
-  title: "Synastry — ONESKY",
+  title: "Synastry · ONESKY",
   description: "Compare two charts: shared ground, complementary tensions, and cross-chart aspects.",
 };
 

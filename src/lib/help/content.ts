@@ -1,0 +1,358 @@
+/**
+ * Help Center content (docs as code).
+ *
+ * This is the single, versioned source for everything the in-app Help Center
+ * renders at /help. Update it in the same change that ships a feature, so the
+ * help "gets written to as we go" (see CONTRIBUTING.md, Definition of Done).
+ *
+ * Voice rules (from the OneSky design scope, docs/DESIGN.md): no em dashes
+ * anywhere, active voice, sentence case, plain verbs, name things by what the
+ * person controls. The systems list is NOT hard-coded here; it comes from the
+ * registry at render time so it can never drift from what the app actually runs.
+ */
+
+/** A renderable block. Kept tiny so we need no markdown dependency. */
+export type Block =
+  | { type: "p"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "steps"; items: string[] };
+
+export interface HelpArticle {
+  slug: string;
+  title: string;
+  summary: string;
+  body: Block[];
+}
+
+export interface HelpCategory {
+  slug: string;
+  title: string;
+  blurb: string;
+  articles: HelpArticle[];
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface ChangelogEntry {
+  date: string; // ISO date
+  title: string;
+  notes: string[];
+}
+
+/** One line per system, keyed by registry id. Combined with live registry meta. */
+export const SYSTEM_BLURBS: Record<string, string> = {
+  "western-tropical": "The Western birth chart: planets in signs and houses, read from the real sky.",
+  "vedic-jyotish": "The Indian sidereal system: grahas, nakshatras, and whole sign houses.",
+  hellenistic: "Traditional Greek astrology: sect, the Lot of Fortune, and the chart ruler.",
+  "chinese-bazi": "The Four Pillars: your year, month, day, and hour as stems and branches.",
+  "zi-wei-dou-shu": "Purple Star astrology: a chart of palaces and stars from your lunar birth date.",
+  tzolkin: "The Maya sacred count: your day sign and galactic tone.",
+  dreamspell: "A modern reconstruction of the Maya count. Shown for interest, kept out of the synthesis.",
+  "human-design": "A hybrid map of energy centers, gates, and channels from two birth moments.",
+  "gene-keys": "A contemplative sequence drawn from the same activations as Human Design.",
+  "numerology-pythagorean": "Numbers from your birth date: your life path and related cycles.",
+  "numerology-chaldean": "Numbers from the sound of your name.",
+  "tarot-birth-cards": "Major Arcana cards drawn from your birth date.",
+  "nine-star-ki": "A Japanese system of nine stars from your birth year and month.",
+  "celtic-tree": "A modern tree calendar keyed to your birth date.",
+  mahabote: "A Burmese system keyed to the weekday you were born.",
+  "akan-day-names": "West African day names from the weekday of your birth.",
+  "norse-runes": "A modern rune mapping keyed to your birth date.",
+  "egyptian-decans": "The 36 decans: ten degree slices of the sky and their rulers.",
+};
+
+/** Plain-language label for each lineage tag. */
+export const LINEAGE_LABEL: Record<string, string> = {
+  traditional: "Living tradition",
+  hybrid: "Hybrid",
+  "modern-reconstruction": "Modern reconstruction",
+};
+
+export const CATEGORIES: HelpCategory[] = [
+  {
+    slug: "getting-started",
+    title: "Getting started",
+    blurb: "What OneSky does and how to read your first chart.",
+    articles: [
+      {
+        slug: "what-onesky-is",
+        title: "What OneSky is",
+        summary: "Many traditions. One sky. Read separately, then compared honestly.",
+        body: [
+          {
+            type: "p",
+            text: "OneSky reads your birth moment through many traditions at once. The sky is computed one time. Each tradition then interprets it on its own, without seeing the others.",
+          },
+          {
+            type: "p",
+            text: "A separate layer shows you two things: where independent traditions agree (convergence), and where they pull in different directions (tension). OneSky never blends them into a single score, and it always tells you which tradition said what.",
+          },
+        ],
+      },
+      {
+        slug: "read-your-chart",
+        title: "Read your chart in three steps",
+        summary: "Enter your birth moment, see each tradition, watch them converge.",
+        body: [
+          {
+            type: "steps",
+            items: [
+              "Enter your birth moment. Your date is all you need to begin.",
+              "See every tradition, kept whole. Each system shows its own reading.",
+              "Watch where they converge. The synthesis shows real overlap, fully attributed.",
+            ],
+          },
+        ],
+      },
+      {
+        slug: "precision",
+        title: "What your birth time and place unlock",
+        summary: "Date alone works. Time and place add depth.",
+        body: [
+          {
+            type: "p",
+            text: "More detail unlocks more of the chart. You stay in control of how much you share.",
+          },
+          {
+            type: "list",
+            items: [
+              "Date only: planetary signs and the date-based systems.",
+              "Date and time: degrees, the lunar phase, and aspects between planets.",
+              "Date, time, and place: your ascendant, midheaven, and house placements.",
+            ],
+          },
+          {
+            type: "p",
+            text: "If you are not sure of your birth time, use the time unknown option. OneSky shows you exactly which parts of the reading depend on a time, so nothing is implied that the data cannot support.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "how-it-works",
+    title: "How the synthesis works",
+    blurb: "Convergence, tension, and why there is no single score.",
+    articles: [
+      {
+        slug: "convergence-and-tension",
+        title: "Convergence and tension",
+        summary: "Agreement across independent systems, and where they differ.",
+        body: [
+          {
+            type: "p",
+            text: "A convergence is a point where independent traditions land on the same theme, element, or value about you. A tension is a place where two readings genuinely oppose each other.",
+          },
+          {
+            type: "p",
+            text: "OneSky ranks convergences by how many independent sources agree, so the strongest signals rise to the top for the right reason: more separate traditions point the same way.",
+          },
+        ],
+      },
+      {
+        slug: "no-single-score",
+        title: "Why there is no single score",
+        summary: "A blended number hides which tradition said what.",
+        body: [
+          {
+            type: "p",
+            text: "A single compatibility or personality score would throw away the most useful information: the source. OneSky keeps provenance on every claim, so you can always trace a reading back to the tradition and the placement it came from.",
+          },
+        ],
+      },
+      {
+        slug: "independent-sources",
+        title: "Independent sources, counted honestly",
+        summary: "The sky, the calendar, and your name each count once.",
+        body: [
+          {
+            type: "p",
+            text: "Systems that read the same input are not independent, so OneSky groups them and counts each group as one voice when ranking convergences.",
+          },
+          {
+            type: "list",
+            items: [
+              "The sky: systems computed from planetary positions count together as one voice.",
+              "The calendar: systems read from your date count together as one voice.",
+              "Your name: name-based numerology forms its own voice.",
+            ],
+          },
+          {
+            type: "p",
+            text: "A system that is derived from another (for example, a reading built on top of your Western chart) never double counts its parent.",
+          },
+        ],
+      },
+      {
+        slug: "lineage",
+        title: "Lineage, labeled not laundered",
+        summary: "Living traditions, hybrids, and modern reconstructions are named.",
+        body: [
+          {
+            type: "p",
+            text: "OneSky labels the lineage of every system plainly. Living traditions are honored as they are. Modern reconstructions are marked as such, and some are shown for interest while staying out of the structural synthesis, so a recent invention never poses as an ancient lineage.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "account-and-data",
+    title: "Your account and data",
+    blurb: "Sign in, what we store, and what stays yours.",
+    articles: [
+      {
+        slug: "sign-in",
+        title: "Sign in with a magic link",
+        summary: "Enter your email, click the link, you are in. No password.",
+        body: [
+          {
+            type: "steps",
+            items: [
+              "Go to the sign in page and enter your email.",
+              "Open the email and click the link.",
+              "You return to OneSky already signed in.",
+            ],
+          },
+          {
+            type: "p",
+            text: "If the email does not arrive within a minute, check your spam folder, then request a new link.",
+          },
+        ],
+      },
+      {
+        slug: "your-data",
+        title: "What we store, and what stays yours",
+        summary: "Your birth data is yours, and you can compute without an account.",
+        body: [
+          {
+            type: "p",
+            text: "You can compute a full chart without signing in. Nothing is saved in that case.",
+          },
+          {
+            type: "p",
+            text: "When you sign in and save a chart, your birth data is stored under your account and protected by row level security, so only you can read it. You can ask us to remove it at any time.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "for-builders",
+    title: "For builders",
+    blurb: "How OneSky is put together, for engineers and operators.",
+    articles: [
+      {
+        slug: "architecture",
+        title: "Architecture in one idea",
+        summary: "Compute the sky once. Keep engines pure. Synthesize deterministically.",
+        body: [
+          {
+            type: "p",
+            text: "The sky is computed once as shared infrastructure. Each system is a pure, isolated engine that never sees another engine's output. The synthesis layer is deterministic and reads only normalized, provenance-tagged values. It computes no scores and uses no language model.",
+          },
+          {
+            type: "p",
+            text: "The optional narrative layer reads the finished synthesis and writes prose. It never changes the structure.",
+          },
+        ],
+      },
+      {
+        slug: "where-things-live",
+        title: "Where things live",
+        summary: "Repo docs that go deeper than this page.",
+        body: [
+          {
+            type: "list",
+            items: [
+              "README.md: the project overview and the one idea.",
+              "AGENTS.md: the architecture rules to follow before editing the engine.",
+              "SYSTEMS.md: the living roadmap of every system and its status.",
+              "docs/RUNBOOK.md: how to configure, deploy, and operate the app.",
+              "docs/adr: the record of significant engineering decisions.",
+              "docs/DESIGN.md: the OneSky design language and site scope.",
+            ],
+          },
+        ],
+      },
+      {
+        slug: "run-test-deploy",
+        title: "Run, test, and deploy",
+        summary: "The commands and the hosting setup.",
+        body: [
+          {
+            type: "list",
+            items: [
+              "npm run dev: start the local app.",
+              "npm run test: run the engine and synthesis tests.",
+              "npm run typecheck and npm run lint: gate every change.",
+              "Deploy: merge to main, and Vercel builds production. Data lives in the isolated energetics schema on Supabase.",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const FAQ: FaqItem[] = [
+  {
+    question: "Is OneSky accurate?",
+    answer:
+      "The chart math uses the Swiss Ephemeris for real planetary positions. A few systems are still being checked against trusted references, and OneSky labels those plainly rather than hiding them.",
+  },
+  {
+    question: "Is OneSky free?",
+    answer:
+      "You can compute a full birth chart and see where the traditions converge without paying. Paid plans for deeper, ongoing features are on the way.",
+  },
+  {
+    question: "How is my birth data handled?",
+    answer:
+      "If you are signed out, nothing is saved. If you sign in and save a chart, your birth data is stored under your account and protected by row level security, so only you can read it.",
+  },
+  {
+    question: "Do I need my exact birth time?",
+    answer:
+      "No. Your date alone produces a reading. Adding your time unlocks degrees, the lunar phase, and aspects. Adding your place unlocks your ascendant and houses.",
+  },
+  {
+    question: "Should I use the web or the app?",
+    answer:
+      "Start on the web. A native app for daily use is planned, and one account will carry across both.",
+  },
+];
+
+/**
+ * User-facing release highlights, newest first. This is the "what's new" surface.
+ * Keep entries plain and benefit-led. The fuller technical record lives in
+ * CHANGELOG.md.
+ */
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-14",
+    title: "OneSky is live",
+    notes: [
+      "Read your birth moment across many traditions, with a synthesis that shows real overlap.",
+      "Create an account with a magic link and save your charts privately.",
+      "Search for any birthplace in the world as you type.",
+    ],
+  },
+  {
+    date: "2026-06-14",
+    title: "Chart compute fixed on the live site",
+    notes: [
+      "Computing a chart now returns your full reading instead of an error.",
+    ],
+  },
+  {
+    date: "2026-06-14",
+    title: "Sign in completes reliably",
+    notes: [
+      "Magic-link sign in now finishes and returns you to OneSky already signed in.",
+    ],
+  },
+];
