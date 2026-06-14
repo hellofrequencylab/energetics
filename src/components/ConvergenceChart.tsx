@@ -9,6 +9,7 @@ import { downloadSvgAsPng } from "@/lib/svg-export";
 import { StrengthsBar } from "./chart/StrengthsBar";
 import { ArcView } from "./chart/ArcView";
 import { ChartDataTable } from "./chart/ChartDataTable";
+import { GOLD, VIOLET, INK, THREAD, NODE_GLOW, GROUP_COLOR } from "@/lib/design/colors";
 
 /**
  * The Convergence Explorer: the flagship, interactive visual of the reading.
@@ -26,14 +27,9 @@ const VH = 640;
 const C = { x: 320, y: 320 };
 const R_SYS = 250;
 
-const GROUP_COLOR: Record<string, string> = { ephemeris: "#6aa0cf", date: "#d4b072", name: "#8b7dff" };
 const GROUP_LABEL: Record<string, string> = { ephemeris: "the sky", date: "the calendar", name: "your name" };
 const GROUP_SHORT: Record<string, string> = { ephemeris: "Sky", date: "Calendar", name: "Name" };
-const GOLD = "#d4b072";
-const VIOLET = "#8b7dff";
-const SELF = "#f3d9a8";
-const THREAD = "#4a4358";
-const INK = "#0e0b12";
+const SELF = NODE_GLOW; // the bright self node at the center
 
 function humanize(value: string): string {
   const bare = value.includes(":") ? value.split(":")[1] : value;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Card, Badge, Button, ButtonLink, EmptyState } from "@/components/ui";
 
 export interface RosterChart {
   id: string;
@@ -42,58 +43,51 @@ export function ChartRoster({
 
   if (charts.length === 0) {
     return (
-      <p className="mt-4 rounded-xl border border-white/10 bg-dusk/20 p-6 text-sm text-star/70">
-        No {noun}s yet.{" "}
-        <Link className="font-medium text-horizon-amber underline underline-offset-4" href={addHref}>
-          {addLabel}
-        </Link>{" "}
-        to begin.
-      </p>
+      <EmptyState
+        className="mt-4"
+        title={`No ${noun}s yet`}
+        description="Add one to begin building your sky."
+        action={<ButtonLink href={addHref} variant="secondary" size="sm">{addLabel}</ButtonLink>}
+      />
     );
   }
 
   return (
     <ul className="mt-4 grid gap-3 sm:grid-cols-2">
       {charts.map((c) => (
-        <li
-          key={c.id}
-          className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-dusk/20 p-4 transition hover:border-horizon-amber/40 hover:bg-dusk/35"
-        >
-          <Link href={`/account/chart/${c.id}`} className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="truncate font-medium text-star">{c.name || "Unnamed chart"}</span>
-              {primaryChartId === c.id && (
-                <span className="shrink-0 text-xs text-horizon-amber">★ My Sky</span>
-              )}
-            </div>
-            <div className="mt-0.5 font-mono text-xs text-star/60">
-              {c.date}
-              {c.time ? ` · ${String(c.time).slice(0, 5)}` : ""} · {c.precision}
-            </div>
-          </Link>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <Link
-              href={`/account/chart/${c.id}#edit`}
-              className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-star/70 transition hover:border-horizon-amber/40 hover:text-star"
-            >
-              Edit
+        <li key={c.id}>
+          <Card className="flex items-center justify-between gap-3 p-4 sm:p-4" interactive>
+            <Link href={`/account/chart/${c.id}`} className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="truncate font-medium text-foreground">
+                  {c.name || "Unnamed chart"}
+                </span>
+                {primaryChartId === c.id && <Badge variant="accent">★ My Sky</Badge>}
+              </div>
+              <div className="mt-0.5 font-mono text-xs text-muted">
+                {c.date}
+                {c.time ? ` · ${String(c.time).slice(0, 5)}` : ""} · {c.precision}
+              </div>
             </Link>
-            <Link
-              href={`/synastry?a=${c.id}`}
-              className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-star/70 transition hover:border-horizon-amber/40 hover:text-star"
-            >
-              Compare
-            </Link>
-            <button
-              type="button"
-              onClick={() => remove(c.id)}
-              disabled={busy === c.id}
-              aria-label={`Remove ${c.name || "chart"}`}
-              className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-star/60 transition hover:border-red-400/40 hover:text-red-300 disabled:opacity-50"
-            >
-              {busy === c.id ? "…" : "Remove"}
-            </button>
-          </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <ButtonLink href={`/account/chart/${c.id}#edit`} variant="secondary" size="sm">
+                Edit
+              </ButtonLink>
+              <ButtonLink href={`/synastry?a=${c.id}`} variant="secondary" size="sm">
+                Compare
+              </ButtonLink>
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                onClick={() => remove(c.id)}
+                disabled={busy === c.id}
+                aria-label={`Remove ${c.name || "chart"}`}
+              >
+                {busy === c.id ? "…" : "Remove"}
+              </Button>
+            </div>
+          </Card>
         </li>
       ))}
     </ul>

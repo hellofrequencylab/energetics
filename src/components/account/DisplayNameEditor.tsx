@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Field, Input, Button } from "@/components/ui";
 
 /** Edit the profile display name. Posts to /api/profile (partial-safe). */
 export function DisplayNameEditor({ initial }: { initial: string }) {
@@ -26,26 +27,25 @@ export function DisplayNameEditor({ initial }: { initial: string }) {
 
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Display name</span>
-        <input
+      <Field label="Display name" htmlFor="display-name" className="w-56">
+        <Input
+          id="display-name"
           value={name}
           onChange={(e) => {
             setName(e.target.value);
             setStatus("idle");
           }}
           placeholder="Your name"
-          className="w-56 rounded-lg border border-white/10 bg-background/60 px-3 py-2 text-sm text-star outline-none transition focus:border-horizon-amber"
         />
-      </label>
-      <button
+      </Field>
+      <Button
         type="button"
+        variant="secondary"
         onClick={save}
         disabled={status === "saving"}
-        className="rounded-lg border border-white/15 px-3 py-2 text-sm text-star/80 transition hover:text-star disabled:opacity-50"
       >
         {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : "Save"}
-      </button>
+      </Button>
     </div>
   );
 }

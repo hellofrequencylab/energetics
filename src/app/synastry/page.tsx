@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent, getProfile, listSavedCharts } from "@/lib/db/queries";
 import { SynastryForm, fromSaved, type Person, type ResonanceMode, type SavedChart } from "@/components/SynastryForm";
 import { SiteShell } from "@/components/site/SiteShell";
+import { AppSectionNav } from "@/components/site/AppSectionNav";
+import { PageHeader } from "@/components/ui";
 
 export const metadata = {
   title: "Resonance · ONESKY",
@@ -49,20 +51,17 @@ export default async function SynastryPage({
   }
 
   return (
-    <SiteShell width="max-w-4xl">
-      <div className="mb-8 text-center">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-accent">Resonance</p>
-        <h1 className="text-3xl font-bold sm:text-4xl">Two charts, one field.</h1>
-        <p className="mx-auto mt-3 max-w-xl text-muted">
-          Where two people share emphasis, where they pull to opposite poles, and how their planets
-          aspect each other. Fully attributed, never a single compatibility score.
+    <SiteShell nav={<AppSectionNav />}>
+      <PageHeader
+        eyebrow="Resonance"
+        title="Two charts, one field."
+        description="Where two people share emphasis, where they pull to opposite poles, and how their planets aspect each other. Fully attributed, never a single compatibility score."
+      />
+      {saved.length > 0 && (
+        <p className="-mt-4 mb-8 max-w-prose text-sm text-muted">
+          Tip: pick from your saved charts at the top of each side.
         </p>
-        {saved.length > 0 && (
-          <p className="mx-auto mt-3 max-w-xl text-sm text-accent">
-            Tip: pick from your saved charts at the top of each side.
-          </p>
-        )}
-      </div>
+      )}
       <SynastryForm savedCharts={saved} initialA={initialA} initialB={initialB} initialMode={resonanceMode} />
     </SiteShell>
   );

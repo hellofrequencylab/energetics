@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent, getProfile } from "@/lib/db/queries";
 import { intake } from "@/lib/core/birth-event";
@@ -11,6 +10,8 @@ import { getCachedNarration } from "@/lib/synthesis/narrate-stream";
 import type { ComputeResponse } from "@/lib/api-types";
 import { SynthesisView } from "@/components/SynthesisView";
 import { SiteShell } from "@/components/site/SiteShell";
+import { AppSectionNav } from "@/components/site/AppSectionNav";
+import { PageHeader, Card } from "@/components/ui";
 import { ChartManager } from "@/components/account/ChartManager";
 import { EditBirthData } from "@/components/account/EditBirthData";
 
@@ -56,15 +57,13 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const practitioner = profile?.account_type === "practitioner";
 
   return (
-    <SiteShell width="max-w-6xl">
-      <Link href="/account" className="text-sm text-star/60 transition hover:text-star">
-        ← Back to account
-      </Link>
-      <h1 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-        {row.name || "Saved chart"}
-      </h1>
+    <SiteShell nav={<AppSectionNav />}>
+      <PageHeader
+        title={row.name || "Saved chart"}
+        back={{ href: "/account", label: "Back to account" }}
+      />
 
-      <div className="mt-6 grid gap-4">
+      <div className="grid gap-4">
         <ChartManager
           id={row.id}
           initialName={row.name ?? ""}
@@ -83,9 +82,9 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
         />
       </div>
 
-      <div className="mt-8 rounded-2xl border border-white/10 bg-background/60 p-5 sm:p-6">
+      <Card className="mt-8">
         <SynthesisView data={data} intakeBody={body} chartId={row.id} initialReading={initialReading} />
-      </div>
+      </Card>
     </SiteShell>
   );
 }

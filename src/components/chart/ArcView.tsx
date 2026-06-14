@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ComputedSystem, Synthesis } from "@/lib/synthesis/types";
 import { shortName } from "@/lib/system-labels";
+import { GOLD, INK } from "@/lib/design/colors";
 
 /**
  * ArcView: a co-occurrence diagram. Every system sits evenly around a circle.
@@ -16,8 +17,6 @@ const VW = 480;
 const VH = 480;
 const C = { x: 240, y: 240 };
 const R = 178;
-const GOLD = "#d4b072";
-const INK = "#0e0b12";
 const MAX_W = 7; // arc stroke cap, keeps the busiest pairs legible
 
 interface Node {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Card, CardLabel, Field, Input, Textarea, Button, Divider } from "@/components/ui";
 
 /** Manage one saved chart: rename, notes, My Sky, compare, or delete. */
 export function ChartManager({
@@ -68,32 +69,26 @@ export function ChartManager({
     }
   }
 
-  const input =
-    "w-full rounded-lg border border-white/10 bg-background/60 px-3 py-2 text-sm text-star outline-none transition focus:border-horizon-amber";
-
   return (
-    <div className="rounded-xl border border-white/10 bg-dusk/20 p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-horizon-amber">Manage</p>
+    <Card>
+      <CardLabel>Manage</CardLabel>
 
-      <label className="mt-4 flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Name</span>
-        <input
+      <Field label="Name" htmlFor="chart-name" className="mt-4">
+        <Input
+          id="chart-name"
           value={name}
           onChange={(e) => {
             setName(e.target.value);
             setStatus("idle");
           }}
           placeholder="Unnamed chart"
-          className={input}
         />
-      </label>
+      </Field>
 
       {practitioner && (
-        <label className="mt-4 flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-star/70">
-            Private notes
-          </span>
-          <textarea
+        <Field label="Private notes" htmlFor="chart-notes" className="mt-4">
+          <Textarea
+            id="chart-notes"
             value={notes}
             onChange={(e) => {
               setNotes(e.target.value);
@@ -101,51 +96,42 @@ export function ChartManager({
             }}
             rows={4}
             placeholder="Notes for your reading, visible only to you."
-            className={`${input} resize-y`}
           />
-        </label>
+        </Field>
       )}
 
       <div className="mt-5 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={save}
-          disabled={status === "saving"}
-          className="rounded-lg bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110 disabled:opacity-50"
-        >
+        <Button type="button" variant="primary" onClick={save} disabled={status === "saving"}>
           {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : "Save"}
-        </button>
-        <button
-          type="button"
-          onClick={remove}
-          disabled={deleting}
-          className="rounded-lg border border-white/10 px-4 py-2 text-sm text-star/70 transition hover:border-red-400/40 hover:text-red-300 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="button" variant="danger" onClick={remove} disabled={deleting}>
           {deleting ? "Deleting…" : "Delete chart"}
-        </button>
+        </Button>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-5 text-sm">
+      <Divider className="mt-5" />
+
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
         <button
           type="button"
           onClick={togglePrimary}
           disabled={pinning}
-          className={`font-medium transition disabled:opacity-50 ${isPrimary ? "text-horizon-amber" : "text-star/70 hover:text-star"}`}
+          className={`font-medium transition disabled:opacity-50 ${isPrimary ? "text-accent" : "text-muted hover:text-foreground"}`}
         >
           {isPrimary ? "★ Your sky (unpin)" : "☆ Set as My Sky"}
         </button>
-        <Link href={`/synastry?a=${id}`} className="text-star/70 transition hover:text-star">
+        <Link href={`/synastry?a=${id}`} className="text-muted transition hover:text-foreground">
           Compare
         </Link>
         {primaryChartId && primaryChartId !== id && (
           <Link
             href={`/synastry?a=${id}&b=${primaryChartId}`}
-            className="text-star/70 transition hover:text-star"
+            className="text-muted transition hover:text-foreground"
           >
             Compare with My Sky
           </Link>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

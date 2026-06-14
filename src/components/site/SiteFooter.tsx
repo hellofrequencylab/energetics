@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
+import { CONTAINER } from "@/components/ui/Container";
+import { cn } from "@/lib/ui/cn";
 
 const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   {
@@ -32,8 +34,8 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 border-t border-white/10 bg-midnight/60">
-      <div className="mx-auto w-full max-w-6xl px-5 py-12">
+    <footer className="mt-16 border-t border-border bg-midnight/60">
+      <div className={cn(CONTAINER, "py-12")}>
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div className="max-w-xs">
             <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">

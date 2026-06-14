@@ -14,6 +14,9 @@ The map of OneSky's docs. Start here.
 - [`../SYSTEMS.md`](../SYSTEMS.md): living roadmap of every system and its status.
 - [`RUNBOOK.md`](RUNBOOK.md): configure, deploy, and operate the app.
 - [`DESIGN.md`](DESIGN.md): the OneSky design language and site scope.
+- [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md): the practical UI framework: tokens, the
+  uniform width, navigation, and the component primitives. Living reference at
+  `/styleguide`.
 - [`adr/`](adr/): architecture decision records, newest decisions on top.
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md): how to make a change, and the Definition of Done.
 - [`../CHANGELOG.md`](../CHANGELOG.md): the technical change record.

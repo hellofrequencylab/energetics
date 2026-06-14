@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getUser } from "@/lib/supabase/server";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
+import { CONTAINER } from "@/components/ui/Container";
+import { buttonClasses } from "@/components/ui/Button";
+import { cn } from "@/lib/ui/cn";
 
 const NAV = [
   { href: "/synastry", label: "Resonance" },
@@ -11,23 +14,25 @@ const NAV = [
 
 /**
  * The standardized site header: wordmark, primary navigation, and an auth-aware
- * action. Used across every page so the chrome is consistent. Reads the session
- * server-side, so it must be rendered from a server component.
+ * action, on the one uniform site width. Used across every page so the chrome is
+ * consistent. Reads the session server-side, so it must render from a server
+ * component. Role-specific destinations (account, admin) live in the section
+ * sub-nav (AppSectionNav), shown on signed-in pages.
  */
 export async function SiteHeader() {
   const user = await getUser().catch(() => null);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-midnight/85 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-3">
+    <header className="sticky top-0 z-40 border-b border-border bg-midnight/85 backdrop-blur">
+      <div className={cn(CONTAINER, "flex items-center justify-between gap-4 py-3")}>
         <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">
           <ConvergenceGraph animated={false} className="h-6 w-8" label="OneSky" />
-          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-star">ONESKY</span>
+          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground">ONESKY</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-star/75 sm:flex">
+        <nav className="hidden items-center gap-6 text-sm text-muted sm:flex">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="transition hover:text-star">
+            <Link key={n.href} href={n.href} className="transition hover:text-foreground">
               {n.label}
             </Link>
           ))}
@@ -35,17 +40,11 @@ export async function SiteHeader() {
 
         <div className="flex items-center gap-3 text-sm">
           {user ? (
-            <Link
-              href="/account"
-              className="rounded-[10px] border border-white/15 px-3 py-1.5 text-star/85 transition hover:border-horizon-amber/40 hover:text-star"
-            >
+            <Link href="/account" className={buttonClasses("secondary", "sm")}>
               Account
             </Link>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-[10px] bg-horizon-amber px-3 py-1.5 font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.4)] transition hover:brightness-110"
-            >
+            <Link href="/login" className={buttonClasses("primary", "sm")}>
               Sign in
             </Link>
           )}
