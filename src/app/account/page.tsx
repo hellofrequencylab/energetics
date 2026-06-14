@@ -8,6 +8,7 @@ import { ProfileOnboarding } from "@/components/account/ProfileOnboarding";
 import { AccountTypeSwitch } from "@/components/account/AccountTypeSwitch";
 import { DisplayNameEditor } from "@/components/account/DisplayNameEditor";
 import { ChartRoster } from "@/components/account/ChartRoster";
+import { AddChartPanel } from "@/components/account/AddChartPanel";
 
 export const metadata: Metadata = { title: "Your account · ONESKY" };
 export const runtime = "nodejs";
@@ -93,33 +94,29 @@ export default async function AccountPage() {
           <DisplayNameEditor initial={profile.display_name ?? ""} />
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          <Link href="/welcome" className={card}>
-            <div className="font-display text-lg font-semibold">{addLabel}</div>
-            <p className="mt-1 text-sm text-star/65">
-              Compute a new chart, saved to your {practitioner ? "roster" : "people"}.
-            </p>
-          </Link>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
           <Link href="/synastry" className={card}>
             <div className="font-display text-lg font-semibold">Resonance</div>
-            <p className="mt-1 text-sm text-star/65">Compare two charts: platonic or intimate.</p>
+            <p className="mt-1 text-sm text-star/70">Compare two charts: platonic or intimate.</p>
           </Link>
           <Link href="/glossary" className={card}>
             <div className="font-display text-lg font-semibold">Glossary</div>
-            <p className="mt-1 text-sm text-star/65">Look up any sign, planet, number, or card.</p>
+            <p className="mt-1 text-sm text-star/70">Look up any sign, planet, number, or card.</p>
           </Link>
         </div>
 
+        <section id="add" className="mt-10 scroll-mt-20">
+          <AddChartPanel
+            noun={practitioner ? "client" : "chart"}
+            submitLabel={practitioner ? "Add client to roster" : "Add chart to your sky"}
+          />
+        </section>
+
         <section className="mt-12">
-          <div className="flex items-baseline justify-between">
-            <h2 className="font-display text-xl font-semibold">{rosterLabel}</h2>
-            <Link href="/welcome" className="text-sm font-medium text-horizon-amber hover:underline">
-              {addLabel}
-            </Link>
-          </div>
+          <h2 className="font-display text-xl font-semibold">{rosterLabel}</h2>
           <ChartRoster
             charts={charts}
-            addHref="/welcome"
+            addHref="#add"
             addLabel={addLabel}
             noun={practitioner ? "client" : "person"}
           />

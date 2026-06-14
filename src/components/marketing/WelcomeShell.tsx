@@ -90,7 +90,7 @@ export function WelcomeShell({
 
       {/* The input app, pulled up so its handle peeks into the hero. */}
       <section id="begin" className="relative z-10 -mt-14 px-5 pb-28">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-3xl">
           <button
             type="button"
             onClick={centerInput}
