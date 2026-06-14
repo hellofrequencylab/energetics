@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { allMeta } from "@/lib/core/registry";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
 import { Starfield } from "@/components/marketing/Starfield";
 import { Reveal } from "@/components/marketing/Reveal";
-import { MagneticButton } from "@/components/marketing/MagneticButton";
+import { CenterCTA } from "@/components/marketing/CenterCTA";
 import { CountUp } from "@/components/marketing/CountUp";
 import { WelcomeShell } from "@/components/marketing/WelcomeShell";
 
@@ -14,8 +15,6 @@ export const metadata: Metadata = {
     "See your birth moment through every tradition, and where they agree. OneSky keeps each system whole, then shows only the overlap that is real.",
 };
 
-// CTAs scroll to the input app, which lives on this page.
-const CTA_HREF = "#begin";
 const CTA_LABEL = "See your sky, free";
 
 function lineageCounts(): {
@@ -52,14 +51,14 @@ const STEPS = [
 ];
 
 const ctaPrimary =
-  "inline-block rounded-[12px] bg-horizon-amber px-7 py-3.5 text-base font-semibold text-ink shadow-[0_8px_40px_-8px_rgba(231,177,126,0.5)] transition-[transform,filter] duration-[160ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:brightness-110";
+  "inline-block rounded-[12px] bg-horizon-amber px-7 py-3.5 text-base font-semibold text-ink shadow-[0_10px_45px_-10px_rgba(231,177,126,0.6)] transition-[transform,filter] duration-[160ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:brightness-110";
 
 export default function WelcomePage() {
   const counts = lineageCounts();
 
   const hero = (
     <>
-      <header className="sticky top-0 z-30 border-b border-white/5 bg-midnight/70 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-white/5 bg-midnight/60 backdrop-blur">
         <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-3">
           <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">
             <ConvergenceGraph animated={false} className="h-6 w-8" label="OneSky" />
@@ -70,28 +69,31 @@ export default function WelcomePage() {
             <a href="#systems" className="hover:text-star">The systems</a>
             <Link href="/help" className="hover:text-star">Help</Link>
           </div>
-          <a href={CTA_HREF} className="rounded-[10px] bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110">
+          <CenterCTA className="rounded-[10px] bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110">
             {CTA_LABEL}
-          </a>
+          </CenterCTA>
         </nav>
       </header>
 
-      <section className="relative flex min-h-[86svh] items-center overflow-hidden">
+      <section className="relative flex min-h-[92svh] items-center overflow-hidden">
+        {/* Cinematic photo: optimized + preloaded, slow Ken Burns, scroll parallax. */}
         <div className="absolute inset-0 -z-20 par-slow">
-          <div className="hero-photo absolute inset-0 kenburns" aria-hidden="true" />
+          <div className="absolute inset-0 kenburns">
+            <Image src="/hero-sky.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+          </div>
         </div>
         <div
           className="absolute inset-0 -z-10"
           aria-hidden="true"
           style={{
             background:
-              "radial-gradient(70% 55% at 50% 42%, rgba(18,21,53,0.15), rgba(18,21,53,0.72) 78%), linear-gradient(to bottom, rgba(18,21,53,0.45) 0%, rgba(18,21,53,0.2) 35%, rgba(18,21,53,0.96) 100%)",
+              "radial-gradient(58% 50% at 50% 52%, rgba(10,10,20,0.55), transparent 72%), linear-gradient(to bottom, rgba(18,21,53,0.35) 0%, rgba(18,21,53,0) 28%, rgba(18,21,53,0.86) 90%, var(--midnight) 100%)",
           }}
         />
-        <Starfield count={36} className="absolute inset-0 -z-10 opacity-70" />
+        <Starfield count={40} className="absolute inset-0 -z-10 opacity-60" />
 
-        <div className="mx-auto max-w-2xl px-5 py-16 text-center">
-          <div className="relative mx-auto mb-10 aspect-[4/3] w-full max-w-sm">
+        <div className="mx-auto max-w-2xl px-5 py-20 text-center">
+          <div className="relative mx-auto mb-9 aspect-[4/3] w-full max-w-xs">
             <svg
               viewBox="0 0 400 300"
               className="spin-slow absolute inset-0 h-full w-full opacity-40"
@@ -104,26 +106,34 @@ export default function WelcomePage() {
             <ConvergenceGraph className="relative h-full w-full" />
           </div>
 
-          <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+          <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">
             Many traditions. <span className="shimmer-text">One sky.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-star/80">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-star/80 sm:text-xl">
             See your birth moment through every tradition, and where they agree.
           </p>
           <div className="mt-9 flex flex-col items-center gap-3">
-            <MagneticButton href={CTA_HREF} className={ctaPrimary}>
-              {CTA_LABEL}
-            </MagneticButton>
+            <CenterCTA className={ctaPrimary}>{CTA_LABEL}</CenterCTA>
             <p className="text-sm text-star/55">Your birth data stays yours.</p>
           </div>
         </div>
+
+        {/* Quiet scroll cue (replaces the tab). */}
+        <CenterCTA
+          ariaLabel="Scroll to begin"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-star/50 transition hover:text-star"
+        >
+          <svg viewBox="0 0 24 14" className="float h-3.5 w-7" aria-hidden="true">
+            <path d="M2 3 L12 11 L22 3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </CenterCTA>
       </section>
     </>
   );
 
   const sections = (
     <>
-      <section className="px-5 py-24 text-center">
+      <section className="px-5 py-24 text-center sm:py-28">
         <Reveal>
           <p className="mx-auto max-w-2xl font-display text-2xl leading-snug text-star/90 sm:text-3xl">
             You have read your horoscope. You have outgrown it. The sky has more to say, and it
@@ -132,16 +142,16 @@ export default function WelcomePage() {
         </Reveal>
       </section>
 
-      <section id="how" className="relative scroll-mt-20 overflow-hidden border-t border-white/5 px-5 py-24">
-        <Starfield count={24} className="par-fast absolute inset-0 -z-10 opacity-30" />
+      <section id="how" className="relative scroll-mt-20 overflow-hidden border-t border-white/5 px-5 py-24 sm:py-28">
+        <Starfield count={24} className="par-fast absolute inset-0 -z-10 opacity-25" />
         <div className="mx-auto max-w-5xl">
           <Reveal>
             <h2 className="text-center font-display text-3xl font-semibold sm:text-4xl">How it works</h2>
           </Reveal>
-          <ol className="mt-12 grid gap-8 sm:grid-cols-3">
+          <ol className="mt-12 grid gap-6 sm:grid-cols-3">
             {STEPS.map((s, i) => (
               <Reveal key={i} delay={i * 120}>
-                <li className="h-full rounded-[14px] border border-white/10 bg-dusk/30 p-6 transition duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-horizon-amber/40">
+                <li className="h-full rounded-[16px] border border-white/10 bg-dusk/25 p-6 transition duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-horizon-amber/40 hover:bg-dusk/40">
                   <span className="font-mono text-sm text-horizon-amber">{`0${i + 1}`}</span>
                   <h3 className="mt-3 font-display text-xl font-semibold">{s.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-star/70">{s.body}</p>
@@ -177,7 +187,7 @@ export default function WelcomePage() {
                 which one said what.
               </p>
               <p className="mt-4 text-star/75">No other reading does this.</p>
-              <a href={CTA_HREF} className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</a>
+              <CenterCTA className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</CenterCTA>
             </div>
           </Reveal>
         </div>
@@ -203,7 +213,7 @@ export default function WelcomePage() {
               { n: counts.modernReconstruction, label: "Modern reconstructions" },
             ].map((stat, i) => (
               <Reveal key={i} delay={i * 120}>
-                <div className="rounded-[14px] border border-ink/10 bg-white/50 p-6">
+                <div className="rounded-[16px] border border-ink/10 bg-white/50 p-6">
                   <div className="font-display text-4xl font-semibold">
                     <CountUp to={stat.n} />
                   </div>
@@ -236,7 +246,7 @@ export default function WelcomePage() {
             <h2 className="font-display text-3xl font-semibold leading-tight sm:text-5xl">
               Read everything the sky has to say.
             </h2>
-            <a href={CTA_HREF} className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</a>
+            <CenterCTA className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</CenterCTA>
           </div>
         </Reveal>
       </section>
@@ -245,30 +255,29 @@ export default function WelcomePage() {
 
   const footer = (
     <>
-      <footer className="border-t border-white/5 px-5 py-12 text-sm text-star/60">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-star">
-              <ConvergenceGraph animated={false} className="h-5 w-7" label="OneSky" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
-            </div>
-            <p className="mt-2">Many traditions. One sky.</p>
+    <footer className="border-t border-white/5 px-5 py-12 text-sm text-star/60">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-star">
+            <ConvergenceGraph animated={false} className="h-5 w-7" label="OneSky" />
+            <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <a href={CTA_HREF} className="hover:text-star">See your sky</a>
-            <Link href="/help" className="hover:text-star">Help</Link>
-            <Link href="/about" className="hover:text-star">About</Link>
-            <a href="mailto:hello@onesky.app" className="hover:text-star">Contact</a>
-          </div>
+          <p className="mt-2">Many traditions. One sky.</p>
         </div>
-        <p className="mx-auto mt-8 w-full max-w-5xl text-star/40">Your birth data stays yours.</p>
-      </footer>
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
-        <a href={CTA_HREF} className="block rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink">
-          {CTA_LABEL}
-        </a>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link href="/help" className="hover:text-star">Help</Link>
+          <Link href="/about" className="hover:text-star">About</Link>
+          <a href="mailto:hello@onesky.app" className="hover:text-star">Contact</a>
+        </div>
       </div>
+      <p className="mx-auto mt-8 w-full max-w-5xl text-star/40">Your birth data stays yours.</p>
+    </footer>
+
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
+      <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink">
+        {CTA_LABEL}
+      </CenterCTA>
+    </div>
     </>
   );
 

@@ -220,19 +220,8 @@ body {
   }
 }
 
-/* Hero photograph: cinematic slow zoom (Ken Burns). Optimized assets live at
-   public/hero-sky.webp (preferred) and public/hero-sky.jpg (fallback). If
-   absent, the layer is empty over the twilight base, so the hero degrades
-   gracefully. */
-.hero-photo {
-  background-image: url("/hero-sky.jpg");
-  background-image: image-set(
-    url("/hero-sky.webp") type("image/webp"),
-    url("/hero-sky.jpg") type("image/jpeg")
-  );
-  background-size: cover;
-  background-position: center;
-}
+/* Hero photograph: cinematic slow zoom (Ken Burns). The image itself is a
+   next/image fill (optimized, preloaded); this just animates its wrapper. */
 @keyframes kenburns {
   from { transform: scale(1.06); }
   to { transform: scale(1.2) translate3d(0, -2%, 0); }
@@ -240,6 +229,16 @@ body {
 .kenburns {
   animation: kenburns 30s ease-in-out infinite alternate;
   will-change: transform;
+}
+
+/* Scroll snap: only the input app is a snap target, so the page reads normally
+   but the input settles to center when you scroll near it (proximity, gentle). */
+html {
+  scroll-snap-type: y proximity;
+}
+.snap-center {
+  scroll-snap-align: center;
+  scroll-margin-block: 10vh;
 }
 
 /* Reduced motion: render settled states at once. No drawing, looping, or drift. */
