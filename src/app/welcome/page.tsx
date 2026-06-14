@@ -14,10 +14,10 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 export const metadata: Metadata = {
   title: "OneSky · Many traditions. One sky.",
   description:
-    "See your birth moment through every tradition, and where they agree. OneSky keeps each system whole, then shows only the overlap that is real.",
+    "Read your birth chart across Western astrology, Human Design, numerology, the Maya calendar, Chinese BaZi, and Tarot at once. OneSky keeps each system whole, then shows the few things they independently agree on about you. Free to read.",
 };
 
-const CTA_LABEL = "See your sky, free";
+const CTA_LABEL = "Read my chart, free";
 
 function lineageCounts(): {
   total: number;
@@ -40,15 +40,34 @@ function lineageCounts(): {
 const STEPS = [
   {
     title: "Enter your birth moment",
-    body: "Your date alone is enough to begin. Share your time and place when you have them, and more of the chart opens up.",
+    body: "Your date is all it takes to start. Add your exact time and birthplace to unlock your houses, your angles, and the time-based systems.",
   },
   {
-    title: "See every tradition, kept whole",
-    body: "Each tradition reads your chart in its own voice. We never flatten them into a single number.",
+    title: "Every tradition reads you, on its own",
+    body: "Western astrology, Human Design, numerology, the Maya count, Chinese BaZi, and Tarot each read your chart in their own voice, with nothing shared between them.",
   },
   {
-    title: "Watch them converge",
-    body: "We surface where independent traditions quietly agree about you, and where they pull apart.",
+    title: "See where they converge",
+    body: "We surface the themes independent traditions reach on their own. The more of them that agree, the more it means, and we always show you which said what.",
+  },
+];
+
+const BENEFITS = [
+  {
+    title: "Many traditions, read in full",
+    body: "Not one horoscope. Your chart computed across six core systems, each drawn the way it is drawn in real life.",
+  },
+  {
+    title: "A reading that writes itself",
+    body: "A clear, grounded write-up of what your systems agree on, in plain language. It reads the chart, it never makes things up.",
+  },
+  {
+    title: "Resonance with others",
+    body: "Compare any two charts: where you meet, and where you balance each other. Choose a platonic or an intimate lens.",
+  },
+  {
+    title: "Yours, and private",
+    body: "Read a full chart free, with no account. Save charts under your account and they stay protected, so only you can see them.",
   },
 ];
 
@@ -109,13 +128,14 @@ export default function WelcomePage() {
           <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight [text-shadow:0_2px_30px_rgba(6,8,20,0.65)] sm:text-7xl">
             Many traditions. <span className="shimmer-text">One sky.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-star/95 [text-shadow:0_1px_18px_rgba(6,8,20,0.8)] sm:text-xl">
-            See your birth moment through every tradition, and read where they agree.
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-star/95 [text-shadow:0_1px_18px_rgba(6,8,20,0.8)] sm:text-xl">
+            Your birth chart, read across astrology, Human Design, numerology, and more, all at once.
+            See the few things they independently agree on about you, and where they pull apart.
           </p>
           <div className="mt-9 flex flex-col items-center gap-3">
             <CenterCTA className={ctaPrimary}>{CTA_LABEL}</CenterCTA>
             <p className="text-sm text-star/70 [text-shadow:0_1px_12px_rgba(6,8,20,0.8)]">
-              Your birth data stays yours.
+              Free to read. No account needed. Your birth data stays yours.
             </p>
           </div>
         </div>
@@ -137,8 +157,9 @@ export default function WelcomePage() {
       <section className="px-5 py-24 text-center sm:py-28">
         <Reveal>
           <p className="mx-auto max-w-2xl font-display text-2xl leading-snug text-star sm:text-3xl">
-            You have read your horoscope a hundred times. You have outgrown it. The sky has so much
-            more to say, and it speaks in more than one language.
+            One horoscope, one system, one voice. You have outgrown it. Your birth moment holds far
+            more, and every tradition reads it differently. OneSky reads them all at once, then
+            listens for what they say in unison.
           </p>
         </Reveal>
       </section>
@@ -158,7 +179,7 @@ export default function WelcomePage() {
                 <li className="h-full rounded-[16px] border border-white/10 bg-dusk/30 p-6 transition duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-horizon-amber/40 hover:bg-dusk/45">
                   <span className="font-mono text-sm text-horizon-amber">{`0${i + 1}`}</span>
                   <h3 className="mt-3 font-display text-xl font-semibold">{s.title}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-star/85">{s.body}</p>
+                  <p className="mt-2 text-base leading-relaxed text-star/85">{s.body}</p>
                 </li>
               </Reveal>
             ))}
@@ -181,19 +202,49 @@ export default function WelcomePage() {
           </Reveal>
           <Reveal delay={120}>
             <div>
-              <p className={eyebrow}>The difference</p>
+              <p className={eyebrow}>Why it is different</p>
               <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">
                 When separate traditions land on the same truth
               </h2>
-              <p className="mt-5 text-[15px] leading-relaxed text-star/85">
-                OneSky keeps each tradition apart, then shows you only the overlap that is real. When
-                they agree, it means something, because nothing was nudged to create it. We rank what
-                you see by how many independent traditions point the same way, and we always tell you
-                which one said it.
+              <p className="mt-5 text-base leading-relaxed text-star/85">
+                Most apps blend everything into one number and lose the plot. OneSky does the
+                opposite. It keeps each tradition whole and independent, then shows you only the
+                overlap that is real. Because nothing is nudged to agree, agreement actually means
+                something. We rank what you see by how many independent sources point the same way,
+                and we always name which one said it.
               </p>
               <p className="mt-4 font-medium text-star/90">Nothing else reads you this way.</p>
               <CenterCTA className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</CenterCTA>
             </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="border-t border-white/5 px-5 py-24 sm:py-28">
+        <div className="mx-auto max-w-5xl">
+          <Reveal>
+            <div className="text-center">
+              <p className={eyebrow}>What you get</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+                A whole self-portrait, not a daily horoscope
+              </h2>
+            </div>
+          </Reveal>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2">
+            {BENEFITS.map((b, i) => (
+              <Reveal key={i} delay={i * 100}>
+                <div className="h-full rounded-[16px] border border-white/10 bg-dusk/30 p-6 transition duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-horizon-amber/40 hover:bg-dusk/45">
+                  <h3 className="font-display text-xl font-semibold">{b.title}</h3>
+                  <p className="mt-2 text-base leading-relaxed text-star/85">{b.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={200}>
+            <p className="mt-10 text-center text-sm text-star/60">
+              Real astronomy under the hood: planetary positions from the Swiss Ephemeris, the same
+              engine trusted by serious astrologers.
+            </p>
           </Reveal>
         </div>
       </section>
@@ -205,11 +256,12 @@ export default function WelcomePage() {
             <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Each tradition, true to its roots
             </h2>
-            <p className="mt-5 text-[15px] leading-relaxed text-ink/85">
+            <p className="mt-5 text-base leading-relaxed text-ink/85">
               OneSky reads {counts.total} traditions today, and we name the lineage of every one.
               Living traditions are honored as they are. Modern reconstructions are labeled as such,
-              and some are shown for interest while staying out of the structural synthesis, so a
-              recent invention never poses as an ancient lineage.
+              and some are shown for interest while staying out of the synthesis, so a recent
+              invention never poses as an ancient lineage. We treat every reading as a way to
+              reflect, never as fixed fate.
             </p>
           </Reveal>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -246,6 +298,9 @@ export default function WelcomePage() {
             <h2 className="font-display text-3xl font-semibold leading-tight sm:text-5xl">
               Read everything the sky has to say.
             </h2>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-star/80">
+              Start with your date. Your first reading is free, and it is yours to keep.
+            </p>
             <CenterCTA className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</CenterCTA>
           </div>
         </Reveal>

@@ -67,6 +67,10 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- Reworked the home page copy and structure end to end: a clearer hero that names
+  the traditions and the convergence idea, a sharper "how it works", a new "what
+  you get" benefits section, a credibility note (Swiss Ephemeris), and stronger,
+  more readable copy throughout.
 - The Convergence Chart now reads clearly: cross-confirmed themes are labeled and
   pulled toward the center by agreement, single-lens noise is dropped from the
   visual, system names are shortened, and a plain takeaway under the chart names

@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "A clearer home page",
+    notes: [
+      "The home page now explains plainly what OneSky does: your chart read across many traditions at once, with the few things they all agree on surfaced for you.",
+      "New sections walk through how it works and what you get, in plain, readable language.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "The convergence chart now makes sense at a glance",
     notes: [
       "The chart labels your strongest themes and pulls them toward the center as more traditions agree, with a plain summary of what it says about your energy.",
