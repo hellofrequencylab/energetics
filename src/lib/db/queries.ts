@@ -3,9 +3,16 @@
  * (RLS enforces user_id). These run best-effort: callers swallow errors so a
  * persistence failure never breaks chart computation.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { createClient } from "@/lib/supabase/server";
 import type { BirthEvent } from "@/lib/core/birth-event";
 import type { ComputedSystem, Synthesis } from "@/lib/synthesis/types";
+
+/**
+ * The Supabase client these helpers operate on, derived from the factory so the
+ * `energetics` schema typing (db.schema) stays in sync automatically. Both the
+ * server and browser clients share this shape.
+ */
+type DbClient = NonNullable<Awaited<ReturnType<typeof createClient>>>;
 
 export interface PersistChartInput {
   event: BirthEvent;
@@ -21,7 +28,7 @@ export interface PersistChartInput {
  * birth event id; returns the birth_event id.
  */
 export async function persistChart(
-  supabase: SupabaseClient,
+  supabase: DbClient,
   userId: string,
   { event, name, computations, synthesis, ephemerisVersion }: PersistChartInput,
 ): Promise<string> {
@@ -91,7 +98,7 @@ export async function persistChart(
 }
 
 /** Recent birth events for the signed-in user. */
-export async function recentBirthEvents(supabase: SupabaseClient, limit = 20) {
+export async function recentBirthEvents(supabase: DbClient, limit = 20) {
   const { data, error } = await supabase
     .from("birth_events")
     .select("id, name, date, time, precision, created_at")
