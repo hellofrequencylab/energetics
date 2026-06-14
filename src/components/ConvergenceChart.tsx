@@ -197,7 +197,7 @@ export function ConvergenceChart({
   const litConv = (n: ConvNode) => hover?.label === humanize(n.cv.value) || isSel(sel, "convergence", n.i);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
       <div>
         <div className="mb-2 flex items-center justify-end">
           <button

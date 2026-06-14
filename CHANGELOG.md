@@ -7,11 +7,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Changed
+- Convergence chart gets more room: the chart column is wider relative to the
+  Quick info panel, and the reader page is wider overall, so there is more space
+  to explore every theme and tension at once.
 - Convergence chart, round two: it now plots every theme (not only the
   cross-confirmed ones), tension lines connect the two themes that pull apart and
   follow them as you drag, tensions can be toggled on or off, the system dots no
   longer open a graphic, and clicking a theme or tension explains how it tends to
   show up in life (`src/lib/convergence-meaning.ts`).
+- The convergence chart is now fully interactive and laid out side by side with a
   Quick info panel. Themes spread out so they are all visible and can be dragged
   to reposition; hovering any point shows a tooltip; clicking a theme or tension
   opens its summary in the panel; clicking a system dot shows that system's chart
