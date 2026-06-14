@@ -58,6 +58,18 @@ export const engine: SystemEngine = {
       hour: pillar(ec.getTimeGan(), ec.getTimeZhi()),
     };
 
+    // Element balance across the four heavenly stems. A simple, deterministic
+    // tally of the same stem elements already computed above (no extra library
+    // calls), used to surface the dominant element across the chart. `dominant`
+    // breaks ties by a stable generative-cycle order so the result is stable.
+    const elements = elementCounts([
+      pillars.year.element,
+      pillars.month.element,
+      pillars.day.element,
+      pillars.hour.element,
+    ]);
+    const dominant = dominantElement(elements);
+
     return {
       systemId: meta.id,
       factors: {
@@ -74,6 +86,12 @@ export const engine: SystemEngine = {
           value: pillars,
           display: `${pillars.year.stem}${pillars.year.branch} ${pillars.month.stem}${pillars.month.branch} ${pillars.day.stem}${pillars.day.branch} ${pillars.hour.stem}${pillars.hour.branch}`,
         },
+        elements: {
+          key: "elements",
+          label: "Element Balance",
+          value: { counts: elements, dominant },
+          display: dominant ? cap(dominant) : "",
+        },
       },
     };
   },
@@ -85,6 +103,34 @@ export interface Pillar {
   element: string; // wood | fire | earth | metal | water
   polarity: string; // Yang | Yin
   animal: string;
+}
+
+/** Canonical five-phase order (the generative cycle), used for stable output. */
+const WU_XING = ["wood", "fire", "earth", "metal", "water"] as const;
+type WuXing = (typeof WU_XING)[number];
+
+/** Tally the five elements across a list of pillar elements. Always returns all
+ * five keys (zero-filled) so the shape is stable regardless of birth moment. */
+function elementCounts(elements: string[]): Record<WuXing, number> {
+  const counts: Record<WuXing, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+  for (const el of elements) {
+    if (el && el in counts) counts[el as WuXing] += 1;
+  }
+  return counts;
+}
+
+/** Highest-count element. Ties break by generative-cycle order for determinism;
+ * returns "" only if there were no countable elements. */
+function dominantElement(counts: Record<WuXing, number>): string {
+  let best = "";
+  let bestCount = 0;
+  for (const el of WU_XING) {
+    if (counts[el] > bestCount) {
+      best = el;
+      bestCount = counts[el];
+    }
+  }
+  return best;
 }
 
 function cap(s: string): string {

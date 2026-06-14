@@ -10,6 +10,7 @@ import { allMeta } from "@/lib/core/registry";
 import { interpretationsFor } from "@/lib/corpus";
 import { SYSTEM_BLURBS, LINEAGE_LABEL } from "@/lib/help/content";
 import { SYSTEM_NOTE } from "@/lib/ethics";
+import { overviewFor } from "@/lib/system-overviews";
 import { SiteShell } from "@/components/site/SiteShell";
 import { SystemDiagram } from "@/components/diagrams";
 
@@ -81,6 +82,7 @@ export default async function SystemDetailPage({
   const meta = comp.meta;
   const factors = Object.values(comp.native.factors);
   const meanings = interpretationsFor(meta.id, comp.native);
+  const overview = overviewFor(systemId);
 
   // Crossover: convergences this system shares with at least one other system.
   const convergences = synthesis.convergences
@@ -121,7 +123,7 @@ export default async function SystemDetailPage({
         {row.precision}
       </p>
 
-      {/* The system */}
+      {/* The system, in depth */}
       <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-accent/30 bg-accent/5 px-2.5 py-0.5 text-xs text-accent">
@@ -132,9 +134,26 @@ export default async function SystemDetailPage({
           </span>
         </div>
         <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">
-          {SYSTEM_BLURBS[meta.id] ?? "A tradition OneSky reads from your birth moment."}
+          {overview?.intro ?? SYSTEM_BLURBS[meta.id] ?? "A tradition OneSky reads from your birth moment."}
         </p>
-        {SYSTEM_NOTE[meta.id] && <p className="mt-2 text-sm text-muted">{SYSTEM_NOTE[meta.id]}</p>}
+        {overview && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent">How to read it</p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/85">{overview.how}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent">How it applies to your life</p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/85">{overview.appliesToLife}</p>
+            </div>
+          </div>
+        )}
+        {(overview?.lineageNote || SYSTEM_NOTE[meta.id]) && (
+          <p className="mt-4 border-t border-border/60 pt-3 text-sm text-muted">
+            <span className="font-medium">Good to know: </span>
+            {overview?.lineageNote ?? SYSTEM_NOTE[meta.id]}
+          </p>
+        )}
       </section>
 
       {/* The diagram */}
@@ -143,16 +162,24 @@ export default async function SystemDetailPage({
         <div className="rounded-2xl border border-border bg-surface/40 p-5">
           <SystemDiagram computation={comp} />
           {factors.length ? (
-            <ul className="mt-1 space-y-1.5">
-              {factors.map((f) => (
-                <li key={f.key} className="flex justify-between gap-3 text-sm">
-                  <span className="text-muted">{f.label}</span>
-                  <span className="text-right">{f.display ?? String(f.value)}</span>
-                </li>
-              ))}
+            <ul className="mt-1 divide-y divide-border/50">
+              {factors.map((f) => {
+                const stat = overview?.stats?.[f.key];
+                return (
+                  <li key={f.key} className="py-2">
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted">{f.label}</span>
+                      <span className="text-right font-medium">{f.display ?? String(f.value)}</span>
+                    </div>
+                    {stat && <p className="mt-0.5 text-xs leading-relaxed text-muted">{stat}</p>}
+                  </li>
+                );
+              })}
             </ul>
+          ) : meta.derivedFrom === "name" ? (
+            <p className="text-sm text-muted">Add your full name to this chart to unlock this reading.</p>
           ) : (
-            <p className="text-xs italic text-muted">Registered, no output yet (scaffold).</p>
+            <p className="text-sm italic text-muted">Registered, no output yet (scaffold).</p>
           )}
         </div>
       </section>

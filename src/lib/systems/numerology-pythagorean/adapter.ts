@@ -1,8 +1,9 @@
 import type { NativeResult, Primitive, SemanticAdapter } from "@/lib/core/contracts";
+import { isRegistered } from "@/lib/ontology/axes";
 import { ONTOLOGY_VERSION } from "@/lib/ontology/version";
 import { meta } from "./engine";
 
-/** Life Path number → curated theme (registered in ontology THEMES). */
+/** Life Path number -> curated theme (all registered in ontology THEMES). */
 const LIFEPATH_THEME: Record<number, string> = {
   1: "leadership",
   2: "sensitivity",
@@ -29,7 +30,9 @@ export const adapter: SemanticAdapter = {
     const primitives: Primitive[] = [];
 
     const theme = LIFEPATH_THEME[lifePath];
-    if (theme) primitives.push({ axis: "theme", value: theme, weight: 1.0, ...base });
+    if (theme && isRegistered("theme", theme)) {
+      primitives.push({ axis: "theme", value: theme, weight: 1.0, ...base });
+    }
 
     // Odd numbers read active/initiating; even receptive. Masters read active.
     const polarity = lifePath % 2 === 1 || lifePath >= 11 ? "active" : "receptive";

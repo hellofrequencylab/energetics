@@ -40,6 +40,7 @@ export const engine: SystemEngine = {
       factors: {
         signature: { key: "signature", label: "Galactic Signature", value: ds.signature, display: ds.signature },
         kin: { key: "kin", label: "Kin", value: ds.kin, display: `Kin ${ds.kin}` },
+        color: { key: "color", label: "Color Family", value: ds.color, display: ds.color },
         seal: { key: "seal", label: "Solar Seal", value: ds.seal, display: `${ds.color} ${ds.seal}` },
         tone: { key: "tone", label: "Galactic Tone", value: ds.tone, display: `${ds.tone} ${ds.toneName}` },
         oracle: {

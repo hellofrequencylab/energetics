@@ -6,6 +6,17 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Added
+- Per-system depth (batch one, the offered systems). Each system now has an
+  in-depth overview (`src/lib/systems/<id>/overview.ts`, collected in
+  `src/lib/system-overviews.ts`): what it is, how to read your result, how it
+  applies to your life, a lineage-honest note, and a plain meaning for each of
+  your stats. The per-system detail page renders all of it. Engines expose more
+  derived info (for example Western element/modality/polarity balance, BaZi
+  element balance, Pythagorean birthday/attitude/maturity/challenge numbers,
+  Chaldean soul-urge and personality numbers, a Tarot teacher card), and adapters
+  emit more ontology primitives so more systems form connections.
+
 ### Fixed
 - Convergence map: tensions no longer collapse onto the center node. A tension is
   drawn only between two visible convergence points, so it always connects two

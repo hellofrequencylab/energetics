@@ -35,19 +35,34 @@ function reduce(n: number): number {
   return v;
 }
 
+/** Vowels for the soul-urge / personality split. Y is read as a consonant here. */
+const VOWELS = new Set(["A", "E", "I", "O", "U"]);
+
 export const engine: SystemEngine = {
   meta,
   compute(birth: BirthEvent): NativeResult {
     const name = birth.name?.trim();
     if (!name) return { systemId: meta.id, factors: {} }; // needs a name
 
-    const total = name
-      .toUpperCase()
-      .split("")
-      .reduce((sum, ch) => sum + (CHALDEAN[ch] ?? 0), 0);
+    const letters = name.toUpperCase().split("");
+    const total = letters.reduce((sum, ch) => sum + (CHALDEAN[ch] ?? 0), 0);
     if (total === 0) return { systemId: meta.id, factors: {} };
 
+    // Soul-urge reads the vowels; personality reads the consonants. Both use the
+    // same Chaldean values as the name number, just partitioned by letter class.
+    const vowelTotal = letters.reduce(
+      (sum, ch) => sum + (VOWELS.has(ch) ? CHALDEAN[ch] ?? 0 : 0),
+      0,
+    );
+    const consonantTotal = letters.reduce(
+      (sum, ch) => sum + (!VOWELS.has(ch) ? CHALDEAN[ch] ?? 0 : 0),
+      0,
+    );
+
     const nameNumber = reduce(total);
+    const soulUrge = reduce(vowelTotal);
+    const personality = reduce(consonantTotal);
+
     return {
       systemId: meta.id,
       factors: {
@@ -58,6 +73,18 @@ export const engine: SystemEngine = {
           display: `${nameNumber} (compound ${total})`,
         },
         compound: { key: "compound", label: "Compound", value: total, display: String(total) },
+        "soul-urge": {
+          key: "soul-urge",
+          label: "Soul Urge Number",
+          value: soulUrge,
+          display: `${soulUrge} (vowels ${vowelTotal})`,
+        },
+        personality: {
+          key: "personality",
+          label: "Personality Number",
+          value: personality,
+          display: `${personality} (consonants ${consonantTotal})`,
+        },
       },
     };
   },

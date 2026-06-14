@@ -113,7 +113,7 @@ export const engine: SystemEngine = {
       };
     }
 
-    // Element / modality balance over the ten planets.
+    // Element / modality / polarity balance over the ten planets.
     const balance = distribution(positions);
     factors.elements = {
       key: "elements",
@@ -130,6 +130,26 @@ export const engine: SystemEngine = {
       display: Object.entries(balance.modalities)
         .map(([k, v]) => `${cap(k)} ${v}`)
         .join(" · "),
+    };
+
+    // Dominant element/modality + overall polarity lean (pure: derived from the
+    // distribution above). `polarity` is "balanced" only on an exact tie.
+    const domElement = dominantKey(balance.elements);
+    const domModality = dominantKey(balance.modalities);
+    const activeCount = balance.polarity.active;
+    const receptiveCount = balance.polarity.receptive;
+    const polarityLean =
+      activeCount > receptiveCount ? "active" : receptiveCount > activeCount ? "receptive" : "balanced";
+    factors.dominant = {
+      key: "dominant",
+      label: "Dominant Signature",
+      value: {
+        element: domElement,
+        modality: domModality,
+        polarity: polarityLean,
+        polarityCounts: { active: activeCount, receptive: receptiveCount },
+      },
+      display: `${cap(domElement)} · ${cap(domModality)} · ${cap(polarityLean)}`,
     };
 
     // Aspects + lunar phase require precise time.
@@ -213,13 +233,28 @@ function moonCuspWarning(
 function distribution(positions: PlanetaryLongitudes) {
   const elements: Record<string, number> = { fire: 0, earth: 0, air: 0, water: 0 };
   const modalities: Record<string, number> = { cardinal: 0, fixed: 0, mutable: 0 };
+  const polarity: Record<string, number> = { active: 0, receptive: 0 };
   const planets: CoreBody[] = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"];
   for (const p of planets) {
     const sign = SIGNS[Math.floor(norm360(positions[p].longitude) / 30) % 12];
     elements[sign.element] += 1;
     modalities[sign.modality] += 1;
+    polarity[sign.polarity] += 1;
   }
-  return { elements, modalities };
+  return { elements, modalities, polarity };
+}
+
+/** Key with the highest count; ties resolve to the first key by insertion order. */
+function dominantKey(counts: Record<string, number>): string {
+  let bestKey = "";
+  let bestVal = -Infinity;
+  for (const [k, v] of Object.entries(counts)) {
+    if (v > bestVal) {
+      bestVal = v;
+      bestKey = k;
+    }
+  }
+  return bestKey;
 }
 
 function lunarPhase(sunLon: number, moonLon: number): string {
