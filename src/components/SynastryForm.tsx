@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SynastryResult } from "@/lib/synastry";
 import { PlaceSearch, type SelectedPlace } from "./PlaceSearch";
+import { NarrativePanel } from "./NarrativePanel";
 
 export type ResonanceMode = "platonic" | "intimate";
 
@@ -124,6 +125,8 @@ export function SynastryForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SynastryResult | null>(null);
+  // Bumped on each successful compare so the reading panel resets for new charts.
+  const [runId, setRunId] = useState(0);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -139,6 +142,7 @@ export function SynastryForm({
       const json = await res.json();
       if (!res.ok) throw new Error(json.details || json.error || "Request failed");
       setResult(json.synastry as SynastryResult);
+      setRunId((n) => n + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -184,7 +188,19 @@ export function SynastryForm({
         <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
       )}
 
-      {result && <SynastryResults result={result} aName={a.name} bName={b.name} mode={mode} />}
+      {result && (
+        <>
+          <SynastryResults result={result} aName={a.name} bName={b.name} mode={mode} />
+          <NarrativePanel
+            key={`${runId}-${mode}`}
+            endpoint="/api/synastry/narrate"
+            body={{ a: toIntake(a), b: toIntake(b), mode }}
+            title={mode === "intimate" ? "Your resonance reading" : "Your connection reading"}
+            ctaLabel="Write the reading"
+            idleBlurb="Optional prose over the comparison above. It reads the shared emphases, complementary tensions, and cross-aspects through this lens, and never computes them. It streams in live and is saved."
+          />
+        </>
+      )}
     </div>
   );
 }

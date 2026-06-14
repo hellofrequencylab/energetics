@@ -23,7 +23,8 @@ on only when Supabase is configured; the narrative switches on only with a key.
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | auth, saved charts | `https://<project-ref>.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | auth, saved charts | Publishable key (browser safe). Never use the secret key here. |
-| `ANTHROPIC_API_KEY` | narrative | Server only. |
+| `ANTHROPIC_API_KEY` | narrative | Server only. The reading streams when this is set. |
+| `SUPABASE_SERVICE_ROLE_KEY` | narrative cache (optional) | Server only. Lets the server write the narrative cache so readings are reused instead of re-billed. Without it, readings still stream, they just regenerate each time. Never expose in a `NEXT_PUBLIC_` variable. |
 | `SE_EPHE_PATH` | higher precision (optional) | Path to `.se1` files. Without it, `sweph` uses the built-in Moshier model, which is fine for a baseline. |
 
 ## First-time activation (Supabase)
@@ -31,9 +32,11 @@ on only when Supabase is configured; the narrative switches on only with a key.
 This is how OneSky was brought online inside the shared Supabase project. It is
 idempotent enough to repeat on a fresh project.
 
-1. **Apply the schema.** Run `supabase/migrations/0001_init.sql`. It creates the
-   `energetics` schema, the five tables, row level security policies, indexes,
-   and grants to the API roles. The `vector` extension lives in `public` and is
+1. **Apply the schema.** Run the migrations in `supabase/migrations/` in order
+   (`0001_init.sql` through the latest). `0001` creates the `energetics` schema,
+   the core tables, row level security policies, indexes, and grants to the API
+   roles; later migrations add profiles, the primary chart, and the narrative
+   cache (`0004_narratives.sql`). The `vector` extension lives in `public` and is
    referenced as `public.vector`.
 2. **Expose the schema to the Data API.** Supabase dashboard, Settings, Data API,
    Exposed schemas: add `energetics` alongside `public`. Without this, the app
@@ -56,6 +59,29 @@ Magic-link sign in uses the PKCE flow. The login page requests a link with
 the code for a session, sets cookies, and redirects home. If a sign in lands on
 `/login?error=auth-callback`, the exchange failed: check the redirect URLs and
 the Supabase auth logs.
+
+## Narrative and its cache
+
+The reading (the prose layer over the synthesis) streams from Anthropic, token by
+token, on `/api/charts/narrate` and `/api/synastry/narrate`. It reads the
+deterministic synthesis and never computes it.
+
+Each reading is a deterministic function of the structure (model, system prompt,
+and the prompt built from the convergences, tensions, or comparison), so it is
+memoized in `energetics.narratives`, keyed by a content hash. Reopening a chart,
+or two people with identical charts, serves the stored reading instead of calling
+the model again.
+
+- Cache reads use the normal client and the world-readable `select` policy. The
+  key is a hash with no birth data, and the value is reproducible by anyone with
+  the same structure, so it is safe to share.
+- Cache writes happen only server-side with `SUPABASE_SERVICE_ROLE_KEY`, and only
+  of text the server just generated. Clients can read but never write, so the
+  cache cannot be poisoned. Without the service key, readings still stream, they
+  just regenerate each time (no caching).
+- To clear the cache, truncate `energetics.narratives`. Readings regenerate on
+  next view. Editing a chart's birth data changes its structure, so it
+  content-addresses to a fresh reading automatically.
 
 ## Deploy
 

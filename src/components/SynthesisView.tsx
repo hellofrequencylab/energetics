@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { ComputeResponse, NarrateResponse } from "@/lib/api-types";
-import type { NarrativeResult } from "@/lib/synthesis/narrative";
+import type { ComputeResponse } from "@/lib/api-types";
 import { vedicToWheel, westernToWheel } from "@/lib/wheel";
 import { interpretationsFor } from "@/lib/corpus";
 import type { TransitsResult } from "@/lib/transits";
 import type { ComputedSystem } from "@/lib/synthesis/types";
 import { ChartWheel } from "./ChartWheel";
 import { EthicsPanel } from "./EthicsPanel";
+import { NarrativePanel } from "./NarrativePanel";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
 function humanizeValue(value: string): string {
@@ -65,7 +65,7 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
           Convergences
         </h3>
         <p className="mb-4 text-xs text-muted">
-          Ranked by how many <em>independent</em> source groups agree — not a blended score.
+          Ranked by how many <em>independent</em> source groups agree, not a blended score.
         </p>
 
         {crossConfirmed.length > 0 ? (
@@ -94,7 +94,7 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
         {singleLens.length > 0 && (
           <details className="mt-4">
             <summary className="cursor-pointer text-xs text-muted">
-              Single-lens signals ({singleLens.length}) — supported by one source group
+              Single-lens signals ({singleLens.length}), supported by one source group
             </summary>
             <ul className="mt-2 flex flex-wrap gap-2">
               {singleLens.map((c, i) => (
@@ -111,7 +111,7 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
       {synthesis.tensions.length > 0 && (
         <section>
           <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent-2">Tensions</h3>
-          <p className="mb-4 text-xs text-muted">Declared oppositions where both poles are present — held, not averaged.</p>
+          <p className="mb-4 text-xs text-muted">Declared oppositions where both poles are present: held, not averaged.</p>
           <ul className="space-y-2">
             {synthesis.tensions.map((t, i) => (
               <li key={i} className="rounded-lg border border-border bg-surface/40 p-3 text-sm">
@@ -131,7 +131,13 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
       <TransitsSection intakeBody={intakeBody} />
 
       {/* Narrative (LLM layer over the deterministic synthesis) -------------- */}
-      <NarrativeSection intakeBody={intakeBody} />
+      <NarrativePanel
+        endpoint="/api/charts/narrate"
+        body={intakeBody}
+        title="Your reading"
+        ctaLabel="Write my reading"
+        idleBlurb="Optional prose over the synthesis above. It reads the convergences and tensions and never computes them. It streams in live, and is saved so reopening this chart is instant."
+      />
 
       {/* Per-system native output ------------------------------------------- */}
       <section>
@@ -212,7 +218,7 @@ function Meanings({ computation }: { computation: ComputedSystem }) {
         {lines.map((l, i) => (
           <li key={i} className="text-xs">
             <span className="font-medium text-foreground/90">{l.label}</span>
-            <span className="text-muted"> — {l.text}</span>
+            <span className="text-muted">: {l.text}</span>
           </li>
         ))}
       </ul>
@@ -259,7 +265,7 @@ function TransitsSection({ intakeBody }: { intakeBody: unknown }) {
       </div>
 
       {state === "idle" && (
-        <p className="text-sm text-muted">The current sky read against this chart — daily & seasonal movement.</p>
+        <p className="text-sm text-muted">The current sky read against this chart: daily and seasonal movement.</p>
       )}
       {state === "loading" && <p className="text-sm text-muted">Reading the sky…</p>}
       {error && <p className="text-sm text-red-300">{error}</p>}
@@ -294,109 +300,3 @@ function TransitsSection({ intakeBody }: { intakeBody: unknown }) {
   );
 }
 
-function NarrativeSection({ intakeBody }: { intakeBody: unknown }) {
-  const [state, setState] = useState<"idle" | "loading" | "done">("idle");
-  const [narrative, setNarrative] = useState<NarrativeResult | null>(null);
-
-  async function generate() {
-    setState("loading");
-    try {
-      const res = await fetch("/api/charts/narrate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(intakeBody),
-      });
-      const json = (await res.json()) as NarrateResponse;
-      setNarrative(json.narrative);
-    } catch {
-      setNarrative({ available: false, text: "", note: "Narrative request failed." });
-    } finally {
-      setState("done");
-    }
-  }
-
-  return (
-    <section className="rounded-xl border border-border bg-surface/60 p-6">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-accent-2">
-          ✦ Narrative
-        </h3>
-        {state === "idle" && (
-          <button
-            onClick={generate}
-            className="rounded-lg border border-accent-2/40 px-3 py-1 text-xs font-medium text-accent-2 transition hover:bg-accent-2/10"
-          >
-            Generate from synthesis
-          </button>
-        )}
-      </div>
-
-      {state === "idle" && (
-        <p className="text-sm text-muted">
-          Optional prose layer. Reads the deterministic convergences and tensions above — it never
-          computes them.
-        </p>
-      )}
-      {state === "loading" && <p className="text-sm text-muted">Writing…</p>}
-      {state === "done" && narrative && (
-        narrative.available ? (
-          <article className="space-y-3 text-[15px] leading-relaxed text-foreground/90">
-            {renderMarkdown(narrative.text)}
-            {narrative.model && <p className="pt-2 text-xs text-muted">By {narrative.model}</p>}
-          </article>
-        ) : (
-          <p className="text-sm text-muted">{narrative.note}</p>
-        )
-      )}
-    </section>
-  );
-}
-
-/** Minimal markdown: ## headings, - bullets, paragraphs. */
-function renderMarkdown(text: string) {
-  const blocks: React.ReactNode[] = [];
-  let list: string[] = [];
-  let para: string[] = [];
-  const flushPara = () => {
-    if (para.length) {
-      blocks.push(<p key={`p${blocks.length}`}>{para.join(" ")}</p>);
-      para = [];
-    }
-  };
-  const flushList = () => {
-    if (list.length) {
-      blocks.push(
-        <ul key={`l${blocks.length}`} className="list-disc space-y-1 pl-5">
-          {list.map((it, i) => (
-            <li key={i}>{it}</li>
-          ))}
-        </ul>,
-      );
-      list = [];
-    }
-  };
-  for (const raw of text.split("\n")) {
-    const line = raw.trim();
-    if (line.startsWith("## ")) {
-      flushPara();
-      flushList();
-      blocks.push(
-        <h4 key={`h${blocks.length}`} className="pt-2 text-sm font-semibold uppercase tracking-wider text-accent">
-          {line.slice(3)}
-        </h4>,
-      );
-    } else if (line.startsWith("- ") || line.startsWith("* ")) {
-      flushPara();
-      list.push(line.slice(2));
-    } else if (line === "") {
-      flushPara();
-      flushList();
-    } else {
-      flushList();
-      para.push(line);
-    }
-  }
-  flushPara();
-  flushList();
-  return blocks;
-}

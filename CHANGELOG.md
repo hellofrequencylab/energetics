@@ -7,6 +7,18 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- The reading (the prose layer over the synthesis) now streams in live, token by
+  token, on both `/api/charts/narrate` and the new `/api/synastry/narrate`.
+- A resonance reading for the platonic and intimate lenses, written over the
+  deterministic comparison and shown under the resonance results.
+- Content-addressed narrative cache (`energetics.narratives`, migration
+  `0004_narratives.sql`): readings are memoized by a hash of the structure, so
+  reopening a chart, or an identical chart, never re-bills the model. Writes are
+  server-only via `SUPABASE_SERVICE_ROLE_KEY`. See
+  `docs/adr/0005-narrative-streaming-cache.md`.
+- Edit a saved chart's birth data (date, time, place). The reading and synthesis
+  recompute from the corrected data, with precision and timezone re-derived
+  server-side through `intake()`.
 - In-app Help Center at `/help`: user guide, registry-driven systems reference,
   FAQ with structured data, and a "what's new" feed.
 - Documentation set: `docs/RUNBOOK.md`, `docs/DESIGN.md`, `docs/adr/` (ADRs
