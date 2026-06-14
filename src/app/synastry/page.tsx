@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent, getProfile, listSavedCharts } from "@/lib/db/queries";
-import { SynastryForm, fromSaved, type Person, type SavedChart } from "@/components/SynastryForm";
+import { SynastryForm, fromSaved, type Person, type ResonanceMode, type SavedChart } from "@/components/SynastryForm";
 
 export const metadata = {
   title: "Resonance · ONESKY",
@@ -12,9 +12,10 @@ export const runtime = "nodejs";
 export default async function SynastryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ a?: string; b?: string }>;
+  searchParams: Promise<{ a?: string; b?: string; mode?: string }>;
 }) {
-  const { a, b } = await searchParams;
+  const { a, b, mode } = await searchParams;
+  const resonanceMode: ResonanceMode = mode === "intimate" ? "intimate" : "platonic";
   const supabase = await createClient();
 
   let saved: SavedChart[] = [];
@@ -65,7 +66,7 @@ export default async function SynastryPage({
           </p>
         )}
       </div>
-      <SynastryForm savedCharts={saved} initialA={initialA} initialB={initialB} />
+      <SynastryForm savedCharts={saved} initialA={initialA} initialB={initialB} initialMode={resonanceMode} />
     </main>
   );
 }
