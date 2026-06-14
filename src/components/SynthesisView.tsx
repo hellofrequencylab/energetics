@@ -84,16 +84,8 @@ export function SynthesisView({
           most reliable read on your energy. Gold lines connect a theme to the traditions that found
           it. Dashed lines are tensions: two opposite pulls you hold at once. Tap any point for details.
         </p>
-        <div className="mx-auto max-w-xl rounded-2xl border border-border bg-surface/30 p-4 sm:p-6">
-          <ConvergenceChart
-            synthesis={synthesis}
-            systems={computations.map((c) => ({
-              id: c.meta.id,
-              name: c.meta.displayName,
-              derivedFrom: c.meta.derivedFrom,
-            }))}
-            selfName={name?.trim() || "You"}
-          />
+        <div className="rounded-2xl border border-border bg-surface/30 p-4 sm:p-6">
+          <ConvergenceChart synthesis={synthesis} computations={computations} selfName={name?.trim() || "You"} />
         </div>
         <div className="mx-auto mt-4 max-w-xl rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm leading-relaxed text-foreground/90">
           {topThemes.length > 0 ? (

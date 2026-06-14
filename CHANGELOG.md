@@ -6,6 +6,13 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Changed
+- The convergence chart is now fully interactive and laid out side by side with a
+  Quick info panel. Themes spread out so they are all visible and can be dragged
+  to reposition; hovering any point shows a tooltip; clicking a theme or tension
+  opens its summary in the panel; clicking a system dot shows that system's chart
+  drawing and stats. (`src/components/ConvergenceChart.tsx`.)
+
 ### Added
 - Drag-and-drop reordering of the systems catalog in the admin (`/admin/systems`):
   drag a row by its handle, or use the up/down arrows, to set the order systems
