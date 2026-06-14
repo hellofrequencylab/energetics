@@ -72,6 +72,9 @@ export default async function AccountPage() {
   const practitioner = profile.account_type === "practitioner";
   const rosterLabel = practitioner ? "Clients" : "People";
   const addLabel = practitioner ? "Add a client" : "Add a chart";
+  const mySky = profile.primary_chart_id
+    ? charts.find((c) => c.id === profile.primary_chart_id)
+    : undefined;
 
   return (
     <div className="min-h-screen bg-midnight text-star">
@@ -105,6 +108,35 @@ export default async function AccountPage() {
           </Link>
         </div>
 
+        {mySky && (
+          <section className="mt-10">
+            <h2 className="font-display text-xl font-semibold">My Sky</h2>
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-horizon-amber/30 bg-horizon-amber/5 p-5">
+              <div className="min-w-0">
+                <div className="truncate font-medium text-star">★ {mySky.name || "Your chart"}</div>
+                <div className="mt-0.5 font-mono text-xs text-star/60">
+                  {mySky.date}
+                  {mySky.time ? ` · ${String(mySky.time).slice(0, 5)}` : ""} · {mySky.precision}
+                </div>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Link
+                  href={`/account/chart/${mySky.id}`}
+                  className="rounded-lg border border-white/15 px-3 py-1.5 text-sm text-star/80 transition hover:text-star"
+                >
+                  Open
+                </Link>
+                <Link
+                  href={`/synastry?a=${mySky.id}`}
+                  className="rounded-lg bg-horizon-amber px-3 py-1.5 text-sm font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)] transition hover:brightness-110"
+                >
+                  Compare
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section id="add" className="mt-10 scroll-mt-20">
           <AddChartPanel
             noun={practitioner ? "client" : "chart"}
@@ -119,6 +151,7 @@ export default async function AccountPage() {
             addHref="#add"
             addLabel={addLabel}
             noun={practitioner ? "client" : "person"}
+            primaryChartId={profile.primary_chart_id}
           />
         </section>
       </main>

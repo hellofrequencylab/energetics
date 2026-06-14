@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { SynastryResult } from "@/lib/synastry";
 import { PlaceSearch, type SelectedPlace } from "./PlaceSearch";
 
-interface Person {
+export interface Person {
   name: string;
   date: string;
   time: string;
@@ -51,7 +51,7 @@ export interface SavedChart {
   tz: string | null;
 }
 
-function fromSaved(c: SavedChart): Person {
+export function fromSaved(c: SavedChart): Person {
   return {
     name: c.name ?? "",
     date: c.date,
@@ -67,9 +67,17 @@ function fromSaved(c: SavedChart): Person {
   };
 }
 
-export function SynastryForm({ savedCharts = [] }: { savedCharts?: SavedChart[] }) {
-  const [a, setA] = useState<Person>(emptyPerson("Person A", "1990-06-15"));
-  const [b, setB] = useState<Person>(emptyPerson("Person B", "1988-11-02"));
+export function SynastryForm({
+  savedCharts = [],
+  initialA,
+  initialB,
+}: {
+  savedCharts?: SavedChart[];
+  initialA?: Person;
+  initialB?: Person;
+}) {
+  const [a, setA] = useState<Person>(initialA ?? emptyPerson("Person A", "1990-06-15"));
+  const [b, setB] = useState<Person>(initialB ?? emptyPerson("Person B", "1988-11-02"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SynastryResult | null>(null);

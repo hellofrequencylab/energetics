@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getProfile, upsertProfile } from "@/lib/db/queries";
+import { getProfile, setPrimaryChart, upsertProfile } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
 
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
 
-  let body: { accountType?: string; displayName?: string };
+  let body: { accountType?: string; displayName?: string; primaryChartId?: string | null };
   try {
     body = await request.json();
   } catch {
@@ -36,6 +36,11 @@ export async function POST(request: Request) {
 
   try {
     await upsertProfile(supabase, user.id, { accountType, displayName });
+    if (Object.prototype.hasOwnProperty.call(body, "primaryChartId")) {
+      const pid =
+        typeof body.primaryChartId === "string" && body.primaryChartId ? body.primaryChartId : null;
+      await setPrimaryChart(supabase, user.id, pid);
+    }
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Could not save your profile." },

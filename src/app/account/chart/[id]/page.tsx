@@ -70,6 +70,8 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
             initialName={row.name ?? ""}
             initialNotes={row.notes ?? ""}
             practitioner={practitioner}
+            isPrimary={profile?.primary_chart_id === row.id}
+            primaryChartId={profile?.primary_chart_id ?? null}
           />
         </div>
 
