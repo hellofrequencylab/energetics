@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OneSky — Multi-System Birth Chart Synthesis",
+  title: "ONESKY — Multi-System Birth Chart Synthesis",
   description:
     "Compute a full birth chart across Western, Vedic, Chinese, numerology and more — then synthesize a unified reading.",
 };

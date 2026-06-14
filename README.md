@@ -1,4 +1,4 @@
-# OneSky
+# ONESKY
 
 A multi-system birth-chart **synthesis engine**. The sky is computed once as shared
 infrastructure; every divinatory system is an isolated interpretive engine that
