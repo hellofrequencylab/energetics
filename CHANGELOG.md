@@ -6,6 +6,37 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Fixed
+- Welcome page on mobile: when the birth form locks into view, the competing chrome
+  (the welcome header and the bottom call-to-action bar) now hides and the form
+  becomes a focused, full-height panel, so only the form fills the screen. The form
+  also snaps to the top of the screen instead of the center. (`WelcomeShell.tsx`,
+  `welcome/page.tsx`, and the `intake-focus` rule in `globals.css`.)
+
+### Added
+- A real design system (foundation). New UI primitives in `src/components/ui/`
+  (`Container`/`PageHeader`, `Button`, `Card`, `Badge`, `Field`/`Input`/`Textarea`/
+  `Select`/`Toggle`, `EmptyState`, `Divider`, `SandMark`, `SectionNav`), one
+  classname helper (`src/lib/ui/cn.ts`), and shared SVG colors
+  (`src/lib/design/colors.ts`, now used by the convergence map, strength bars, and
+  arcs instead of three duplicated copies). A living reference renders at
+  `/styleguide`, and the framework is documented in `docs/DESIGN-SYSTEM.md`.
+- One uniform container width across the whole site, defined once in `CONTAINER`
+  (`src/components/ui/Container.tsx`). The header, footer, and every page now align
+  to it. (The legacy `SiteShell width` prop is accepted but ignored.)
+- A role-aware section sub-nav for the signed-in area (`AppSectionNav` +
+  `SectionNav`): Charts and Resonance for everyone signed in, with Admin added for
+  admins, and hidden when signed out. Admin is now reachable from a real nav, not
+  only a conditional account card.
+
+### Changed
+- Reworked the account and admin areas onto the design system: the dashboard,
+  saved-chart page, per-system page, chart manager, birth-data editor, account
+  controls, the systems-catalog admin, and the resonance page now use `PageHeader`,
+  `Card`, `Button`, `Field`, `Badge`, `Toggle`, and `EmptyState`, with consistent
+  spacing, one eyebrow color, one button language, and semantic color tokens
+  (`foreground`/`muted`/`border`/`surface`) instead of ad-hoc per-page styles.
+
 ### Changed
 - Convergence map: single-source tension poles are now first-class theme nodes on
   the map, not separate floating "ghost" points. Each one is drawn near, and

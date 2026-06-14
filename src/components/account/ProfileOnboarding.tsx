@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PageHeader, Card } from "@/components/ui";
 
 type Type = "personal" | "practitioner";
 
@@ -31,34 +32,47 @@ export function ProfileOnboarding() {
     }
   }
 
-  const card =
-    "flex h-full flex-col rounded-2xl border border-white/10 bg-dusk/25 p-6 text-left transition duration-[200ms] hover:-translate-y-0.5 hover:border-horizon-amber/40 hover:bg-dusk/40 disabled:opacity-50";
-
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">Welcome</p>
-      <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">How will you use OneSky?</h1>
-      <p className="mt-2 text-star/70">You can change this anytime in your account.</p>
+      <PageHeader
+        eyebrow="Welcome"
+        title="How will you use OneSky?"
+        description="You can change this anytime in your account."
+      />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <button type="button" onClick={() => choose("personal")} disabled={loading !== null} className={card}>
-          <h2 className="font-display text-xl font-semibold">Personal</h2>
-          <p className="mt-2 flex-1 text-sm text-star/70">
-            Your own charts and your connections with the people in your life.
-          </p>
-          <span className="mt-4 text-sm font-semibold text-horizon-amber">
-            {loading === "personal" ? "Setting up…" : "Choose personal"}
-          </span>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => choose("personal")}
+          disabled={loading !== null}
+          className="h-full text-left disabled:opacity-50"
+        >
+          <Card interactive className="flex h-full flex-col">
+            <h2 className="font-display text-xl font-semibold">Personal</h2>
+            <p className="mt-2 flex-1 text-sm text-muted">
+              Your own charts and your connections with the people in your life.
+            </p>
+            <span className="mt-4 text-sm font-semibold text-accent">
+              {loading === "personal" ? "Setting up…" : "Choose personal"}
+            </span>
+          </Card>
         </button>
 
-        <button type="button" onClick={() => choose("practitioner")} disabled={loading !== null} className={card}>
-          <h2 className="font-display text-xl font-semibold">Practitioner</h2>
-          <p className="mt-2 flex-1 text-sm text-star/70">
-            Keep a roster of the charts you read for others, each with private notes.
-          </p>
-          <span className="mt-4 text-sm font-semibold text-horizon-amber">
-            {loading === "practitioner" ? "Setting up…" : "Choose practitioner"}
-          </span>
+        <button
+          type="button"
+          onClick={() => choose("practitioner")}
+          disabled={loading !== null}
+          className="h-full text-left disabled:opacity-50"
+        >
+          <Card interactive className="flex h-full flex-col">
+            <h2 className="font-display text-xl font-semibold">Practitioner</h2>
+            <p className="mt-2 flex-1 text-sm text-muted">
+              Keep a roster of the charts you read for others, each with private notes.
+            </p>
+            <span className="mt-4 text-sm font-semibold text-accent">
+              {loading === "practitioner" ? "Setting up…" : "Choose practitioner"}
+            </span>
+          </Card>
         </button>
       </div>
 

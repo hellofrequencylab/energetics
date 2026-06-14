@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { ComputedSystem, Synthesis } from "@/lib/synthesis/types";
+import { GOLD, VIOLET } from "@/lib/design/colors";
 
 /**
  * StrengthsBar: a ranked list of the themes your chart agrees on most, read as
@@ -10,9 +11,6 @@ import type { ComputedSystem, Synthesis } from "@/lib/synthesis/types";
  * tensions list sits below for the places two poles pull at once. Rows and
  * tensions are real buttons that open the matching detail in the parent view.
  */
-
-const GOLD = "#d4b072";
-const VIOLET = "#8b7dff";
 
 /** Strip a "family:" namespace and title-case the bare term for display. */
 function humanize(value: string): string {

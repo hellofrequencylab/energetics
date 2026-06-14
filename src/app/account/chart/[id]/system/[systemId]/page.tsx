@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent } from "@/lib/db/queries";
 import { intake } from "@/lib/core/birth-event";
@@ -12,6 +11,8 @@ import { SYSTEM_BLURBS, LINEAGE_LABEL } from "@/lib/help/content";
 import { SYSTEM_NOTE } from "@/lib/ethics";
 import { overviewFor } from "@/lib/system-overviews";
 import { SiteShell } from "@/components/site/SiteShell";
+import { AppSectionNav } from "@/components/site/AppSectionNav";
+import { PageHeader, Card, CardLabel, Badge, Divider, EmptyState } from "@/components/ui";
 import { SystemDiagram } from "@/components/diagrams";
 
 export const runtime = "nodejs";
@@ -60,18 +61,13 @@ export default async function SystemDetailPage({
   const nameOf = new Map(allMeta().map((m) => [m.id, m.displayName]));
   const comp = computations.find((c) => c.meta.id === systemId);
 
-  const back = (
-    <Link href={`/account/chart/${id}`} className="text-sm text-star/60 transition hover:text-star">
-      ← Back to the chart
-    </Link>
-  );
+  const backToChart = { href: `/account/chart/${id}`, label: "Back to the chart" };
 
   if (!comp) {
     return (
-      <SiteShell width="max-w-2xl">
-        {back}
-        <h1 className="mt-3 font-display text-2xl font-semibold">{nameOf.get(systemId) ?? "System"}</h1>
-        <p className="mt-2 text-star/70">
+      <SiteShell nav={<AppSectionNav />}>
+        <PageHeader title={nameOf.get(systemId) ?? "System"} back={backToChart} />
+        <p className="text-muted">
           This system is not part of this reading right now. It may be switched off, or it may need a
           birth time or place this chart does not have.
         </p>
@@ -108,30 +104,30 @@ export default async function SystemDetailPage({
     })
     .filter((t): t is NonNullable<typeof t> => t !== null);
 
-  return (
-    <SiteShell width="max-w-3xl">
-      {back}
+  const metaLine = (
+    <span className="font-mono text-xs">
+      {row.date}
+      {row.time ? ` · ${String(row.time).slice(0, 5)}` : " · time unknown"}
+      {row.lat != null && row.lng != null ? ` · ${row.lat.toFixed(2)}, ${row.lng.toFixed(2)}` : ""} ·{" "}
+      {row.precision}
+    </span>
+  );
 
+  return (
+    <SiteShell nav={<AppSectionNav />}>
       {/* The person */}
-      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.3em] text-accent">{meta.displayName}</p>
-      <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{row.name || "This chart"}</h1>
-      <p className="mt-2 font-mono text-xs text-muted">
-        {row.date}
-        {row.time ? ` · ${String(row.time).slice(0, 5)}` : " · time unknown"}
-        {row.lat != null && row.lng != null ? ` · ${row.lat.toFixed(2)}, ${row.lng.toFixed(2)}` : ""} ·
-        {" "}
-        {row.precision}
-      </p>
+      <PageHeader
+        eyebrow={meta.displayName}
+        title={row.name || "This chart"}
+        description={metaLine}
+        back={backToChart}
+      />
 
       {/* The system, in depth */}
-      <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-5">
+      <Card>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-accent/30 bg-accent/5 px-2.5 py-0.5 text-xs text-accent">
-            {LINEAGE_LABEL[meta.lineage] ?? meta.lineage}
-          </span>
-          <span className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted">
-            reads from your {meta.derivedFrom}
-          </span>
+          <Badge variant="lineage">{LINEAGE_LABEL[meta.lineage] ?? meta.lineage}</Badge>
+          <Badge variant="neutral">reads from your {meta.derivedFrom}</Badge>
         </div>
         <p className="mt-3 text-[15px] leading-relaxed text-foreground/90">
           {overview?.intro ?? SYSTEM_BLURBS[meta.id] ?? "A tradition OneSky reads from your birth moment."}
@@ -139,27 +135,30 @@ export default async function SystemDetailPage({
         {overview && (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-accent">How to read it</p>
+              <CardLabel>How to read it</CardLabel>
               <p className="mt-1 text-sm leading-relaxed text-foreground/85">{overview.how}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-accent">How it applies to your life</p>
+              <CardLabel>How it applies to your life</CardLabel>
               <p className="mt-1 text-sm leading-relaxed text-foreground/85">{overview.appliesToLife}</p>
             </div>
           </div>
         )}
         {(overview?.lineageNote || SYSTEM_NOTE[meta.id]) && (
-          <p className="mt-4 border-t border-border/60 pt-3 text-sm text-muted">
-            <span className="font-medium">Good to know: </span>
-            {overview?.lineageNote ?? SYSTEM_NOTE[meta.id]}
-          </p>
+          <>
+            <Divider className="mt-4" />
+            <p className="mt-3 text-sm text-muted">
+              <span className="font-medium">Good to know: </span>
+              {overview?.lineageNote ?? SYSTEM_NOTE[meta.id]}
+            </p>
+          </>
         )}
-      </section>
+      </Card>
 
       {/* The diagram */}
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-accent">Your chart</h2>
-        <div className="rounded-2xl border border-border bg-surface/40 p-5">
+        <Card>
           <SystemDiagram computation={comp} />
           {factors.length ? (
             <ul className="mt-1 divide-y divide-border/50">
@@ -177,11 +176,15 @@ export default async function SystemDetailPage({
               })}
             </ul>
           ) : meta.derivedFrom === "name" ? (
-            <p className="text-sm text-muted">Add your full name to this chart to unlock this reading.</p>
+            <EmptyState
+              className="mt-1 border-0 bg-transparent px-0 py-6"
+              title="Add your full name to unlock this reading"
+              description="This system reads from your name. Add your full name to this chart to see it."
+            />
           ) : (
             <p className="text-sm italic text-muted">Registered, no output yet (scaffold).</p>
           )}
-        </div>
+        </Card>
       </section>
 
       {/* Their details / meanings */}
@@ -217,21 +220,19 @@ export default async function SystemDetailPage({
         {convergences.length > 0 && (
           <div className="space-y-2">
             {convergences.map((cv, i) => (
-              <div key={i} className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+              <Card key={i} variant="accent">
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">
                     {humanize(cv.value)} <span className="text-xs text-muted">· {cv.axis}</span>
                   </span>
                   {cv.independentGroups >= 2 && (
-                    <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-semibold text-accent">
-                      {cv.independentGroups} independent sources
-                    </span>
+                    <Badge variant="accent">{cv.independentGroups} independent sources</Badge>
                   )}
                 </div>
                 <p className="mt-1 text-xs text-muted">
                   shared with {cv.others.map((s) => nameOf.get(s) ?? s).join(" · ")}
                 </p>
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -239,7 +240,7 @@ export default async function SystemDetailPage({
         {tensions.length > 0 && (
           <div className="mt-3 space-y-2">
             {tensions.map((t, i) => (
-              <div key={i} className="rounded-lg border border-border bg-surface/40 p-3 text-sm">
+              <Card key={i} className="text-sm">
                 <div className="flex items-center justify-center gap-3 text-center">
                   <span className="text-foreground">{humanize(t.mine)}</span>
                   <span className="text-accent-2">⟷</span>
@@ -248,7 +249,7 @@ export default async function SystemDetailPage({
                 <p className="mt-1 text-center text-xs text-muted">
                   {t.axis} · opposite pole in {t.otherSystems.map((s) => nameOf.get(s) ?? s).join(", ")}
                 </p>
-              </div>
+              </Card>
             ))}
           </div>
         )}

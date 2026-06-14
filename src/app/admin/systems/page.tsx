@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/db/queries";
 import { allMeta } from "@/lib/core/registry";
 import { catalogEntry } from "@/lib/core/catalog";
 import { effectiveEnabledMap, effectiveOrderMap, sortByOrder } from "@/lib/core/system-settings";
 import { SiteShell } from "@/components/site/SiteShell";
+import { AppSectionNav } from "@/components/site/AppSectionNav";
+import { PageHeader, ButtonLink } from "@/components/ui";
 import { SystemCatalog, type CatalogRow } from "@/components/admin/SystemCatalog";
 
 export const metadata: Metadata = { title: "Systems · Admin · ONESKY" };
@@ -29,13 +30,13 @@ export default async function AdminSystemsPage() {
   const profile = await getProfile(supabase, user.id).catch(() => null);
   if (!profile?.is_admin) {
     return (
-      <SiteShell width="max-w-3xl">
-        <div className="py-10 text-center">
-          <h1 className="font-display text-2xl font-semibold">Not authorized</h1>
-          <p className="mt-2 text-star/70">This area is for admins.</p>
-          <Link href="/account" className="mt-6 inline-block text-sm text-horizon-amber underline underline-offset-4">
+      <SiteShell nav={<AppSectionNav />}>
+        <PageHeader title="Not authorized" />
+        <p className="text-muted">This area is for admins.</p>
+        <div className="mt-6">
+          <ButtonLink href="/account" variant="secondary">
             Back to your account
-          </Link>
+          </ButtonLink>
         </div>
       </SiteShell>
     );
@@ -56,23 +57,21 @@ export default async function AdminSystemsPage() {
   }));
 
   return (
-    <SiteShell width="max-w-4xl">
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">Admin</p>
-      <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Systems catalog</h1>
-      <p className="mt-2 max-w-xl text-star/80">
-        Switch systems on or off for everyone, and drag to set the order they appear in. {onCount} of{" "}
-        {metas.length} are on. Off systems are registered and ready, they just do not run or appear
-        until you turn them on.
-      </p>
+    <SiteShell nav={<AppSectionNav />}>
+      <PageHeader
+        eyebrow="Admin"
+        title="Systems catalog"
+        description={`Switch systems on or off for everyone, and drag to set the order they appear in. ${onCount} of ${metas.length} are on. Off systems are registered and ready, they just do not run or appear until you turn them on.`}
+      />
 
-      <section className="mt-8">
-        <p className="mb-3 text-sm text-star/60">
+      <section>
+        <p className="mb-3 text-sm text-muted">
           Drag a row by its handle, or use the up and down arrows, to reorder. Changes save as you go.
         </p>
         <SystemCatalog systems={rows} />
       </section>
 
-      <p className="mt-10 text-xs text-star/50">
+      <p className="mt-10 text-xs text-muted">
         Draconic, harmonic, and evolutionary are planned as modes of the Western chart, not
         standalone systems, so they are not listed here yet.
       </p>

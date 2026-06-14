@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BirthForm } from "@/components/BirthForm";
+import { Card, Button } from "@/components/ui";
 
 /**
  * Add a new chart from the account. Reuses the birth form; computing while
@@ -20,23 +21,24 @@ export function AddChartPanel({ noun, submitLabel }: { noun: string; submitLabel
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-dusk/20 p-5">
+    <Card>
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-semibold">Add a {noun}</h2>
-          <p className="mt-1 text-sm text-star/70">Compute a chart and save it to your roster.</p>
+          <p className="mt-1 text-sm text-muted">Compute a chart and save it to your roster.</p>
         </div>
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={() => setOpen((o) => !o)}
-          className="shrink-0 rounded-lg bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)] transition hover:brightness-110"
+          className="shrink-0"
         >
           {open ? "Close" : `New ${noun}`}
-        </button>
+        </Button>
       </div>
 
       {added && (
-        <p className="mt-3 rounded-lg border border-horizon-amber/30 bg-horizon-amber/10 px-3 py-2 text-sm text-horizon-amber">
+        <p className="mt-3 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent">
           Saved {added} to your roster.
         </p>
       )}
@@ -46,6 +48,6 @@ export function AddChartPanel({ noun, submitLabel }: { noun: string; submitLabel
           <BirthForm onResult={handleResult} submitLabel={submitLabel} />
         </div>
       )}
-    </div>
+    </Card>
   );
 }

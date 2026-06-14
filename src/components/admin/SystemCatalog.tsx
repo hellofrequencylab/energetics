@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Badge, Toggle } from "@/components/ui";
 
 export interface CatalogRow {
   id: string;
@@ -108,14 +109,14 @@ export function SystemCatalog({ systems }: { systems: CatalogRow[] }) {
             dragId.current = null;
             setOverId(null);
           }}
-          className={`flex items-center gap-3 rounded-xl border bg-dusk/20 p-4 transition ${
-            overId === r.id ? "border-horizon-amber/70 bg-dusk/40" : "border-white/10"
+          className={`flex items-center gap-3 rounded-xl border bg-surface/40 p-4 transition ${
+            overId === r.id ? "border-accent/50 bg-surface/60" : "border-border"
           }`}
         >
           {/* Drag handle */}
           <span
             aria-hidden
-            className="shrink-0 cursor-grab select-none text-star/40 active:cursor-grabbing"
+            className="shrink-0 cursor-grab select-none text-muted active:cursor-grabbing"
             title="Drag to reorder"
           >
             ⠿
@@ -128,7 +129,7 @@ export function SystemCatalog({ systems }: { systems: CatalogRow[] }) {
               onClick={() => nudge(r.id, -1)}
               disabled={idx === 0}
               aria-label={`Move ${r.displayName} up`}
-              className="px-1 text-star/50 transition hover:text-star disabled:opacity-30"
+              className="px-1 text-muted transition hover:text-foreground disabled:opacity-30"
             >
               ▲
             </button>
@@ -137,48 +138,31 @@ export function SystemCatalog({ systems }: { systems: CatalogRow[] }) {
               onClick={() => nudge(r.id, 1)}
               disabled={idx === items.length - 1}
               aria-label={`Move ${r.displayName} down`}
-              className="px-1 text-star/50 transition hover:text-star disabled:opacity-30"
+              className="px-1 text-muted transition hover:text-foreground disabled:opacity-30"
             >
               ▼
             </button>
           </div>
 
-          <span className="w-6 shrink-0 text-center font-mono text-xs text-star/40">{idx + 1}</span>
+          <span className="w-6 shrink-0 text-center font-mono text-xs text-muted">{idx + 1}</span>
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate font-medium text-star">{r.displayName}</span>
-              <span className="shrink-0 rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-star/60">
-                {r.group}
-              </span>
-              {!r.inSynthesis && (
-                <span className="shrink-0 rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-star/60">
-                  shown, not in synthesis
-                </span>
-              )}
+              <span className="truncate font-medium text-foreground">{r.displayName}</span>
+              <Badge>{r.group}</Badge>
+              {!r.inSynthesis && <Badge>shown, not in synthesis</Badge>}
             </div>
-            <div className="mt-0.5 font-mono text-xs text-star/50">
+            <div className="mt-0.5 font-mono text-xs text-muted">
               {r.id} · {r.lineage} · {r.derivedFrom}
             </div>
           </div>
 
-          <button
-            type="button"
-            role="switch"
-            aria-checked={r.enabled}
-            aria-label={`${r.enabled ? "Disable" : "Enable"} ${r.displayName}`}
+          <Toggle
+            checked={r.enabled}
             disabled={busy}
-            onClick={() => toggle(r.id, !r.enabled)}
-            className={`relative h-6 w-11 shrink-0 rounded-full transition disabled:opacity-50 ${
-              r.enabled ? "bg-horizon-amber" : "bg-white/15"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-ink transition-all ${
-                r.enabled ? "left-[22px]" : "left-0.5"
-              }`}
-            />
-          </button>
+            onChange={(next) => toggle(r.id, next)}
+            label={`${r.enabled ? "Disable" : "Enable"} ${r.displayName}`}
+          />
         </li>
       ))}
     </ul>

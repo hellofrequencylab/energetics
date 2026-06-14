@@ -386,6 +386,21 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "The birth form fits your phone",
+    notes: [
+      "On a phone, the form now fills the screen on its own: the top bar and the extra button step aside so you can focus on entering your birth moment.",
+    ],
+  },
+  {
+    date: "2026-06-14",
+    title: "A cleaner, more consistent account area",
+    notes: [
+      "Your account and admin pages now share one look: the same page width, headings, cards, and buttons throughout.",
+      "Signed-in pages gained a simple tab row to move between your charts, resonance, and (for admins) the systems catalog.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Tensions connect real points now",
     notes: [
       "Every end of a tension is a theme point on the map, linked to the tradition that holds it, so nothing floats off on its own.",
