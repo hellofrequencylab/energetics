@@ -1,4 +1,5 @@
 import { ONTOLOGY_VERSION } from "@/lib/ontology/version";
+import { inSynthesisFor } from "@/lib/core/catalog";
 import { gather } from "./gather";
 import { cluster } from "./cluster";
 import { weighCluster } from "./weight";
@@ -12,7 +13,8 @@ import type { ComputedSystem, Synthesis } from "./types";
  * embeddings (spec §1.6, §9).
  */
 export function synthesize(birthEventId: string, computations: ComputedSystem[]): Synthesis {
-  const primitives = gather(computations);
+  // Some systems are shown but kept out of the synthesis by design (Dreamspell).
+  const primitives = gather(computations.filter((c) => inSynthesisFor(c.meta.id)));
   const clusters = cluster(primitives);
   const convergences = rankConvergences(clusters.map(weighCluster));
   const tensions = findTensions(clusters);

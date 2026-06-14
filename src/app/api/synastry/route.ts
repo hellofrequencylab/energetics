@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
+import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { computeSynastry } from "@/lib/synastry";
 
 export const runtime = "nodejs";
@@ -30,8 +31,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const a = computeChart(eventA);
-    const b = computeChart(eventB);
+    const only = await effectiveEnabledIds();
+    const a = computeChart(eventA, { only });
+    const b = computeChart(eventB, { only });
     const synastry = computeSynastry(a.computations, b.computations);
     return NextResponse.json({
       a: { name: nameA, event: eventA },

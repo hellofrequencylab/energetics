@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { allMeta } from "@/lib/core/registry";
+import { offeredMeta } from "@/lib/core/registry";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
 import { HeroConvergence } from "@/components/marketing/HeroConvergence";
 import { Starfield } from "@/components/marketing/Starfield";
@@ -24,7 +24,7 @@ function lineageCounts(): {
   hybrid: number;
   modernReconstruction: number;
 } {
-  const meta = allMeta();
+  const meta = offeredMeta();
   let traditional = 0;
   let hybrid = 0;
   let modernReconstruction = 0;

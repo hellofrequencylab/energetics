@@ -8,6 +8,7 @@
  */
 import type { Precision } from "./birth-event";
 import type { RegisteredSystem, SystemMeta } from "./contracts";
+import { defaultEnabledIds } from "./catalog";
 
 // Phase 1 — real engines
 import * as westernTropical from "@/lib/systems/western-tropical";
@@ -31,6 +32,9 @@ import * as mahabote from "@/lib/systems/mahabote";
 import * as akanDayNames from "@/lib/systems/akan-day-names";
 import * as norseRunes from "@/lib/systems/norse-runes";
 import * as egyptianDecans from "@/lib/systems/egyptian-decans";
+import * as kabbalahTreeOfLife from "@/lib/systems/kabbalah-tree-of-life";
+import * as tibetanAstrology from "@/lib/systems/tibetan-astrology";
+import * as numerologyLoShu from "@/lib/systems/numerology-lo-shu";
 
 const SYSTEM_MODULES = [
   westernTropical,
@@ -51,6 +55,9 @@ const SYSTEM_MODULES = [
   akanDayNames,
   norseRunes,
   egyptianDecans,
+  kabbalahTreeOfLife,
+  tibetanAstrology,
+  numerologyLoShu,
 ];
 
 export const REGISTRY: Record<string, RegisteredSystem> = Object.fromEntries(
@@ -63,6 +70,17 @@ export function allSystems(): RegisteredSystem[] {
 
 export function allMeta(): SystemMeta[] {
   return SYSTEM_MODULES.map((s) => s.meta);
+}
+
+/**
+ * The systems OFFERED to users by default (catalog default-enabled). Public
+ * surfaces list these; the admin sees the full registry. This reflects the
+ * catalog baseline, not live admin overrides, which is enough for marketing and
+ * help copy. Compute uses the live effective set (see system-settings.ts).
+ */
+export function offeredMeta(): SystemMeta[] {
+  const on = defaultEnabledIds();
+  return allMeta().filter((m) => on.has(m.id));
 }
 
 export function getSystem(id: string): RegisteredSystem | undefined {
