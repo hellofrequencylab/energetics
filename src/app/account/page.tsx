@@ -127,6 +127,12 @@ export default async function AccountPage() {
                   Open
                 </Link>
                 <Link
+                  href={`/account/chart/${mySky.id}#edit`}
+                  className="rounded-lg border border-white/15 px-3 py-1.5 text-sm text-star/80 transition hover:text-star"
+                >
+                  Edit
+                </Link>
+                <Link
                   href={`/synastry?a=${mySky.id}`}
                   className="rounded-lg bg-horizon-amber px-3 py-1.5 text-sm font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)] transition hover:brightness-110"
                 >

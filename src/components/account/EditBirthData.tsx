@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PlaceSearch, type SelectedPlace } from "@/components/PlaceSearch";
 
 /**
  * Edit a saved chart's birth data (date, time, place). Saving recomputes the
  * chart on the next render: precision and timezone are derived server-side from
  * the new data, so the reading and synthesis update to match.
+ *
+ * Shown as a clearly labeled card with an Edit button (not a subtle disclosure),
+ * so the edit function is easy to find. It opens automatically when linked with
+ * the #edit anchor from the account roster.
  */
 export function EditBirthData({
   id,
@@ -25,6 +29,7 @@ export function EditBirthData({
   tz: string | null;
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     date,
     time: time ? String(time).slice(0, 5) : "12:00",
@@ -38,6 +43,14 @@ export function EditBirthData({
     lat != null && lng != null ? `${Number(lat).toFixed(2)}, ${Number(lng).toFixed(2)}` : "",
   );
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // Open automatically when arriving via an "Edit" link (…/chart/<id>#edit).
+  // Read after mount (not a lazy initializer) so the hash sync never causes a
+  // hydration mismatch with the server-rendered closed state.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (typeof window !== "undefined" && window.location.hash === "#edit") setOpen(true);
+  }, []);
 
   const set = (patch: Partial<typeof form>) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -81,88 +94,117 @@ export function EditBirthData({
     "w-full rounded-lg border border-white/10 bg-background/60 px-3 py-2 text-sm text-star outline-none transition focus:border-horizon-amber";
 
   return (
-    <details className="rounded-xl border border-white/10 bg-dusk/20 p-5">
-      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.25em] text-horizon-amber">
-        Edit birth data
-      </summary>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Birth date</span>
-          <input type="date" value={form.date} onChange={(e) => set({ date: e.target.value })} className={input} />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Birth time</span>
-          <input
-            type="time"
-            value={form.time}
-            disabled={form.unknownTime}
-            onChange={(e) => set({ time: e.target.value })}
-            className={`${input} disabled:opacity-40`}
-          />
-        </label>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-star/80">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={form.unknownTime} onChange={(e) => set({ unknownTime: e.target.checked })} />
-          Time unknown
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={form.noPlace} onChange={(e) => set({ noPlace: e.target.checked })} />
-          Place unknown
-        </label>
-      </div>
-
-      <div className="mt-3">
-        <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Birthplace</span>
-        <div className="mt-1.5">
-          <PlaceSearch onSelect={selectPlace} placeholder="Start typing any city in the world…" />
-        </div>
-        {placeLabel && !form.noPlace && (
-          <p className="mt-1 text-xs text-horizon-amber">
-            ✓ {placeLabel}
-            {form.timeZone ? ` · ${form.timeZone}` : ""}
+    <div id="edit" className="scroll-mt-20 rounded-xl border border-white/10 bg-dusk/20 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-horizon-amber">Birth data</p>
+          <p className="mt-1 text-sm text-star/70">
+            {formatDate(form.date)}
+            {form.unknownTime ? " · time unknown" : ` · ${form.time}`}
+            {form.noPlace || !placeLabel ? " · place unknown" : ` · ${placeLabel}`}
           </p>
-        )}
-      </div>
-
-      <details className="mt-3 text-xs text-star/60">
-        <summary className="cursor-pointer">Enter coordinates manually</summary>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            step="any"
-            value={form.latitude}
-            disabled={form.noPlace}
-            onChange={(e) => set({ latitude: e.target.value })}
-            placeholder="Latitude"
-            className={`${input} disabled:opacity-40`}
-          />
-          <input
-            type="number"
-            step="any"
-            value={form.longitude}
-            disabled={form.noPlace}
-            onChange={(e) => set({ longitude: e.target.value })}
-            placeholder="Longitude"
-            className={`${input} disabled:opacity-40`}
-          />
         </div>
-      </details>
-
-      <div className="mt-5 flex items-center gap-3">
         <button
           type="button"
-          onClick={save}
-          disabled={status === "saving"}
-          className="rounded-lg bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110 disabled:opacity-50"
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0 rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-star/80 transition hover:border-horizon-amber/40 hover:text-star"
         >
-          {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : "Save birth data"}
+          {open ? "Close" : "Edit"}
         </button>
-        {status === "saved" && <span className="text-xs text-star/60">The reading updated below.</span>}
-        {status === "error" && <span className="text-xs text-red-300">Could not save. Please try again.</span>}
       </div>
-    </details>
+
+      {open && (
+        <div className="mt-5 border-t border-white/10 pt-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Birth date</span>
+              <input type="date" value={form.date} onChange={(e) => set({ date: e.target.value })} className={input} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Birth time</span>
+              <input
+                type="time"
+                value={form.time}
+                disabled={form.unknownTime}
+                onChange={(e) => set({ time: e.target.value })}
+                className={`${input} disabled:opacity-40`}
+              />
+            </label>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-star/80">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={form.unknownTime} onChange={(e) => set({ unknownTime: e.target.checked })} />
+              Time unknown
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={form.noPlace} onChange={(e) => set({ noPlace: e.target.checked })} />
+              Place unknown
+            </label>
+          </div>
+
+          <div className="mt-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-star/70">Birthplace</span>
+            <div className="mt-1.5">
+              <PlaceSearch onSelect={selectPlace} placeholder="Start typing any city in the world…" />
+            </div>
+            {placeLabel && !form.noPlace && (
+              <p className="mt-1 text-xs text-horizon-amber">
+                ✓ {placeLabel}
+                {form.timeZone ? ` · ${form.timeZone}` : ""}
+              </p>
+            )}
+          </div>
+
+          <details className="mt-3 text-xs text-star/60">
+            <summary className="cursor-pointer">Enter coordinates manually</summary>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                step="any"
+                value={form.latitude}
+                disabled={form.noPlace}
+                onChange={(e) => set({ latitude: e.target.value })}
+                placeholder="Latitude"
+                className={`${input} disabled:opacity-40`}
+              />
+              <input
+                type="number"
+                step="any"
+                value={form.longitude}
+                disabled={form.noPlace}
+                onChange={(e) => set({ longitude: e.target.value })}
+                placeholder="Longitude"
+                className={`${input} disabled:opacity-40`}
+              />
+            </div>
+          </details>
+
+          <div className="mt-5 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={save}
+              disabled={status === "saving"}
+              className="rounded-lg bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110 disabled:opacity-50"
+            >
+              {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : "Save birth data"}
+            </button>
+            {status === "saved" && <span className="text-xs text-star/60">The reading updated below.</span>}
+            {status === "error" && <span className="text-xs text-red-300">Could not save. Please try again.</span>}
+          </div>
+        </div>
+      )}
+    </div>
   );
+}
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function formatDate(d: string): string {
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y || !m || !day) return d;
+  return `${day} ${MONTHS[m - 1]} ${y}`;
 }
