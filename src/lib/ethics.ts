@@ -7,7 +7,7 @@
 import type { Lineage } from "@/lib/core/contracts";
 
 export const FRAMING = [
-  "These are symbolic and traditional systems for self-reflection — not empirically validated, predictive sciences.",
+  "These are symbolic and traditional systems for self-reflection, not empirically validated, predictive sciences.",
   "Read every placement as a predisposition or energy to work with, never as fixed fate. No medical, financial, or deterministic claims.",
   "Where a system comes from a living or indigenous tradition, it is named as such and remains the property of that tradition, not ours.",
 ];
@@ -15,18 +15,18 @@ export const FRAMING = [
 export const LINEAGE_NOTE: Record<Lineage, string> = {
   traditional: "Rooted in a documented historical or living tradition.",
   "modern-reconstruction":
-    "A modern (mostly 20th-century) construction inspired by older motifs — not an ancestral practice. Labeled as such, never presented as ancient.",
+    "A modern (mostly 20th-century) construction inspired by older motifs, not an ancestral practice. Labeled as such, never presented as ancient.",
   hybrid: "A modern synthesis drawing on older traditions.",
 };
 
 /** Per-system honesty notes for the systems that most need them. */
 export const SYSTEM_NOTE: Record<string, string> = {
   tzolkin:
-    "The Cholq'ij is a continuous, LIVING calendar kept by Maya daykeepers (ajq'ijab') in highland Guatemala today — not a dead artifact, and not ours.",
+    "The Cholq'ij is a continuous, LIVING calendar kept by Maya daykeepers (ajq'ijab') in highland Guatemala today, not a dead artifact, and not ours.",
   dreamspell:
     "Argüelles' 1987 reconstruction uses a different, leap-day-skipping correlation. It is NOT the count Maya communities keep; shown for interest only and excluded from the structural synthesis.",
   "western-tropical":
-    "Tropical signs are tied to the seasons, not today's constellations — the two have diverged ~24° through precession.",
+    "Tropical signs are tied to the seasons, not today's constellations: the two have diverged ~24° through precession.",
   "vedic-jyotish": "Jyotish, a living astrological tradition of the Indian subcontinent.",
   "chinese-bazi": "BaZi (Four Pillars), from the Chinese lunisolar calendar tradition.",
   "human-design":

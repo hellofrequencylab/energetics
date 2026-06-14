@@ -43,7 +43,7 @@ export function EthicsPanel({ systems }: { systems: EthicsSystem[] }) {
             {group.items.map((s) => (
               <li key={s.id} className="text-foreground/90">
                 <span className="font-medium">{s.displayName}</span>
-                {SYSTEM_NOTE[s.id] && <span className="text-muted"> — {SYSTEM_NOTE[s.id]}</span>}
+                {SYSTEM_NOTE[s.id] && <span className="text-muted">: {SYSTEM_NOTE[s.id]}</span>}
               </li>
             ))}
           </ul>
