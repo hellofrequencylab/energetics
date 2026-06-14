@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { allMeta } from "@/lib/core/registry";
+import { offeredMeta } from "@/lib/core/registry";
 import { isBuilt } from "@/lib/core/registry";
 import {
   CATEGORIES,
@@ -44,7 +44,7 @@ function BlockView({ block }: { block: Block }) {
 }
 
 export default function HelpPage() {
-  const systems = allMeta();
+  const systems = offeredMeta();
 
   // FAQ structured data so search and AI tools can quote it directly.
   const faqJsonLd = {

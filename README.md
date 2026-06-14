@@ -98,10 +98,19 @@ Scripts: `npm run build` · `npm run test` (Vitest) · `npm run typecheck` · `n
 
 ### API
 
-- `GET /api/systems` — registry metadata.
+- `GET /api/systems` — offered-system metadata.
 - `POST /api/charts/compute` — body: birth intake `{ name?, date, time?, place?: {lat,lng,tz?} }`.
   Returns per-system native output + ontology primitives + the deterministic synthesis.
-- `POST /api/charts/narrate` — same body; returns the optional LLM narrative over the synthesis.
+- `POST /api/charts/narrate` — same body; streams the optional LLM reading over the synthesis.
+- `POST /api/synastry` and `POST /api/synastry/narrate` — compare two charts, with a streamed reading.
+
+### Systems catalog
+
+Most systems are registered but offered off by default. The offered set is the
+catalog (`src/lib/core/catalog.ts`) overlaid with admin toggles in
+`energetics.system_settings`. Admins (profile flag `is_admin`) switch systems on
+or off live at `/admin/systems`; compute reads the effective set on every chart
+path. See `docs/adr/0006-systems-catalog-and-admin.md`.
 
 ### Supabase
 

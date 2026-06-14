@@ -106,6 +106,12 @@ export default async function AccountPage() {
             <div className="font-display text-lg font-semibold">Glossary</div>
             <p className="mt-1 text-sm text-star/70">Look up any sign, planet, number, or card.</p>
           </Link>
+          {profile.is_admin && (
+            <Link href="/admin/systems" className={card}>
+              <div className="font-display text-lg font-semibold">Systems (admin)</div>
+              <p className="mt-1 text-sm text-star/70">Switch which systems are offered on or off.</p>
+            </Link>
+          )}
         </div>
 
         {mySky && (

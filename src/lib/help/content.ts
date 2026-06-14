@@ -62,6 +62,9 @@ export const SYSTEM_BLURBS: Record<string, string> = {
   "akan-day-names": "West African day names from the weekday of your birth.",
   "norse-runes": "A modern rune mapping keyed to your birth date.",
   "egyptian-decans": "The 36 decans: ten degree slices of the sky and their rulers.",
+  "kabbalah-tree-of-life": "The Tree of Life: letters and paths placed by the gematria of your name.",
+  "tibetan-astrology": "The Tibetan calendar: your birth year animal and element, parkha, and mewa.",
+  "numerology-lo-shu": "The Lo Shu grid: numbers laid out from the digits of your birth date.",
 };
 
 /** Plain-language label for each lineage tag. */
@@ -366,6 +369,14 @@ export const FAQ: FaqItem[] = [
  * CHANGELOG.md.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-14",
+    title: "A focused set of systems, with more on the way",
+    notes: [
+      "Your reading now leads with a focused core set of traditions, kept clear and uncluttered.",
+      "More systems are registered behind the scenes and can be switched on over time.",
+    ],
+  },
   {
     date: "2026-06-14",
     title: "Readings write live, and you can edit a chart",

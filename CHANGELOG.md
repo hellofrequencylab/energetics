@@ -7,6 +7,17 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- Systems catalog with a live admin (`/admin/systems`, gated by `profiles.is_admin`).
+  Most systems are now registered but off by default; the core set (Western
+  tropical, Human Design, Pythagorean numerology, Maya Tzolk'in, Chinese BaZi,
+  Tarot birth cards) is on, with Dreamspell shown but kept out of the synthesis.
+  Toggles persist in `energetics.system_settings` (migration `0005`) and gate every
+  chart-computing path via `effectiveEnabledIds()`. Governance lives in
+  `src/lib/core/catalog.ts`. See `docs/adr/0006-systems-catalog-and-admin.md`.
+- Three new registered scaffolds (off by default): Kabbalah Tree of Life (gematria),
+  Tibetan astrology, and Lo Shu grid numerology. Registry is now 21 systems.
+- The AI reading auto-writes itself in chart outputs (single chart and resonance),
+  no longer waiting for a click. `NarrativePanel` gained `autoStart`.
 - The reading (the prose layer over the synthesis) now streams in live, token by
   token, on both `/api/charts/narrate` and the new `/api/synastry/narrate`.
 - A resonance reading for the platonic and intimate lenses, written over the
@@ -34,6 +45,11 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- Public surfaces (welcome, help, about, `/api/systems`) list the offered set
+  (`offeredMeta()`) rather than the whole registry, so off systems are not
+  advertised. Compute uses the live effective set.
+- Chart editing is now a clearly labeled Birth data card with an Edit button, plus
+  Edit links from the account roster and My Sky (deep-linking to `#edit`).
 - The app now targets the isolated `energetics` Postgres schema on Supabase via a
   shared `DB_SCHEMA` constant. See
   `docs/adr/0002-isolated-energetics-schema.md`.

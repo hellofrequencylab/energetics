@@ -83,6 +83,27 @@ the model again.
   next view. Editing a chart's birth data changes its structure, so it
   content-addresses to a fresh reading automatically.
 
+## Systems catalog and admin
+
+Most systems are registered but offered off by default. The offered set is the
+catalog default (`src/lib/core/catalog.ts`) overlaid with admin toggles stored in
+`energetics.system_settings`.
+
+- **Who is an admin.** Anyone whose `energetics.profiles.is_admin` is true. There
+  is no admin UI for granting admin; set it directly:
+  `update energetics.profiles p set is_admin = true from auth.users u where u.id =
+  p.user_id and lower(u.email) = '<email>';`. The repo migration does not hardcode
+  any email; seed the owner this way after they have signed in once (a profile row
+  must exist).
+- **Switching systems on or off.** Sign in as an admin and open `/admin/systems`.
+  Toggles take effect immediately for everyone: compute reads the live effective
+  set on every chart path. Writes are admin-only by row level security.
+- **Changing the default core.** Edit `CATALOG` in `src/lib/core/catalog.ts` and
+  deploy. `inSynthesis` (whether a system feeds the synthesis, e.g. Dreamspell is
+  shown but excluded) lives only here, not in the database.
+- **To reset a system to its catalog default,** delete its row from
+  `energetics.system_settings`.
+
 ## Deploy
 
 1. Open a pull request. Vercel builds a preview and posts the URL.

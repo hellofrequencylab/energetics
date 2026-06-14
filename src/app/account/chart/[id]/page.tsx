@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent, getProfile } from "@/lib/db/queries";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
+import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { synthesize } from "@/lib/synthesis";
 import type { ComputeResponse } from "@/lib/api-types";
 import { SynthesisView } from "@/components/SynthesisView";
@@ -36,7 +37,8 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   }
 
   const { event, name } = intake(body);
-  const { computations, unavailable, ephemerisVersion } = computeChart(event);
+  const only = await effectiveEnabledIds();
+  const { computations, unavailable, ephemerisVersion } = computeChart(event, { only });
   const synthesis = synthesize(event.id, computations);
   const data: ComputeResponse = { event, name, computations, unavailable, synthesis, ephemerisVersion };
 

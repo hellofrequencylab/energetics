@@ -17,7 +17,13 @@ export interface ChartComputation {
   ephemerisVersion: string;
 }
 
-export function computeChart(birth: BirthEvent): ChartComputation {
+/**
+ * Compute a chart. By default every satisfiable engine runs (used by tests and
+ * internal tooling). Pass `only` to restrict to the OFFERED set: the product
+ * callers pass the live effective-enabled ids (catalog defaults plus admin
+ * overrides) so switched-off systems never compute or appear.
+ */
+export function computeChart(birth: BirthEvent, opts?: { only?: ReadonlySet<string> }): ChartComputation {
   const ephemeris = getEphemeris();
   const satisfiable = new Set(enginesFor(birth.precision).map((m) => m.id));
 
@@ -25,6 +31,8 @@ export function computeChart(birth: BirthEvent): ChartComputation {
   const unavailable: { meta: SystemMeta; reason: string }[] = [];
 
   for (const meta of allMeta()) {
+    // Skip systems switched off in the catalog/admin: not run, not listed.
+    if (opts?.only && !opts.only.has(meta.id)) continue;
     if (!satisfiable.has(meta.id)) {
       unavailable.push({ meta, reason: requirementReason(meta) });
       continue;

@@ -1,5 +1,6 @@
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
+import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { computeSynastry } from "@/lib/synastry";
 import { resonanceNarration, type ResonanceMode } from "@/lib/synthesis/narrative";
 import { streamNarration } from "@/lib/synthesis/narrate-stream";
@@ -30,8 +31,9 @@ export async function POST(request: Request) {
     return new Response(`Validation failed. ${err instanceof Error ? err.message : String(err)}`, { status: 422 });
   }
 
-  const a = computeChart(eventA);
-  const b = computeChart(eventB);
+  const only = await effectiveEnabledIds();
+  const a = computeChart(eventA, { only });
+  const b = computeChart(eventB, { only });
   const synastry = computeSynastry(a.computations, b.computations);
   const mode: ResonanceMode = body.mode === "intimate" ? "intimate" : "platonic";
 

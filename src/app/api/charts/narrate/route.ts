@@ -1,6 +1,7 @@
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { synthesize } from "@/lib/synthesis";
+import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { chartNarration } from "@/lib/synthesis/narrative";
 import { streamNarration } from "@/lib/synthesis/narrate-stream";
 
@@ -30,7 +31,8 @@ export async function POST(request: Request) {
     return new Response(`Validation failed. ${err instanceof Error ? err.message : String(err)}`, { status: 422 });
   }
 
-  const { computations } = computeChart(event);
+  const only = await effectiveEnabledIds();
+  const { computations } = computeChart(event, { only });
   const synthesis = synthesize(event.id, computations);
   return streamNarration("chart", chartNarration(synthesis, computations));
 }

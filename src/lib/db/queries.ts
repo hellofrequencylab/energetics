@@ -114,17 +114,36 @@ export interface Profile {
   account_type: AccountType;
   display_name: string | null;
   primary_chart_id: string | null;
+  is_admin: boolean;
 }
 
 /** The signed-in user's profile, or null if they have not chosen one yet. */
 export async function getProfile(supabase: DbClient, userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("account_type, display_name, primary_chart_id")
+    .select("account_type, display_name, primary_chart_id, is_admin")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw error;
   return (data as Profile | null) ?? null;
+}
+
+/** Whether the signed-in user is an admin. Safe default of false on any error. */
+export async function isAdmin(supabase: DbClient, userId: string): Promise<boolean> {
+  const profile = await getProfile(supabase, userId).catch(() => null);
+  return profile?.is_admin === true;
+}
+
+/** Set a system's enabled override. Admin-only (enforced by RLS). */
+export async function setSystemEnabled(
+  supabase: DbClient,
+  systemId: string,
+  enabled: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from("system_settings")
+    .upsert({ system_id: systemId, enabled, updated_at: new Date().toISOString() }, { onConflict: "system_id" });
+  if (error) throw error;
 }
 
 /** Pin (or clear) the user's primary chart, their "My Sky." */

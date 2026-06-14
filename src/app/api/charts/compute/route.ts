@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { synthesize } from "@/lib/synthesis";
+import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { createClient } from "@/lib/supabase/server";
 import { persistChart } from "@/lib/db/queries";
 
@@ -32,7 +33,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { computations, unavailable, ephemerisVersion } = computeChart(event);
+    const only = await effectiveEnabledIds();
+    const { computations, unavailable, ephemerisVersion } = computeChart(event, { only });
     const synthesis = synthesize(event.id, computations);
 
     // Best-effort cache to Supabase for signed-in users — never blocks the

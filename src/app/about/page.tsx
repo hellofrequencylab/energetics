@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { allMeta } from "@/lib/core/registry";
+import { offeredMeta } from "@/lib/core/registry";
 import { EthicsPanel } from "@/components/EthicsPanel";
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default function AboutPage() {
-  const systems = allMeta().map((m) => ({ id: m.id, displayName: m.displayName, lineage: m.lineage }));
+  const systems = offeredMeta().map((m) => ({ id: m.id, displayName: m.displayName, lineage: m.lineage }));
 
   return (
     <main className="mx-auto w-full max-w-3xl px-5 py-12 sm:py-16">

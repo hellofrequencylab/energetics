@@ -8,44 +8,65 @@ Status legend: **✅ built** (real engine + adapter, emits primitives) · **🟡
 spec'd** (detailed system spec received, ready to deep-build) · **⬜ scaffold**
 (registered, correct metadata, returns `{}` until built).
 
-## Registry (18 systems)
+## Registry (21 systems)
 
-| id | status | lineage | time | place | source | dependsOn | phase |
-|---|---|---|---|---|---|---|---|
-| `western-tropical` | ✅ | traditional | (✓) | (✓) | ephemeris | — | 1 |
-| `vedic-jyotish` | ✅ | traditional | ✓ | ✓ | ephemeris | — | 2 |
-| `hellenistic` | ✅ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
-| `chinese-bazi` | ✅ | traditional | ✓ | — | date | — | 2 |
-| `zi-wei-dou-shu` | ✅† | traditional | ✓ | — | date | — | 3 |
-| `tzolkin` | ✅ | traditional | — | — | date | — | 1 |
-| `dreamspell` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
-| `human-design` | ✅† | hybrid | ✓ | ✓ | ephemeris | — | 1 |
-| `gene-keys` | ✅ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
-| `numerology-pythagorean` | ✅ | traditional | — | — | date | — | 1 |
-| `numerology-chaldean` | ✅ | traditional | — | — | name | — | 2 |
-| `tarot-birth-cards` | ✅ | hybrid | — | — | date | numerology-pythagorean | 2 |
-| `nine-star-ki` | ✅ | traditional | — | — | date | — | 3 |
-| `celtic-tree` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
-| `mahabote` | ✅ | traditional | — | — | date | — | 3 |
-| `akan-day-names` | ✅ | traditional | — | — | date | — | 3 |
-| `norse-runes` | ✅\* | modern-reconstruction | — | — | date | — | 3 |
-| `egyptian-decans` | ✅ | traditional | — | — | ephemeris | — | 3 |
+`offered` = on by default in the product catalog. Most systems are registered and
+correct but **off**: an admin switches them on at `/admin/systems` (see "Catalog
+and admin" below). `status` is the build state, independent of whether it is offered.
 
-`(✓)` = optional but enriches output: `western-tropical` now runs date-only and
-adds detail as precision rises (signs → degrees+aspects → houses/angles).
-`dreamspell` ✅\* is built but emits no synthesis primitives by design
-(informational, modern-reconstruction). `human-design` ✅† is fully built
-(BodyGraph: Type/Authority/Profile/Definition/centers/channels) but its reference
-tables are **compiled, not yet externally validated** — it emits a validation note.
+| id | offered | status | lineage | time | place | source | dependsOn | phase |
+|---|---|---|---|---|---|---|---|---|
+| `western-tropical` | ✅ | ✅ | traditional | (✓) | (✓) | ephemeris | — | 1 |
+| `human-design` | ✅ | ✅† | hybrid | ✓ | ✓ | ephemeris | — | 1 |
+| `numerology-pythagorean` | ✅ | ✅ | traditional | — | — | date | — | 1 |
+| `tzolkin` | ✅ | ✅ | traditional | — | — | date | — | 1 |
+| `chinese-bazi` | ✅ | ✅ | traditional | ✓ | — | date | — | 2 |
+| `tarot-birth-cards` | ✅ | ✅ | hybrid | — | — | date | numerology-pythagorean | 2 |
+| `dreamspell` | ✅\* | ✅\* | modern-reconstruction | — | — | date | — | 3 |
+| `vedic-jyotish` | — | ✅ | traditional | ✓ | ✓ | ephemeris | — | 2 |
+| `hellenistic` | — | ✅ | traditional | ✓ | ✓ | ephemeris | western-tropical | 3 |
+| `gene-keys` | — | ✅ | hybrid | ✓ | ✓ | ephemeris | human-design | 2 |
+| `zi-wei-dou-shu` | — | ✅† | traditional | ✓ | — | date | — | 3 |
+| `numerology-chaldean` | — | ✅ | traditional | — | — | name | — | 2 |
+| `nine-star-ki` | — | ✅ | traditional | — | — | date | — | 3 |
+| `celtic-tree` | — | ✅\* | modern-reconstruction | — | — | date | — | 3 |
+| `mahabote` | — | ✅ | traditional | — | — | date | — | 3 |
+| `akan-day-names` | — | ✅ | traditional | — | — | date | — | 3 |
+| `norse-runes` | — | ✅\* | modern-reconstruction | — | — | date | — | 3 |
+| `egyptian-decans` | — | ✅ | traditional | — | — | ephemeris | — | 3 |
+| `kabbalah-tree-of-life` | — | ⬜ | traditional | — | — | name | — | 4 |
+| `tibetan-astrology` | — | ⬜ | traditional | — | — | date | — | 4 |
+| `numerology-lo-shu` | — | ⬜ | traditional | — | — | date | — | 4 |
+
+`(✓)` = optional but enriches output: `western-tropical` runs date-only and adds
+detail as precision rises (signs → degrees+aspects → houses/angles). `dreamspell`
+✅\* is built but emits no synthesis primitives by design, and is offered with
+`inSynthesis: false` (shown beside the Maya count, never counted as evidence).
+`human-design` ✅† is fully built (BodyGraph: Type/Authority/Profile/Definition/
+centers/channels) but its reference tables are **compiled, not yet externally
+validated** — it emits a validation note. The three ⬜ systems are registered
+scaffolds (return `{}` until built).
+
+**Catalog and admin.** Offered/in-synthesis governance lives in
+`src/lib/core/catalog.ts`, separate from `SystemMeta`. `profiles.is_admin` gates
+`/admin/systems`, where toggles persist to `energetics.system_settings`. Compute
+uses the live effective set (`effectiveEnabledIds()`); the synthesis filters by the
+static `inSynthesis` rule so it stays pure. See `docs/adr/0006-systems-catalog-and-admin.md`.
+
+**Planned Western modes** (not standalone systems): draconic, harmonic, and
+evolutionary will be built as modes of the Western chart, so they are not separate
+registry engines.
 
 **Independence groups** (how synthesis counts sources): `ephemeris` =
 {western-tropical, vedic-jyotish, hellenistic, human-design, gene-keys,
 egyptian-decans} → counts as **one** voice. `date` = {chinese-bazi,
 zi-wei-dou-shu, tzolkin, dreamspell, numerology-pythagorean, tarot-birth-cards,
-nine-star-ki, celtic-tree, mahabote, akan-day-names, norse-runes} → **one**
-voice. `name` = {numerology-chaldean} → **one** voice. Hard `dependsOn` pairs
-(hellenistic→western, gene-keys→human-design, tarot→numerology) are collapsed
-within their group so a derived system never double-counts its parent.
+nine-star-ki, celtic-tree, mahabote, akan-day-names, norse-runes, tibetan-astrology,
+numerology-lo-shu} → **one** voice. `name` = {numerology-chaldean,
+kabbalah-tree-of-life} → **one** voice. Hard `dependsOn` pairs (hellenistic→western,
+gene-keys→human-design, tarot→numerology) are collapsed within their group so a
+derived system never double-counts its parent. Independence is computed over the
+full registry, so it is unaffected by which systems are currently offered.
 
 ## Foundations (status)
 
@@ -54,7 +75,9 @@ within their group so a derived system never double-counts its parent.
 - ✅ `BirthEvent` intake + derived precision + tz resolution — `src/lib/core/birth-event.ts`
 - ✅ Shared `EphemerisService` (Swiss Ephemeris; Chiron resolves optionally) —
   `src/lib/core/ephemeris/`
-- ✅ Registry — the single coupling point; all 18 wired — `src/lib/core/registry.ts`
+- ✅ Registry — the single coupling point; all 21 wired — `src/lib/core/registry.ts`
+- ✅ Product catalog + admin — `src/lib/core/catalog.ts`, `/admin/systems`,
+  `energetics.system_settings` (most systems off by default, switchable live)
 - ✅ Ontology v1 — axes `element` (namespaced), `polarity`, `theme`, `center`
   (9 HD centers), `domain` (12 houses); crosswalks; oppositions — `src/lib/ontology/`
 - ✅ Deterministic synthesis — gather→cluster→weight(independence)→tension→rank —
