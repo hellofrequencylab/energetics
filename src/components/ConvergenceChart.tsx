@@ -57,11 +57,30 @@ interface ConvNode {
   systemIds: string[];
 }
 type XY = { x: number; y: number };
+/**
+ * A tension pole that is not itself a convergence (its value did not reach two
+ * groups), placed near the systems that hold it so the tension still has a real,
+ * spread-out endpoint to draw to. Static (not draggable) by design.
+ */
+interface GhostPole {
+  key: string;
+  axis: string;
+  value: string;
+  x: number;
+  y: number;
+  systemIds: string[];
+}
+/** One end of a tension: either a draggable convergence node or a ghost pole. */
+interface TensionPole {
+  key: string;
+  conv: ConvNode | null;
+  ghost: GhostPole | null;
+}
 interface TensionLink {
   t: Tension;
   i: number;
-  a: ConvNode;
-  b: ConvNode;
+  a: TensionPole;
+  b: TensionPole;
 }
 type View = "map" | "bars" | "arc" | "table";
 type Lens = "all" | "strengths" | "tensions";
@@ -171,18 +190,58 @@ export function ConvergenceChart({
 
   const convPos = (n: ConvNode): XY => drag[n.i] ?? { x: n.bx, y: n.by };
 
-  // A tension is only drawn between two visible convergence points, so it always
-  // connects two real, spread-out nodes (never collapsing onto the center).
-  // Tensions whose poles are not both convergences live in the table and below.
+  // Ghost poles: any tension pole whose value is not itself a convergence node
+  // gets a placed endpoint near the systems that hold it, so every tension can be
+  // drawn (not just the ones whose both poles cross-confirmed). Spread against the
+  // convergence nodes so nothing piles on the center or another point.
+  const ghostPoles: GhostPole[] = useMemo(() => {
+    const wanted = new Map<string, { axis: string; value: string; systemIds: string[] }>();
+    for (const t of synthesis.tensions) {
+      for (const side of t.sides) {
+        const key = `${t.axis}::${side.value}`;
+        if (nodeByKey.has(key) || wanted.has(key)) continue;
+        const systemIds = [...new Set(side.contributors.map((a) => a.systemId))].filter((id) => posOf.has(id));
+        wanted.set(key, { axis: t.axis, value: side.value, systemIds });
+      }
+    }
+    let k = 0;
+    const placed: GhostPole[] = [...wanted.entries()].map(([key, g]) => {
+      const pts = g.systemIds.map((id) => posOf.get(id)!).filter(Boolean);
+      const a = k++ * 2.39996;
+      if (!pts.length) {
+        // No known systems for this pole: seat it on the inner ring deterministically.
+        return { key, ...g, x: C.x + Math.cos(a) * R_SYS * 0.6, y: C.y + Math.sin(a) * R_SYS * 0.6 };
+      }
+      const ax = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+      const ay = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+      const pull = 0.64; // out toward the supporting systems, clear of the center
+      return { key, ...g, x: C.x + (ax - C.x) * pull + Math.cos(a) * 10, y: C.y + (ay - C.y) * pull + Math.sin(a) * 10 };
+    });
+    return spreadGhosts(placed, convNodes);
+  }, [synthesis.tensions, nodeByKey, posOf, convNodes]);
+
+  const ghostByKey = useMemo(() => new Map(ghostPoles.map((g) => [g.key, g])), [ghostPoles]);
+  const poleXY = (p: TensionPole): XY => (p.conv ? convPos(p.conv) : { x: p.ghost!.x, y: p.ghost!.y });
+
+  // Every tension draws: each pole resolves to a convergence node (draggable) or a
+  // ghost pole (placed near its systems). A tension renders when both poles resolve.
   const tensionLinks: TensionLink[] = useMemo(() => {
+    const resolve = (axis: string, value: string): TensionPole | null => {
+      const key = `${axis}::${value}`;
+      const conv = nodeByKey.get(key);
+      if (conv) return { key, conv, ghost: null };
+      const ghost = ghostByKey.get(key);
+      if (ghost) return { key, conv: null, ghost };
+      return null;
+    };
     return synthesis.tensions
       .map((t, i) => {
-        const a = nodeByKey.get(`${t.axis}::${t.sides[0].value}`);
-        const b = nodeByKey.get(`${t.axis}::${t.sides[1].value}`);
+        const a = resolve(t.axis, t.sides[0].value);
+        const b = resolve(t.axis, t.sides[1].value);
         return a && b ? { t, i, a, b } : null;
       })
       .filter((n): n is TensionLink => !!n);
-  }, [synthesis.tensions, nodeByKey]);
+  }, [synthesis.tensions, nodeByKey, ghostByKey]);
 
   const showTensions = lens !== "strengths";
 
@@ -360,8 +419,8 @@ export function ConvergenceChart({
                   {/* tensions */}
                   {showTensions &&
                     tensionLinks.map((n) => {
-                      const a = convPos(n.a);
-                      const b = convPos(n.b);
+                      const a = poleXY(n.a);
+                      const b = poleXY(n.b);
                       const active = isSel(sel, "tension", n.i) || hover?.label === "Tension";
                       const featured = lens === "tensions";
                       return (
@@ -394,6 +453,31 @@ export function ConvergenceChart({
                               ⟷
                             </text>
                           </g>
+                        </g>
+                      );
+                    })}
+
+                  {/* ghost poles: the tension endpoints that are not convergences */}
+                  {showTensions &&
+                    ghostPoles.map((g) => {
+                      const right = g.x >= C.x;
+                      return (
+                        <g
+                          key={`g${g.key}`}
+                          onPointerEnter={() => !dragging && setHover({ label: humanize(g.value), sub: "tension pole", x: g.x, y: g.y })}
+                          onPointerLeave={() => setHover(null)}
+                        >
+                          <circle cx={g.x} cy={g.y} r={5} fill={VIOLET} fillOpacity={0.65} stroke={INK} strokeWidth={1} />
+                          <text
+                            x={g.x + (right ? 10 : -10)}
+                            y={g.y + 4}
+                            textAnchor={right ? "start" : "end"}
+                            fontSize={12}
+                            fill="#cdc4ff"
+                            style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3, pointerEvents: "none" }}
+                          >
+                            {humanize(g.value)}
+                          </text>
                         </g>
                       );
                     })}
@@ -586,21 +670,20 @@ function isSel(sel: Selection | null, kind: Selection["kind"], i?: number): bool
 }
 
 /**
- * Force pass so theme points never overlap at the start and stay inside the ring.
- * Runs until no pair is closer than MIN (or a cap), so the opening layout is
- * always cleanly spread. Deterministic: same input gives the same arrangement.
+ * Force relaxation core: move every point in `pts` so no two are closer than MIN,
+ * none is closer than MIN to a `fixed` obstacle, and all stay inside the ring.
+ * Mutates `pts`. Deterministic: same input gives the same arrangement.
  */
-function spread(nodes: ConvNode[]): ConvNode[] {
-  const pos = nodes.map((n) => ({ x: n.bx, y: n.by }));
+function relax(pts: XY[], fixed: XY[] = []): void {
   const MIN = 50; // center-to-center, leaving room for the node and its label
   const maxR = R_SYS - 44;
   const minR = 24;
   for (let iter = 0; iter < 400; iter++) {
     let moved = false;
-    for (let i = 0; i < pos.length; i++) {
-      for (let j = i + 1; j < pos.length; j++) {
-        let dx = pos[j].x - pos[i].x;
-        let dy = pos[j].y - pos[i].y;
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i + 1; j < pts.length; j++) {
+        let dx = pts[j].x - pts[i].x;
+        let dy = pts[j].y - pts[i].y;
         let d = Math.hypot(dx, dy);
         if (d < 0.01) {
           // Coincident: nudge apart along a stable per-pair direction.
@@ -612,27 +695,61 @@ function spread(nodes: ConvNode[]): ConvNode[] {
           const push = (MIN - d) / 2;
           const ux = dx / d;
           const uy = dy / d;
-          pos[i].x -= ux * push;
-          pos[i].y -= uy * push;
-          pos[j].x += ux * push;
-          pos[j].y += uy * push;
+          pts[i].x -= ux * push;
+          pts[i].y -= uy * push;
+          pts[j].x += ux * push;
+          pts[j].y += uy * push;
           moved = true;
         }
       }
-      const dx = pos[i].x - C.x;
-      const dy = pos[i].y - C.y;
+      // Repel from fixed obstacles (push only the movable point).
+      for (let f = 0; f < fixed.length; f++) {
+        let dx = pts[i].x - fixed[f].x;
+        let dy = pts[i].y - fixed[f].y;
+        let d = Math.hypot(dx, dy);
+        if (d < 0.01) {
+          dx = Math.cos(i + f);
+          dy = Math.sin(i + f);
+          d = 1;
+        }
+        if (d < MIN) {
+          const push = MIN - d;
+          pts[i].x += (dx / d) * push;
+          pts[i].y += (dy / d) * push;
+          moved = true;
+        }
+      }
+      const dx = pts[i].x - C.x;
+      const dy = pts[i].y - C.y;
       const r = Math.hypot(dx, dy) || 0.01;
       if (r > maxR) {
-        pos[i].x = C.x + (dx / r) * maxR;
-        pos[i].y = C.y + (dy / r) * maxR;
+        pts[i].x = C.x + (dx / r) * maxR;
+        pts[i].y = C.y + (dy / r) * maxR;
       } else if (r < minR) {
-        pos[i].x = C.x + (dx / r) * minR;
-        pos[i].y = C.y + (dy / r) * minR;
+        pts[i].x = C.x + (dx / r) * minR;
+        pts[i].y = C.y + (dy / r) * minR;
       }
     }
     if (!moved) break;
   }
+}
+
+/**
+ * Force pass so theme points never overlap at the start and stay inside the ring,
+ * so the opening layout is always cleanly spread.
+ */
+function spread(nodes: ConvNode[]): ConvNode[] {
+  const pos = nodes.map((n) => ({ x: n.bx, y: n.by }));
+  relax(pos);
   return nodes.map((n, k) => ({ ...n, bx: pos[k].x, by: pos[k].y }));
+}
+
+/** Place ghost tension poles clear of each other and of the convergence nodes. */
+function spreadGhosts(ghosts: GhostPole[], convNodes: ConvNode[]): GhostPole[] {
+  const pos = ghosts.map((g) => ({ x: g.x, y: g.y }));
+  const fixed = convNodes.map((n) => ({ x: n.bx, y: n.by }));
+  relax(pos, fixed);
+  return ghosts.map((g, k) => ({ ...g, x: pos[k].x, y: pos[k].y }));
 }
 
 function clampAnnulus(p: XY): XY {

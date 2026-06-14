@@ -386,6 +386,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Every tension shows on the map",
+    notes: [
+      "The convergence map now draws all of your tensions, not just the ones between two cross-confirmed themes.",
+      "When one side of a tension is held by a single tradition, it shows as a small violet pole near the systems that hold it, so the full picture is visible.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "A real page for each system",
     notes: [
       "Every system now has an in-depth page: what it is, how to read your result, how it applies to your life, and a plain meaning for each of your stats.",
