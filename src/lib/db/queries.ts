@@ -144,6 +144,25 @@ export async function upsertProfile(
   if (error) throw error;
 }
 
+/** Saved charts with the birth data needed to load them into another tool. */
+export async function listSavedCharts(supabase: DbClient, limit = 50) {
+  const { data, error } = await supabase
+    .from("birth_events")
+    .select("id, name, date, time, lat, lng, tz")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as {
+    id: string;
+    name: string | null;
+    date: string;
+    time: string | null;
+    lat: number | null;
+    lng: number | null;
+    tz: string | null;
+  }[];
+}
+
 /** Update a saved chart's editable fields (name, practitioner notes). RLS-scoped. */
 export async function updateBirthEvent(
   supabase: DbClient,

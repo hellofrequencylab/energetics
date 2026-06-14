@@ -41,7 +41,33 @@ function toIntake(p: Person) {
   return body;
 }
 
-export function SynastryForm() {
+export interface SavedChart {
+  id: string;
+  name: string | null;
+  date: string;
+  time: string | null;
+  lat: number | null;
+  lng: number | null;
+  tz: string | null;
+}
+
+function fromSaved(c: SavedChart): Person {
+  return {
+    name: c.name ?? "",
+    date: c.date,
+    time: c.time ? String(c.time).slice(0, 5) : "12:00",
+    unknownTime: !c.time,
+    latitude: c.lat != null ? String(c.lat) : "",
+    longitude: c.lng != null ? String(c.lng) : "",
+    timeZone: c.tz ?? "",
+    placeLabel:
+      c.lat != null && c.lng != null
+        ? `${Number(c.lat).toFixed(2)}, ${Number(c.lng).toFixed(2)}`
+        : "",
+  };
+}
+
+export function SynastryForm({ savedCharts = [] }: { savedCharts?: SavedChart[] }) {
   const [a, setA] = useState<Person>(emptyPerson("Person A", "1990-06-15"));
   const [b, setB] = useState<Person>(emptyPerson("Person B", "1988-11-02"));
   const [loading, setLoading] = useState(false);
@@ -72,8 +98,8 @@ export function SynastryForm() {
   return (
     <div className="space-y-8">
       <form onSubmit={onSubmit} className="grid gap-6 sm:grid-cols-2">
-        <PersonFields person={a} onChange={setA} />
-        <PersonFields person={b} onChange={setB} />
+        <PersonFields person={a} onChange={setA} savedCharts={savedCharts} />
+        <PersonFields person={b} onChange={setB} savedCharts={savedCharts} />
         <div className="sm:col-span-2">
           <button
             type="submit"
@@ -94,13 +120,42 @@ export function SynastryForm() {
   );
 }
 
-function PersonFields({ person, onChange }: { person: Person; onChange: (p: Person) => void }) {
+function PersonFields({
+  person,
+  onChange,
+  savedCharts,
+}: {
+  person: Person;
+  onChange: (p: Person) => void;
+  savedCharts: SavedChart[];
+}) {
   const set = (patch: Partial<Person>) => onChange({ ...person, ...patch });
   const input = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent";
   const onPlace = (p: SelectedPlace) =>
     set({ latitude: String(p.latitude), longitude: String(p.longitude), timeZone: p.timezone, placeLabel: p.label });
   return (
     <div className="space-y-3 rounded-xl border border-border bg-surface/50 p-5">
+      {savedCharts.length > 0 && (
+        <select
+          className={`${input} text-accent`}
+          defaultValue=""
+          onChange={(e) => {
+            const c = savedCharts.find((x) => x.id === e.target.value);
+            if (c) onChange(fromSaved(c));
+            e.target.value = "";
+          }}
+          aria-label="Use one of your saved charts"
+        >
+          <option value="" disabled>
+            Use a saved chart…
+          </option>
+          {savedCharts.map((c) => (
+            <option key={c.id} value={c.id}>
+              {(c.name || "Unnamed chart") + " · " + c.date}
+            </option>
+          ))}
+        </select>
+      )}
       <input className={input} value={person.name} onChange={(e) => set({ name: e.target.value })} placeholder="Name" />
       <div className="grid grid-cols-2 gap-2">
         <input type="date" className={input} value={person.date} onChange={(e) => set({ date: e.target.value })} />
@@ -116,7 +171,7 @@ function PersonFields({ person, onChange }: { person: Person; onChange: (p: Pers
         <input type="checkbox" checked={person.unknownTime} onChange={(e) => set({ unknownTime: e.target.checked })} />
         Time unknown
       </label>
-      <PlaceSearch onSelect={onPlace} placeholder="Birthplace — type any city…" />
+      <PlaceSearch onSelect={onPlace} placeholder="Start typing any city in the world…" />
       {person.placeLabel && <p className="text-xs text-accent">✓ {person.placeLabel}</p>}
       <details className="text-xs text-muted">
         <summary className="cursor-pointer">Coordinates</summary>
@@ -151,7 +206,7 @@ function SynastryResults({ result, aName, bName }: { result: SynastryResult; aNa
       {result.complementaryTensions.length > 0 && (
         <section>
           <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent-2">Complementary tensions</h3>
-          <p className="mb-3 text-xs text-muted">Where each leans to an opposite pole — friction or balance.</p>
+          <p className="mb-3 text-xs text-muted">Where each leans to an opposite pole, friction or balance.</p>
           <ul className="space-y-2">
             {result.complementaryTensions.map((t, i) => (
               <li key={i} className="flex items-center justify-center gap-3 rounded-lg border border-border bg-surface/40 p-3 text-sm">
