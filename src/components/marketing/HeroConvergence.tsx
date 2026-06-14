@@ -177,20 +177,20 @@ export function HeroConvergence({ className }: { className?: string }) {
     <svg ref={svgRef} className={className} aria-hidden="true" preserveAspectRatio="xMidYMid slice">
       <defs>
         <filter id="hc-glow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="3.5" result="b" />
+          <feGaussianBlur stdDeviation="2" result="b" />
           <feMerge>
             <feMergeNode in="b" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
         <radialGradient id="hc-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="var(--node-glow)" stopOpacity="0.14" />
-          <stop offset="60%" stopColor="var(--node-glow)" stopOpacity="0.03" />
+          <stop offset="0%" stopColor="var(--node-glow)" stopOpacity="0.09" />
+          <stop offset="60%" stopColor="var(--node-glow)" stopOpacity="0.02" />
           <stop offset="100%" stopColor="var(--node-glow)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      <circle ref={haloRef} r="110" fill="url(#hc-halo)" />
+      <circle ref={haloRef} r="80" fill="url(#hc-halo)" />
 
       <g fill="none" strokeWidth="0.6" strokeLinecap="round">
         {FIELD.map((p, j) => (
@@ -234,8 +234,9 @@ export function HeroConvergence({ className }: { className?: string }) {
             ref={(el) => {
               nodeRefs.current[i] = el;
             }}
-            r={i === 0 ? 4 : 2.5}
+            r={i === 0 ? 2.6 : 1.6}
             fill="var(--node-glow)"
+            opacity={0.85}
           />
         ))}
       </g>

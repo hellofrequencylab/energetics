@@ -52,7 +52,7 @@ const STEPS = [
 ];
 
 const ctaPrimary =
-  "inline-block rounded-[12px] bg-horizon-amber px-7 py-3.5 text-base font-semibold text-ink shadow-[0_10px_45px_-10px_rgba(231,177,126,0.6)] transition-[transform,filter] duration-[160ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:brightness-110";
+  "inline-block rounded-[12px] bg-horizon-amber px-7 py-3.5 text-base font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)] shadow-[0_10px_45px_-10px_rgba(231,177,126,0.6)] transition-[transform,filter] duration-[160ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:brightness-110";
 
 const eyebrow = "text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber";
 
@@ -73,7 +73,7 @@ export default function WelcomePage() {
             <Link href="/help" className="hover:text-star">Help</Link>
             <Link href="/account" className="hover:text-star">Account</Link>
           </div>
-          <CenterCTA className="rounded-[10px] bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110">
+          <CenterCTA className="rounded-[10px] bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)] transition hover:brightness-110">
             {CTA_LABEL}
           </CenterCTA>
         </nav>
@@ -89,22 +89,24 @@ export default function WelcomePage() {
           aria-hidden="true"
           style={{
             background:
-              "radial-gradient(58% 45% at 50% 50%, rgba(8,8,18,0.42), transparent 76%), linear-gradient(to bottom, rgba(18,21,53,0.2) 0%, rgba(18,21,53,0.04) 28%, rgba(18,21,53,0.82) 88%, var(--midnight) 100%)",
+              "radial-gradient(62% 52% at 50% 48%, rgba(6,8,20,0.6), transparent 72%), linear-gradient(to bottom, rgba(18,21,53,0.25) 0%, rgba(18,21,53,0.08) 28%, rgba(18,21,53,0.85) 88%, var(--midnight) 100%)",
           }}
         />
         <Starfield count={30} className="absolute inset-0 z-0 opacity-40" />
         <HeroConvergence className="pointer-events-none absolute inset-0 z-0" />
 
         <div className="relative z-10 mx-auto max-w-2xl px-5 py-12 text-center">
-          <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">
+          <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight [text-shadow:0_2px_30px_rgba(6,8,20,0.65)] sm:text-7xl">
             Many traditions. <span className="shimmer-text">One sky.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-star/85 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-star/95 [text-shadow:0_1px_18px_rgba(6,8,20,0.8)] sm:text-xl">
             See your birth moment through every tradition, and read where they agree.
           </p>
           <div className="mt-9 flex flex-col items-center gap-3">
             <CenterCTA className={ctaPrimary}>{CTA_LABEL}</CenterCTA>
-            <p className="text-sm text-star/55">Your birth data stays yours.</p>
+            <p className="text-sm text-star/70 [text-shadow:0_1px_12px_rgba(6,8,20,0.8)]">
+              Your birth data stays yours.
+            </p>
           </div>
         </div>
 
@@ -262,7 +264,7 @@ export default function WelcomePage() {
       </footer>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-midnight/95 p-3 backdrop-blur sm:hidden">
-        <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink">
+        <CenterCTA className="block w-full rounded-[12px] bg-horizon-amber px-5 py-3 text-center text-base font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
           {CTA_LABEL}
         </CenterCTA>
       </div>
