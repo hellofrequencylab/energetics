@@ -132,7 +132,7 @@ export function BirthForm({
         <div className="grid gap-7 lg:grid-cols-2">
           {/* Left: the fields */}
           <div className="space-y-4">
-            <Field label="Name (optional)">
+            <Field label="Your full name">
               <input
                 type="text"
                 value={form.name}
@@ -140,6 +140,11 @@ export function BirthForm({
                 placeholder="e.g. Albert Einstein"
                 className={inputClass}
               />
+              <p className="mt-1 text-xs text-muted">
+                Optional. Your full name unlocks name numerology (the numbers in the letters of your
+                name), which adds an independent voice to the reading. Your date alone still works,
+                and your name is yours: nothing is saved unless you sign in and save the chart.
+              </p>
             </Field>
 
             <div className="grid grid-cols-2 gap-3">

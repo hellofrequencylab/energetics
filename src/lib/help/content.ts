@@ -133,6 +133,21 @@ export const CATEGORIES: HelpCategory[] = [
           },
         ],
       },
+      {
+        slug: "your-name",
+        title: "Why we ask for your full name",
+        summary: "Your name unlocks name numerology, and it stays yours.",
+        body: [
+          {
+            type: "p",
+            text: "Your full name unlocks name numerology, which reads the numbers in the letters of your name. It is the one system built from your name rather than the sky or the calendar, so it counts as its own independent voice. When it lands on the same theme as a sky-based and a date-based system, that agreement is genuinely strong.",
+          },
+          {
+            type: "p",
+            text: "Your name is optional. Your date alone still produces a full reading. If you are signed out, nothing is saved. If you sign in and save a chart, your name is stored under your account and only you can read it.",
+          },
+        ],
+      },
     ],
   },
   {
@@ -369,6 +384,15 @@ export const FAQ: FaqItem[] = [
  * CHANGELOG.md.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-14",
+    title: "Name numerology is here",
+    notes: [
+      "Add your full name to read name numerology, the numbers in the letters of your name.",
+      "It adds an independent voice to the synthesis, so when it agrees with the sky and the calendar, that agreement means more.",
+      "Your name is optional and stays yours: nothing is saved unless you sign in and save the chart.",
+    ],
+  },
   {
     date: "2026-06-14",
     title: "Explore your strengths and tensions",

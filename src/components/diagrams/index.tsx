@@ -110,6 +110,15 @@ export function SystemDiagram({ computation }: { computation: ComputedSystem }) 
         </DiagramFrame>
       );
     }
+    case "numerology-chaldean": {
+      const nameNumber = val<number>("name-number");
+      if (nameNumber == null) return null;
+      return (
+        <DiagramFrame title="Name number">
+          <LifePath value={nameNumber} label="NAME NUMBER" />
+        </DiagramFrame>
+      );
+    }
     default:
       return null;
   }

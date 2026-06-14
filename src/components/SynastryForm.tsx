@@ -242,7 +242,12 @@ function PersonFields({
           ))}
         </select>
       )}
-      <input className={input} value={person.name} onChange={(e) => set({ name: e.target.value })} placeholder="Name" />
+      <input
+        className={input}
+        value={person.name}
+        onChange={(e) => set({ name: e.target.value })}
+        placeholder="Full name (unlocks name numerology)"
+      />
       <div className="grid grid-cols-2 gap-2">
         <input type="date" className={input} value={person.date} onChange={(e) => set({ date: e.target.value })} />
         <input

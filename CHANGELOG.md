@@ -7,6 +7,13 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- Name numerology (Chaldean) is now offered by default. It reads the numbers in the
+  letters of your full name, forming an independent "name" voice in the synthesis.
+  The birth and resonance forms ask for your full name with a plain explanation of
+  why and a privacy note; without a name, the card invites you to add one. A name
+  number medallion shows in the system card. (`numerology-chaldean` in the catalog.)
+
+### Added (Convergence Explorer)
 - The Convergence Explorer: the chart became a small, empowerment-framed dashboard.
   - Four views: the map, ranked Strengths bars, system Arcs (co-occurrence), and an
     accessible Table that doubles as the screen-reader fallback.
