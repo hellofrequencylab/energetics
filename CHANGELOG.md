@@ -18,10 +18,12 @@ also appear in the in-app Help Center ("what's new"), sourced from
   emit more ontology primitives so more systems form connections.
 
 ### Fixed
-- Convergence map: tensions no longer collapse onto the center node. A tension is
-  drawn only between two visible convergence points, so it always connects two
-  real, spread-out themes. Tensions whose poles are not both convergences stay in
-  the table and the tensions list, not piled on the self node.
+- Convergence map: every tension now draws, not just the ones whose both poles are
+  cross-confirmed convergences. A pole that is a convergence stays a draggable
+  point; a pole that is not gets a "ghost pole" placed near the systems that hold
+  it (a small violet marker), spread clear of the other points so nothing piles on
+  the center. The earlier fix avoided the center-cluster by hiding those tensions
+  entirely, which dropped most of them from the map. (`ConvergenceChart.tsx`.)
 
 ### Changed
 - The convergence map now shows only true convergences (themes two or more
