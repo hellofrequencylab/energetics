@@ -130,21 +130,28 @@ export function ConvergenceChart({
   const groupOf = (id: string) => posOf.get(id)?.derivedFrom ?? "";
 
   const convNodes: ConvNode[] = useMemo(() => {
+    let shown = 0;
     const base = synthesis.convergences
       .map((cv, i) => {
+        // The map is for convergence: only themes two or more independent groups
+        // reached. Single-source values live in the system cards below.
+        if (cv.independentGroups < 2) return null;
         const pts = [...new Set(cv.contributors.map((a) => a.systemId))]
           .map((id) => posOf.get(id))
           .filter((p): p is SystemNode => !!p);
         if (!pts.length) return null;
         const ax = pts.reduce((s, p) => s + p.x, 0) / pts.length;
         const ay = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-        const pull = Math.max(0.34, 0.66 - (cv.independentGroups - 1) * 0.08);
+        const pull = Math.max(0.34, 0.62 - (cv.independentGroups - 2) * 0.08);
+        // A small per-node offset (golden angle) so themes that share the same
+        // systems do not start on the exact same spot; the spread then separates.
+        const a = shown++ * 2.39996;
         return {
           cv,
           i,
           strong: cv.independentGroups >= 2,
-          bx: C.x + (ax - C.x) * pull,
-          by: C.y + (ay - C.y) * pull,
+          bx: C.x + (ax - C.x) * pull + Math.cos(a) * 10,
+          by: C.y + (ay - C.y) * pull + Math.sin(a) * 10,
           systemIds: pts.map((p) => p.id),
         };
       })
@@ -584,18 +591,29 @@ function isSel(sel: Selection | null, kind: Selection["kind"], i?: number): bool
   return (sel as { i: number }).i === i;
 }
 
-/** Light force pass so nodes do not overlap and stay inside the ring. */
+/**
+ * Force pass so theme points never overlap at the start and stay inside the ring.
+ * Runs until no pair is closer than MIN (or a cap), so the opening layout is
+ * always cleanly spread. Deterministic: same input gives the same arrangement.
+ */
 function spread(nodes: ConvNode[]): ConvNode[] {
   const pos = nodes.map((n) => ({ x: n.bx, y: n.by }));
-  const MIN = 42;
-  const maxR = R_SYS - 46;
-  const minR = 26;
-  for (let iter = 0; iter < 120; iter++) {
+  const MIN = 50; // center-to-center, leaving room for the node and its label
+  const maxR = R_SYS - 44;
+  const minR = 24;
+  for (let iter = 0; iter < 400; iter++) {
+    let moved = false;
     for (let i = 0; i < pos.length; i++) {
       for (let j = i + 1; j < pos.length; j++) {
-        const dx = pos[j].x - pos[i].x;
-        const dy = pos[j].y - pos[i].y;
-        const d = Math.hypot(dx, dy) || 0.01;
+        let dx = pos[j].x - pos[i].x;
+        let dy = pos[j].y - pos[i].y;
+        let d = Math.hypot(dx, dy);
+        if (d < 0.01) {
+          // Coincident: nudge apart along a stable per-pair direction.
+          dx = Math.cos(i + j);
+          dy = Math.sin(i + j);
+          d = 1;
+        }
         if (d < MIN) {
           const push = (MIN - d) / 2;
           const ux = dx / d;
@@ -604,6 +622,7 @@ function spread(nodes: ConvNode[]): ConvNode[] {
           pos[i].y -= uy * push;
           pos[j].x += ux * push;
           pos[j].y += uy * push;
+          moved = true;
         }
       }
       const dx = pos[i].x - C.x;
@@ -617,6 +636,7 @@ function spread(nodes: ConvNode[]): ConvNode[] {
         pos[i].y = C.y + (dy / r) * minR;
       }
     }
+    if (!moved) break;
   }
   return nodes.map((n, k) => ({ ...n, bx: pos[k].x, by: pos[k].y }));
 }
