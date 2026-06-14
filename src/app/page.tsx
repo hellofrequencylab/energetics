@@ -31,7 +31,7 @@ export default async function Home() {
       </div>
 
       <div className="mb-10 text-center">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-accent">Energetics</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-accent">OneSky</p>
         <h1 className="text-3xl font-bold sm:text-4xl">One sky, many systems, one honest synthesis.</h1>
         <p className="mx-auto mt-3 max-w-xl text-muted">
           The sky is computed once. Each tradition interprets it in isolation. A separate layer finds
