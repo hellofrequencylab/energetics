@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { synthesize } from "@/lib/synthesis";
-import { effectiveEnabledIds } from "@/lib/core/system-settings";
+import { effectiveEnabledIds, effectiveOrderMap, sortByOrder } from "@/lib/core/system-settings";
 import { createClient } from "@/lib/supabase/server";
 import { persistChart } from "@/lib/db/queries";
 
@@ -41,7 +41,12 @@ export async function POST(request: Request) {
     // response or fails the request if persistence is unavailable.
     await cacheChart({ event, name, computations, synthesis, ephemerisVersion });
 
-    return NextResponse.json({ event, name, computations, unavailable, synthesis, ephemerisVersion });
+    // Display order follows the admin's catalog order. Synthesis and the
+    // narration cache key stay on the stable registry order computed above.
+    const order = await effectiveOrderMap();
+    const ordered = sortByOrder(computations, (c) => c.meta.id, order);
+
+    return NextResponse.json({ event, name, computations: ordered, unavailable, synthesis, ephemerisVersion });
   } catch (err) {
     return NextResponse.json(
       { error: "Computation failed.", details: err instanceof Error ? err.message : String(err) },

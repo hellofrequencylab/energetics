@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBirthEvent, getProfile } from "@/lib/db/queries";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
-import { effectiveEnabledIds } from "@/lib/core/system-settings";
+import { effectiveEnabledIds, effectiveOrderMap, sortByOrder } from "@/lib/core/system-settings";
 import { synthesize } from "@/lib/synthesis";
 import { chartNarration } from "@/lib/synthesis/narrative";
 import { getCachedNarration } from "@/lib/synthesis/narrate-stream";
@@ -42,10 +42,15 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const only = await effectiveEnabledIds();
   const { computations, unavailable, ephemerisVersion } = computeChart(event, { only });
   const synthesis = synthesize(event.id, computations);
-  const data: ComputeResponse = { event, name, computations, unavailable, synthesis, ephemerisVersion };
 
   // A reading already written for this exact synthesis shows at once (no rewrite).
+  // Built from the stable registry order, matching the narrate route's cache key.
   const initialReading = await getCachedNarration(chartNarration(synthesis, computations)).catch(() => null);
+
+  // Display order follows the admin's catalog order; synthesis stays as computed.
+  const order = await effectiveOrderMap();
+  const ordered = sortByOrder(computations, (c) => c.meta.id, order);
+  const data: ComputeResponse = { event, name, computations: ordered, unavailable, synthesis, ephemerisVersion };
 
   const profile = await getProfile(supabase, user.id).catch(() => null);
   const practitioner = profile?.account_type === "practitioner";

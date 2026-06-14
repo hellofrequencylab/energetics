@@ -7,6 +7,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- Drag-and-drop reordering of the systems catalog in the admin (`/admin/systems`):
+  drag a row by its handle, or use the up/down arrows, to set the order systems
+  appear in everywhere. The order persists per system in `system_settings`
+  (migration `0006`; `enabled` is now nullable so a row can carry order without
+  forcing an on/off override) and is applied to the reader's system cards and the
+  convergence chart, while synthesis and the narration cache key stay on the
+  stable registry order. See `src/components/admin/SystemCatalog.tsx`.
+
+### Added (earlier today)
 - The Convergence Chart: an interactive flagship visual in the reader. Systems
   ring the edge colored by their independence group, convergences pull toward the
   center in proportion to how many groups agree, tensions arc between poles, and
