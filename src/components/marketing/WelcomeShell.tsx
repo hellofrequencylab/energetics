@@ -66,7 +66,7 @@ export function WelcomeShell({
 
       {/* The input app. Settles to center on scroll (snap) or any CTA. */}
       <section id="begin" className="snap-center scroll-mt-[10vh] px-5 py-20 sm:py-28">
-        <div className="mx-auto max-w-xl">
+        <div className="mx-auto max-w-4xl">
           <div className="mb-7 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">
               Your reading
