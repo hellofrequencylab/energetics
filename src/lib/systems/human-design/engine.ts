@@ -209,6 +209,12 @@ export const engine: SystemEngine = {
         value: centersRecord,
         display: CENTERS.filter((c) => defined.has(c)).join(", ") || "none (Reflector)",
       },
+      channels: {
+        key: "channels",
+        label: "Defined Channels",
+        value: data.channels,
+        display: data.channels.join(", ") || "none",
+      },
       cross: {
         key: "cross",
         label: "Incarnation Cross",

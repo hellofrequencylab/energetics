@@ -9,6 +9,7 @@ import type { ComputedSystem } from "@/lib/synthesis/types";
 import { ChartWheel } from "./ChartWheel";
 import { EthicsPanel } from "./EthicsPanel";
 import { NarrativePanel } from "./NarrativePanel";
+import { SystemDiagram } from "./diagrams";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
 function humanizeValue(value: string): string {
@@ -150,6 +151,7 @@ export function SynthesisView({ data, intakeBody }: { data: ComputeResponse; int
                 <h4 className="font-semibold">{c.meta.displayName}</h4>
                 <span className="text-[10px] uppercase tracking-wide text-muted">{c.meta.derivedFrom}</span>
               </div>
+              <SystemDiagram computation={c} />
               {Object.values(c.native.factors).length ? (
                 <ul className="space-y-1.5">
                   {Object.values(c.native.factors).map((f) => (

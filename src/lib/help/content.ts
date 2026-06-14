@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Each system now shows its own chart",
+    notes: [
+      "Every tradition draws in its own traditional form, from your data: the Human Design bodygraph, the BaZi four pillars, the Maya kin, the Dreamspell signature, your Tarot birth cards, and your numerology life path.",
+      "The illustrations are original and built from your chart, not stock images.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "A focused set of systems, with more on the way",
     notes: [
       "Your reading now leads with a focused core set of traditions, kept clear and uncluttered.",
