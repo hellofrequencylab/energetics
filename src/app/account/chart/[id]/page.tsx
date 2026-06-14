@@ -8,6 +8,7 @@ import { synthesize } from "@/lib/synthesis";
 import type { ComputeResponse } from "@/lib/api-types";
 import { SynthesisView } from "@/components/SynthesisView";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
+import { ChartManager } from "@/components/account/ChartManager";
 
 export const runtime = "nodejs";
 
@@ -63,14 +64,14 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
           {row.name || "Saved chart"}
         </h1>
 
-        {practitioner && (
-          <div className="mt-5 rounded-xl border border-white/10 bg-dusk/20 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-star/50">Notes</p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-star/80">
-              {row.notes || "No notes yet."}
-            </p>
-          </div>
-        )}
+        <div className="mt-6">
+          <ChartManager
+            id={row.id}
+            initialName={row.name ?? ""}
+            initialNotes={row.notes ?? ""}
+            practitioner={practitioner}
+          />
+        </div>
 
         <div className="mt-8 rounded-2xl border border-white/10 bg-background/60 p-5 sm:p-6">
           <SynthesisView data={data} intakeBody={body} />

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { upsertProfile } from "@/lib/db/queries";
+import { getProfile, upsertProfile } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
 
-/** POST /api/profile: set the signed-in user's account type (personal or practitioner). */
+/**
+ * POST /api/profile: set the account type and/or display name. Partial-safe, so
+ * sending only one field preserves the other (e.g. renaming does not reset type).
+ */
 export async function POST(request: Request) {
   const supabase = await createClient();
   if (!supabase) return NextResponse.json({ error: "Accounts are not configured." }, { status: 503 });
@@ -21,14 +24,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const accountType = body.accountType === "practitioner" ? "practitioner" : "personal";
+  const existing = await getProfile(supabase, user.id).catch(() => null);
+  const accountType =
+    body.accountType === "personal" || body.accountType === "practitioner"
+      ? body.accountType
+      : (existing?.account_type ?? "personal");
+  const displayName =
+    typeof body.displayName === "string"
+      ? body.displayName.trim() || null
+      : (existing?.display_name ?? null);
+
   try {
-    await upsertProfile(supabase, user.id, { accountType, displayName: body.displayName });
+    await upsertProfile(supabase, user.id, { accountType, displayName });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Could not save your profile." },
       { status: 500 },
     );
   }
-  return NextResponse.json({ ok: true, accountType });
+  return NextResponse.json({ ok: true, accountType, displayName });
 }
