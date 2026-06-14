@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BirthForm } from "@/components/BirthForm";
 import { Dashboard } from "@/components/marketing/Dashboard";
 import type { ComputeResponse } from "@/lib/api-types";
 
+/** Smooth-scroll the input app to the center of the screen. */
+function centerInput() {
+  document.getElementById("begin")?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 /**
- * Holds the welcome experience together: marketing (the slots), the input app
- * (which settles to center via scroll snap, or by any CTA), and the melt into
- * the reader.
+ * Holds the welcome experience: marketing (slots), the input app that peeks into
+ * the hero, and the melt into the reader.
  *
- * The marketing content is server-rendered and passed in as slots, so it keeps
- * its SSR. This client shell owns the melt: submitting the form melts the page
- * away and reveals the Dashboard. Reduced motion skips the melt and swaps
- * straight through.
+ * The input snaps to center when you press a CTA, click the handle, or scroll
+ * down from the top. The scroll snap fires once (within a band just below the
+ * fold) so it does not hijack in-page anchor navigation. Reduced motion skips
+ * the auto-snap. Submitting melts the page away and reveals the Dashboard.
  */
 export function WelcomeShell({
   hero,
@@ -26,6 +30,26 @@ export function WelcomeShell({
 }) {
   const [reading, setReading] = useState<{ data: ComputeResponse; intake: unknown } | null>(null);
   const [melting, setMelting] = useState(false);
+  const snapped = useRef(false);
+
+  useEffect(() => {
+    if (reading) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    function onScroll() {
+      const y = window.scrollY;
+      if (y < 6) {
+        snapped.current = false;
+        return;
+      }
+      // Only when scrolling down out of the hero, not when jumping to a section.
+      if (!snapped.current && y > 24 && y < window.innerHeight * 0.5) {
+        snapped.current = true;
+        centerInput();
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [reading]);
 
   function handleResult(data: ComputeResponse, intake: unknown) {
     const reduce =
@@ -64,20 +88,40 @@ export function WelcomeShell({
     >
       {hero}
 
-      {/* The input app. Settles to center on scroll (snap) or any CTA. */}
-      <section id="begin" className="snap-center scroll-mt-[10vh] px-5 py-20 sm:py-28">
+      {/* The input app, pulled up so its handle peeks into the hero. */}
+      <section id="begin" className="relative z-10 -mt-14 px-5 pb-28">
         <div className="mx-auto max-w-4xl">
+          <button
+            type="button"
+            onClick={centerInput}
+            aria-label="Begin your reading"
+            className="group mx-auto mb-6 flex flex-col items-center gap-1.5"
+          >
+            <span className="h-1.5 w-12 rounded-full bg-star/30 transition group-hover:bg-star/50" />
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-horizon-amber">
+              Begin your reading
+            </span>
+            <svg viewBox="0 0 24 12" className="float h-2.5 w-5 text-star/60" aria-hidden="true">
+              <path
+                d="M2 10 L12 3 L22 10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
           <div className="mb-7 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">
-              Your reading
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-star sm:text-4xl">
+            <h2 className="font-display text-3xl font-semibold text-star sm:text-4xl">
               Enter your birth moment
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-star/60">
               Your date is enough to begin. Add your time and place to unlock more.
             </p>
           </div>
+
           <BirthForm onResult={handleResult} submitLabel="Reveal my reading" />
         </div>
       </section>
