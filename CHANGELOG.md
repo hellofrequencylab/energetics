@@ -6,6 +6,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Changed
+- The convergence map now shows only true convergences (themes two or more
+  independent groups reached); single-source values stay in the system cards
+  below. Points are guaranteed to start fully spread out, with no overlap.
+- More systems now take part in the synthesis: Norse runes, the Celtic tree
+  calendar, and Gene Keys gained real adapters that map their values onto the
+  shared themes, so they form visible connections (Gene Keys shares Human
+  Design's independence group, so it adds threads without inflating the count).
+
 ### Added
 - Name numerology (Chaldean) is now offered by default. It reads the numbers in the
   letters of your full name, forming an independent "name" voice in the synthesis.
