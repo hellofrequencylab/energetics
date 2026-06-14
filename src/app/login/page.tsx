@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -9,6 +9,18 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
 
   const supabase = createClient();
+
+  // Surface a failed callback so a bad or expired link is not silent.
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).get("error")) return;
+    const id = requestAnimationFrame(() => {
+      setStatus("error");
+      setMessage(
+        "That sign-in link did not work. Request a new one below and open it on this same device.",
+      );
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
