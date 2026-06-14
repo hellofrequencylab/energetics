@@ -220,11 +220,16 @@ body {
   }
 }
 
-/* Hero photograph: cinematic slow zoom (Ken Burns). The file lives at
-   public/hero-sky.png. If absent, the layer is simply empty over the twilight
-   base, so the hero degrades gracefully. */
+/* Hero photograph: cinematic slow zoom (Ken Burns). Optimized assets live at
+   public/hero-sky.webp (preferred) and public/hero-sky.jpg (fallback). If
+   absent, the layer is empty over the twilight base, so the hero degrades
+   gracefully. */
 .hero-photo {
-  background-image: url("/hero-sky.png");
+  background-image: url("/hero-sky.jpg");
+  background-image: image-set(
+    url("/hero-sky.webp") type("image/webp"),
+    url("/hero-sky.jpg") type("image/jpeg")
+  );
   background-size: cover;
   background-position: center;
 }
