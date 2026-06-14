@@ -6,6 +6,9 @@ import { getProfile, recentBirthEvents } from "@/lib/db/queries";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
 import { ProfileOnboarding } from "@/components/account/ProfileOnboarding";
 import { AccountTypeSwitch } from "@/components/account/AccountTypeSwitch";
+import { DisplayNameEditor } from "@/components/account/DisplayNameEditor";
+import { ChartRoster } from "@/components/account/ChartRoster";
+import { AddChartPanel } from "@/components/account/AddChartPanel";
 
 export const metadata: Metadata = { title: "Your account · ONESKY" };
 export const runtime = "nodejs";
@@ -77,62 +80,46 @@ export default async function AccountPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">
           {practitioner ? "Practitioner" : "Personal"} account
         </p>
-        <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Your account</h1>
-        <p className="mt-2 max-w-xl text-star/70">
+        <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+          {profile.display_name ? `Welcome, ${profile.display_name}` : "Your account"}
+        </h1>
+        <p className="mt-2 max-w-xl text-star/80">
           {practitioner
             ? "Keep the charts you read for others, with private notes, and compare any two."
             : "Your charts and the people you are connected to, in one sky."}
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-5">
           <AccountTypeSwitch current={profile.account_type} />
+          <DisplayNameEditor initial={profile.display_name ?? ""} />
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          <Link href="/welcome" className={card}>
-            <div className="font-display text-lg font-semibold">{addLabel}</div>
-            <p className="mt-1 text-sm text-star/65">
-              Compute a new chart, saved to your {practitioner ? "roster" : "people"}.
-            </p>
-          </Link>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
           <Link href="/synastry" className={card}>
             <div className="font-display text-lg font-semibold">Resonance</div>
-            <p className="mt-1 text-sm text-star/65">Compare two charts: platonic or intimate.</p>
+            <p className="mt-1 text-sm text-star/70">Compare two charts: platonic or intimate.</p>
           </Link>
           <Link href="/glossary" className={card}>
             <div className="font-display text-lg font-semibold">Glossary</div>
-            <p className="mt-1 text-sm text-star/65">Look up any sign, planet, number, or card.</p>
+            <p className="mt-1 text-sm text-star/70">Look up any sign, planet, number, or card.</p>
           </Link>
         </div>
 
+        <section id="add" className="mt-10 scroll-mt-20">
+          <AddChartPanel
+            noun={practitioner ? "client" : "chart"}
+            submitLabel={practitioner ? "Add client to roster" : "Add chart to your sky"}
+          />
+        </section>
+
         <section className="mt-12">
           <h2 className="font-display text-xl font-semibold">{rosterLabel}</h2>
-          {charts.length === 0 ? (
-            <p className="mt-4 rounded-xl border border-white/10 bg-dusk/20 p-6 text-sm text-star/60">
-              No charts yet.{" "}
-              <Link className="text-horizon-amber underline underline-offset-4" href="/welcome">
-                {addLabel}
-              </Link>{" "}
-              to begin.
-            </p>
-          ) : (
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-              {charts.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/account/chart/${c.id}`}
-                    className="block rounded-xl border border-white/10 bg-dusk/20 p-4 transition hover:-translate-y-0.5 hover:border-horizon-amber/40 hover:bg-dusk/40"
-                  >
-                    <div className="font-medium">{c.name || "Unnamed chart"}</div>
-                    <div className="mt-0.5 font-mono text-xs text-star/50">
-                      {c.date}
-                      {c.time ? ` · ${String(c.time).slice(0, 5)}` : ""} · {c.precision}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ChartRoster
+            charts={charts}
+            addHref="#add"
+            addLabel={addLabel}
+            noun={practitioner ? "client" : "person"}
+          />
         </section>
       </main>
     </div>

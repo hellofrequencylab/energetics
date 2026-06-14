@@ -144,6 +144,26 @@ export async function upsertProfile(
   if (error) throw error;
 }
 
+/** Update a saved chart's editable fields (name, practitioner notes). RLS-scoped. */
+export async function updateBirthEvent(
+  supabase: DbClient,
+  id: string,
+  input: { name?: string | null; notes?: string | null },
+): Promise<void> {
+  const patch: Record<string, unknown> = {};
+  if (input.name !== undefined) patch.name = input.name;
+  if (input.notes !== undefined) patch.notes = input.notes;
+  if (Object.keys(patch).length === 0) return;
+  const { error } = await supabase.from("birth_events").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+/** Delete a saved chart (cascades to its cached computations). RLS-scoped. */
+export async function deleteBirthEvent(supabase: DbClient, id: string): Promise<void> {
+  const { error } = await supabase.from("birth_events").delete().eq("id", id);
+  if (error) throw error;
+}
+
 /** A single saved chart with everything needed to recompute it. RLS-scoped. */
 export async function getBirthEvent(supabase: DbClient, id: string) {
   const { data, error } = await supabase
