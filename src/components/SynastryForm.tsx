@@ -4,6 +4,46 @@ import { useState } from "react";
 import type { SynastryResult } from "@/lib/synastry";
 import { PlaceSearch, type SelectedPlace } from "./PlaceSearch";
 
+export type ResonanceMode = "platonic" | "intimate";
+
+/** Two interpretive lenses over the same comparison. */
+const MODES: Record<
+  ResonanceMode,
+  {
+    label: string;
+    intro: string;
+    shared: { h: string; blurb: string };
+    tension: { h: string; blurb: string };
+    aspects: { h: string; blurb: string };
+    focus: string[];
+  }
+> = {
+  platonic: {
+    label: "Platonic",
+    intro:
+      "Read as friends, family, or collaborators: where you meet on common ground, where your differences balance, and how your minds and aims click.",
+    shared: { h: "Common ground", blurb: "Where both charts independently emphasize the same energy." },
+    tension: { h: "Where you balance", blurb: "Where each leans to an opposite pole, friction or complement." },
+    aspects: {
+      h: "How you click",
+      blurb: "Ties between your charts. Mind, growth, and identity stand out for friendship.",
+    },
+    focus: ["mercury", "jupiter", "sun"],
+  },
+  intimate: {
+    label: "Intimate",
+    intro:
+      "Read as partners: where you meet, where you stretch each other, and how attraction, feeling, and desire move between your charts.",
+    shared: { h: "Where you meet", blurb: "Where both charts independently emphasize the same energy." },
+    tension: { h: "Where you stretch each other", blurb: "Where each leans to an opposite pole, friction or balance." },
+    aspects: {
+      h: "How your charts touch",
+      blurb: "Ties between your charts. Love, desire, and feeling stand out for intimacy.",
+    },
+    focus: ["venus", "mars", "moon"],
+  },
+};
+
 export interface Person {
   name: string;
   date: string;
@@ -71,13 +111,16 @@ export function SynastryForm({
   savedCharts = [],
   initialA,
   initialB,
+  initialMode = "platonic",
 }: {
   savedCharts?: SavedChart[];
   initialA?: Person;
   initialB?: Person;
+  initialMode?: ResonanceMode;
 }) {
   const [a, setA] = useState<Person>(initialA ?? emptyPerson("Person A", "1990-06-15"));
   const [b, setB] = useState<Person>(initialB ?? emptyPerson("Person B", "1988-11-02"));
+  const [mode, setMode] = useState<ResonanceMode>(initialMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SynastryResult | null>(null);
@@ -105,6 +148,24 @@ export function SynastryForm({
 
   return (
     <div className="space-y-8">
+      <div className="text-center">
+        <div className="inline-flex rounded-full border border-border bg-surface/50 p-1">
+          {(["platonic", "intimate"] as ResonanceMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                mode === m ? "bg-accent text-[#1a1410]" : "text-muted hover:text-foreground"
+              }`}
+            >
+              {MODES[m].label}
+            </button>
+          ))}
+        </div>
+        <p className="mx-auto mt-3 max-w-xl text-sm text-muted">{MODES[mode].intro}</p>
+      </div>
+
       <form onSubmit={onSubmit} className="grid gap-6 sm:grid-cols-2">
         <PersonFields person={a} onChange={setA} savedCharts={savedCharts} />
         <PersonFields person={b} onChange={setB} savedCharts={savedCharts} />
@@ -123,7 +184,7 @@ export function SynastryForm({
         <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>
       )}
 
-      {result && <SynastryResults result={result} aName={a.name} bName={b.name} />}
+      {result && <SynastryResults result={result} aName={a.name} bName={b.name} mode={mode} />}
     </div>
   );
 }
@@ -192,12 +253,29 @@ function PersonFields({
   );
 }
 
-function SynastryResults({ result, aName, bName }: { result: SynastryResult; aName: string; bName: string }) {
+function SynastryResults({
+  result,
+  aName,
+  bName,
+  mode,
+}: {
+  result: SynastryResult;
+  aName: string;
+  bName: string;
+  mode: ResonanceMode;
+}) {
+  const cfg = MODES[mode];
+  const focus = cfg.focus;
+  const isFocus = (c: { a: string; b: string }) =>
+    focus.includes(c.a.toLowerCase()) || focus.includes(c.b.toLowerCase());
+  // Lead with the aspects that matter most for this lens.
+  const aspects = [...result.crossAspects].sort((x, y) => Number(isFocus(y)) - Number(isFocus(x)));
+
   return (
     <div className="space-y-8">
       <section>
-        <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent">Shared ground</h3>
-        <p className="mb-3 text-xs text-muted">Where both charts independently emphasize the same energy.</p>
+        <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent">{cfg.shared.h}</h3>
+        <p className="mb-3 text-xs text-muted">{cfg.shared.blurb}</p>
         {result.sharedEmphases.length ? (
           <ul className="flex flex-wrap gap-2">
             {result.sharedEmphases.map((s, i) => (
@@ -213,8 +291,8 @@ function SynastryResults({ result, aName, bName }: { result: SynastryResult; aNa
 
       {result.complementaryTensions.length > 0 && (
         <section>
-          <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent-2">Complementary tensions</h3>
-          <p className="mb-3 text-xs text-muted">Where each leans to an opposite pole, friction or balance.</p>
+          <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent-2">{cfg.tension.h}</h3>
+          <p className="mb-3 text-xs text-muted">{cfg.tension.blurb}</p>
           <ul className="space-y-2">
             {result.complementaryTensions.map((t, i) => (
               <li key={i} className="flex items-center justify-center gap-3 rounded-lg border border-border bg-surface/40 p-3 text-sm">
@@ -229,19 +307,26 @@ function SynastryResults({ result, aName, bName }: { result: SynastryResult; aNa
       )}
 
       <section>
-        <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent">Cross-chart aspects</h3>
-        <p className="mb-3 text-xs text-muted">Geometric ties between the two charts (tightest first).</p>
-        {result.crossAspects.length ? (
+        <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent">{cfg.aspects.h}</h3>
+        <p className="mb-3 text-xs text-muted">{cfg.aspects.blurb}</p>
+        {aspects.length ? (
           <ul className="space-y-1">
-            {result.crossAspects.map((c, i) => (
-              <li key={i} className="flex justify-between gap-3 text-sm">
-                <span>
-                  <span className="text-foreground">{aName.trim() || "A"} {c.a}</span> {c.aspect}{" "}
-                  <span className="text-foreground">{bName.trim() || "B"} {c.b}</span>
-                </span>
-                <span className="text-muted">{c.orb.toFixed(1)}°</span>
-              </li>
-            ))}
+            {aspects.map((c, i) => {
+              const lead = isFocus(c);
+              return (
+                <li
+                  key={i}
+                  className={`flex justify-between gap-3 rounded-md px-2 py-1 text-sm ${lead ? "bg-accent/5" : ""}`}
+                >
+                  <span>
+                    {lead && <span className="mr-1 text-accent">•</span>}
+                    <span className="text-foreground">{aName.trim() || "A"} {humanize(c.a)}</span> {c.aspect}{" "}
+                    <span className="text-foreground">{bName.trim() || "B"} {humanize(c.b)}</span>
+                  </span>
+                  <span className="text-muted">{c.orb.toFixed(1)}°</span>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-sm text-muted">No tight cross-aspects (add birth times for angles).</p>
