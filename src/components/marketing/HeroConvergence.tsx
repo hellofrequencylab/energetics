@@ -18,7 +18,7 @@ const COLORS = [
   "var(--thread-violet)",
   "var(--thread-rose)",
 ];
-const POINTS = 22;
+const POINTS = 16;
 const NODE_OFFSETS: [number, number][] = [
   [0, 0],
   [-22, -16],
@@ -48,7 +48,7 @@ const FIELD = Array.from({ length: POINTS }, (_, i) => {
     fy: 0.06 + b * 0.88,
     node: i % NODE_OFFSETS.length,
     color: COLORS[i % COLORS.length],
-    r: 1 + c * 1.8,
+    r: 0.7 + c * 1.1,
     twDur: 2.5 + d * 4,
     twDelay: e * 5,
   };
@@ -97,8 +97,11 @@ export function HeroConvergence({ className }: { className?: string }) {
       const y = e.clientY - r.top;
       if (x < 0 || y < 0 || x > r.width || y > r.height) return;
       haveMouse = true;
-      target.x = Math.min(w * 0.9, Math.max(w * 0.1, x));
-      target.y = Math.min(h * 0.88, Math.max(h * 0.12, y));
+      // Subtle nudge toward the cursor, staying near the center.
+      const maxX = w * 0.06;
+      const maxY = h * 0.06;
+      target.x = homeX + Math.max(-maxX, Math.min(maxX, (x - homeX) * 0.15));
+      target.y = homeY + Math.max(-maxY, Math.min(maxY, (y - homeY) * 0.15));
     }
 
     function frame(now: number) {
@@ -174,22 +177,22 @@ export function HeroConvergence({ className }: { className?: string }) {
     <svg ref={svgRef} className={className} aria-hidden="true" preserveAspectRatio="xMidYMid slice">
       <defs>
         <filter id="hc-glow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="6" result="b" />
+          <feGaussianBlur stdDeviation="3.5" result="b" />
           <feMerge>
             <feMergeNode in="b" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
         <radialGradient id="hc-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="var(--node-glow)" stopOpacity="0.22" />
-          <stop offset="60%" stopColor="var(--node-glow)" stopOpacity="0.05" />
+          <stop offset="0%" stopColor="var(--node-glow)" stopOpacity="0.14" />
+          <stop offset="60%" stopColor="var(--node-glow)" stopOpacity="0.03" />
           <stop offset="100%" stopColor="var(--node-glow)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      <circle ref={haloRef} r="170" fill="url(#hc-halo)" />
+      <circle ref={haloRef} r="110" fill="url(#hc-halo)" />
 
-      <g fill="none" strokeWidth="1" strokeLinecap="round">
+      <g fill="none" strokeWidth="0.6" strokeLinecap="round">
         {FIELD.map((p, j) => (
           <path
             key={j}
@@ -197,7 +200,7 @@ export function HeroConvergence({ className }: { className?: string }) {
               pathRefs.current[j] = el;
             }}
             stroke={p.color}
-            strokeOpacity={0.5}
+            strokeOpacity={0.28}
           />
         ))}
       </g>
@@ -231,7 +234,7 @@ export function HeroConvergence({ className }: { className?: string }) {
             ref={(el) => {
               nodeRefs.current[i] = el;
             }}
-            r={i === 0 ? 6 : 4}
+            r={i === 0 ? 4 : 2.5}
             fill="var(--node-glow)"
           />
         ))}
