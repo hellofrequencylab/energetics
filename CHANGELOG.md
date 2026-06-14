@@ -67,6 +67,12 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- The "energy at a glance" cheat sheets are now fuller and more detailed, sized to
+  fill each card: Western shows element balance, rising, and every placement
+  (luminaries with a deeper read); BaZi shows the day master, pillar element
+  balance, and year animal; Human Design shows type, strategy, authority, profile,
+  definition, and defined centers; numerology, Tzolk'in, Tarot, and Dreamspell
+  each gain extra lines (`src/lib/cheatsheet.ts`).
 - The reader's per-system blocks are now a consistent dashboard: the chart drawing
   on the left, the energy cheat sheet on the right, how it applies and things to
   note underneath, and a row of shared convergences whose chips jump to the
