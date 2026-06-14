@@ -43,6 +43,18 @@ async function readCache(key: string): Promise<string | null> {
   }
 }
 
+/**
+ * Read a saved reading for this request, without generating one. Used to render a
+ * saved chart's reading immediately on the server, so it shows at once and is not
+ * rewritten on every visit.
+ */
+export async function getCachedNarration(
+  req: NarrationRequest,
+): Promise<{ text: string; model: string } | null> {
+  const body = await readCache(narrationKey(req));
+  return body ? { text: body, model: NARRATIVE_MODEL } : null;
+}
+
 async function writeCache(key: string, kind: Kind, body: string): Promise<void> {
   try {
     const admin = createAdminClient();

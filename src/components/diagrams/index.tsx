@@ -1,4 +1,6 @@
 import type { ComputedSystem } from "@/lib/synthesis/types";
+import { vedicToWheel, westernToWheel } from "@/lib/wheel";
+import { ChartWheel } from "@/components/ChartWheel";
 import { BodyGraph } from "./BodyGraph";
 import { FourPillars, type Pillars } from "./FourPillars";
 import { MayaKin } from "./MayaKin";
@@ -18,6 +20,33 @@ export function SystemDiagram({ computation }: { computation: ComputedSystem }) 
   const val = <T,>(key: string): T | undefined => f[key]?.value as T | undefined;
 
   switch (computation.meta.id) {
+    case "western-tropical": {
+      const wheel = westernToWheel(computation.native);
+      if (!wheel) return null;
+      return (
+        <DiagramFrame title="Chart wheel · Tropical">
+          <div className="w-full max-w-sm">
+            <ChartWheel data={wheel} />
+            {!wheel.cusps && (
+              <p className="mt-1 text-center text-xs text-muted">
+                Add a birth time and place for houses and the Ascendant.
+              </p>
+            )}
+          </div>
+        </DiagramFrame>
+      );
+    }
+    case "vedic-jyotish": {
+      const wheel = vedicToWheel(computation.native);
+      if (!wheel) return null;
+      return (
+        <DiagramFrame title="Chart wheel · Sidereal">
+          <div className="w-full max-w-sm">
+            <ChartWheel data={wheel} />
+          </div>
+        </DiagramFrame>
+      );
+    }
     case "human-design": {
       const centers = val<Record<string, boolean>>("centers");
       if (!centers) return null;

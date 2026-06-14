@@ -3,13 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ComputeResponse } from "@/lib/api-types";
-import { vedicToWheel, westernToWheel } from "@/lib/wheel";
 import { interpretationsFor } from "@/lib/corpus";
+import { SYSTEM_BLURBS } from "@/lib/help/content";
 import type { TransitsResult } from "@/lib/transits";
 import type { ComputedSystem } from "@/lib/synthesis/types";
-import { ChartWheel } from "./ChartWheel";
 import { EthicsPanel } from "./EthicsPanel";
 import { NarrativePanel } from "./NarrativePanel";
+import { ConvergenceChart } from "./ConvergenceChart";
 import { SystemDiagram } from "./diagrams";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
@@ -22,26 +22,24 @@ export function SynthesisView({
   data,
   intakeBody,
   chartId,
+  initialReading,
 }: {
   data: ComputeResponse;
   intakeBody: unknown;
   /** When set (a saved chart), each system links to its detail page. */
   chartId?: string;
+  /** A reading already saved for this chart, shown at once. */
+  initialReading?: { text: string; model?: string } | null;
 }) {
   const { computations, unavailable, synthesis, event, name, ephemerisVersion } = data;
   const crossConfirmed = synthesis.convergences.filter((c) => c.independentGroups >= 2);
   const singleLens = synthesis.convergences.filter((c) => c.independentGroups < 2);
 
-  const western = computations.find((c) => c.meta.id === "western-tropical");
-  const wheel = western ? westernToWheel(western.native) : null;
-  const vedic = computations.find((c) => c.meta.id === "vedic-jyotish");
-  const vedicWheel = vedic ? vedicToWheel(vedic.native) : null;
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <header className="border-b border-border pb-4">
-        <h2 className="text-2xl font-semibold">{name?.trim() || "Chart"}</h2>
-        <p className="mt-1 text-sm text-muted">
+        <h2 className="text-2xl font-semibold sm:text-3xl">{name?.trim() || "Chart"}</h2>
+        <p className="mt-1.5 text-sm text-muted">
           {event.date}
           {event.time ? ` · ${event.time}` : " · time unknown"}
           {event.place ? ` · ${event.place.lat.toFixed(2)}, ${event.place.lng.toFixed(2)} · ${event.place.tz}` : ""} ·
@@ -49,50 +47,49 @@ export function SynthesisView({
         </p>
       </header>
 
-      {/* Chart wheels (Western tropical + Vedic sidereal) ------------------- */}
-      {(wheel || vedicWheel) && (
-        <section className="grid gap-4 sm:grid-cols-2">
-          {wheel && (
-            <div className="rounded-xl border border-border bg-surface/40 p-4">
-              <p className="mb-1 text-center text-xs uppercase tracking-wide text-muted">Tropical · Western</p>
-              <ChartWheel data={wheel} />
-              {!wheel.cusps && (
-                <p className="mt-1 text-center text-xs text-muted">Add a birth time + place for houses & Ascendant.</p>
-              )}
-            </div>
-          )}
-          {vedicWheel && (
-            <div className="rounded-xl border border-border bg-surface/40 p-4">
-              <p className="mb-1 text-center text-xs uppercase tracking-wide text-muted">Sidereal · Vedic</p>
-              <ChartWheel data={vedicWheel} />
-            </div>
-          )}
-        </section>
-      )}
+      {/* Convergence chart: the flagship interactive visual ----------------- */}
+      <section>
+        <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">Convergence chart</h3>
+        <p className="mb-4 text-sm text-muted">
+          Your systems sit on the ring, colored by what they read from. Themes they agree on pull
+          toward the center; tensions arc between the poles. Tap any point for details.
+        </p>
+        <div className="mx-auto max-w-xl rounded-2xl border border-border bg-surface/30 p-4 sm:p-6">
+          <ConvergenceChart
+            synthesis={synthesis}
+            systems={computations.map((c) => ({
+              id: c.meta.id,
+              name: c.meta.displayName,
+              derivedFrom: c.meta.derivedFrom,
+            }))}
+            selfName={name?.trim() || "You"}
+          />
+        </div>
+      </section>
 
       {/* Deterministic synthesis map ----------------------------------------- */}
       <section>
-        <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent">
+        <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">
           Convergences
         </h3>
-        <p className="mb-4 text-xs text-muted">
+        <p className="mb-4 text-sm text-muted">
           Ranked by how many <em>independent</em> source groups agree, not a blended score.
         </p>
 
         {crossConfirmed.length > 0 ? (
           <ul className="space-y-2">
             {crossConfirmed.map((c, i) => (
-              <li key={i} className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+              <li key={i} className="rounded-lg border border-accent/30 bg-accent/5 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium">
+                  <span className="text-[15px] font-medium">
                     {humanizeValue(c.value)}{" "}
-                    <span className="text-xs text-muted">· {c.axis}</span>
+                    <span className="text-sm text-muted">· {c.axis}</span>
                   </span>
-                  <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                  <span className="shrink-0 rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-semibold text-accent">
                     {c.independentGroups} independent sources
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1.5 text-sm text-muted">
                   {[...new Set(c.contributors.map((a) => a.systemId))].join(" · ")}
                 </p>
               </li>
@@ -104,12 +101,12 @@ export function SynthesisView({
 
         {singleLens.length > 0 && (
           <details className="mt-4">
-            <summary className="cursor-pointer text-xs text-muted">
+            <summary className="cursor-pointer text-sm text-muted">
               Single-lens signals ({singleLens.length}), supported by one source group
             </summary>
             <ul className="mt-2 flex flex-wrap gap-2">
               {singleLens.map((c, i) => (
-                <li key={i} className="rounded border border-border bg-surface/40 px-2 py-1 text-xs text-muted">
+                <li key={i} className="rounded border border-border bg-surface/40 px-2.5 py-1 text-sm text-muted">
                   {humanizeValue(c.value)} <span className="opacity-60">· {c.axis}</span>
                 </li>
               ))}
@@ -121,17 +118,17 @@ export function SynthesisView({
       {/* Tensions ------------------------------------------------------------ */}
       {synthesis.tensions.length > 0 && (
         <section>
-          <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-accent-2">Tensions</h3>
-          <p className="mb-4 text-xs text-muted">Declared oppositions where both poles are present: held, not averaged.</p>
+          <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent-2">Tensions</h3>
+          <p className="mb-4 text-sm text-muted">Declared oppositions where both poles are present: held, not averaged.</p>
           <ul className="space-y-2">
             {synthesis.tensions.map((t, i) => (
-              <li key={i} className="rounded-lg border border-border bg-surface/40 p-3 text-sm">
+              <li key={i} className="rounded-lg border border-border bg-surface/40 p-4 text-sm">
                 <div className="flex items-center justify-center gap-3 text-center">
                   <Pole value={t.sides[0].value} sources={t.sides[0].contributors.map((a) => a.systemId)} />
                   <span className="text-accent-2">⟷</span>
                   <Pole value={t.sides[1].value} sources={t.sides[1].contributors.map((a) => a.systemId)} />
                 </div>
-                <p className="mt-1 text-center text-[11px] uppercase tracking-wide text-muted">{t.axis}</p>
+                <p className="mt-1.5 text-center text-xs uppercase tracking-wide text-muted">{t.axis}</p>
               </li>
             ))}
           </ul>
@@ -148,59 +145,66 @@ export function SynthesisView({
         title="Your reading"
         ctaLabel="Write my reading"
         autoStart
-        idleBlurb="Optional prose over the synthesis above. It reads the convergences and tensions and never computes them. It streams in live, and is saved so reopening this chart is instant."
+        initial={initialReading}
+        idleBlurb="Prose over the synthesis above. It reads the convergences and tensions and never computes them. Once written, it stays saved on this chart until you refresh it."
       />
 
       {/* Per-system native output ------------------------------------------- */}
       <section>
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-accent">Systems</h3>
+        <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">Systems</h3>
+        <p className="mb-4 text-sm text-muted">
+          Each tradition read on its own, drawn in its traditional form, with what it found in your chart.
+        </p>
         <div className="grid gap-4 md:grid-cols-2">
           {computations.map((c) => (
             <div key={c.meta.id} className="rounded-xl border border-border bg-surface/40 p-5">
-              <div className="mb-2 flex items-baseline justify-between gap-2">
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
                 {chartId ? (
                   <Link
                     href={`/account/chart/${chartId}/system/${c.meta.id}`}
-                    className="font-semibold transition hover:text-accent"
+                    className="text-lg font-semibold transition hover:text-accent"
                   >
                     {c.meta.displayName}
                   </Link>
                 ) : (
-                  <h4 className="font-semibold">{c.meta.displayName}</h4>
+                  <h4 className="text-lg font-semibold">{c.meta.displayName}</h4>
                 )}
-                <span className="text-[10px] uppercase tracking-wide text-muted">{c.meta.derivedFrom}</span>
+                <span className="shrink-0 text-xs uppercase tracking-wide text-muted">{c.meta.derivedFrom}</span>
               </div>
+              {SYSTEM_BLURBS[c.meta.id] && (
+                <p className="mb-3 text-sm leading-relaxed text-muted">{SYSTEM_BLURBS[c.meta.id]}</p>
+              )}
               <SystemDiagram computation={c} />
               {chartId && (
                 <Link
                   href={`/account/chart/${chartId}/system/${c.meta.id}`}
-                  className="mb-2 inline-block text-xs text-accent transition hover:underline"
+                  className="mb-3 inline-block text-sm font-medium text-accent transition hover:underline"
                 >
                   View details and connections →
                 </Link>
               )}
               {Object.values(c.native.factors).length ? (
-                <ul className="space-y-1.5">
+                <ul className="space-y-2 border-t border-border/60 pt-3">
                   {Object.values(c.native.factors).map((f) => (
                     <li key={f.key} className="flex justify-between gap-3 text-sm">
                       <span className="text-muted">{f.label}</span>
-                      <span className="text-right">{f.display ?? String(f.value)}</span>
+                      <span className="text-right font-medium">{f.display ?? String(f.value)}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs italic text-muted">Registered · no output yet (scaffold).</p>
+                <p className="text-sm italic text-muted">Registered · no output yet (scaffold).</p>
               )}
               <Meanings computation={c} />
               {c.meta.lineage !== "traditional" && (
-                <p className="mt-3 text-[10px] uppercase tracking-wide text-accent-2">{c.meta.lineage}</p>
+                <p className="mt-3 text-xs uppercase tracking-wide text-accent-2">{c.meta.lineage}</p>
               )}
             </div>
           ))}
         </div>
 
         {unavailable.length > 0 && (
-          <div className="mt-4 text-xs text-muted">
+          <div className="mt-4 text-sm text-muted">
             <span className="font-medium">Unavailable at this precision: </span>
             {unavailable.map((u) => `${u.meta.displayName} (${u.reason})`).join(" · ")}
           </div>
@@ -233,7 +237,7 @@ function Pole({ value, sources }: { value: string; sources: string[] }) {
   return (
     <div className="flex-1">
       <div className="font-medium">{humanizeValue(value)}</div>
-      <div className="text-[11px] text-muted">{[...new Set(sources)].join(", ")}</div>
+      <div className="text-xs text-muted">{[...new Set(sources)].join(", ")}</div>
     </div>
   );
 }
@@ -243,10 +247,10 @@ function Meanings({ computation }: { computation: ComputedSystem }) {
   if (lines.length === 0) return null;
   return (
     <details className="mt-3">
-      <summary className="cursor-pointer text-xs text-muted hover:text-foreground">Meanings</summary>
-      <ul className="mt-2 space-y-1.5">
+      <summary className="cursor-pointer text-sm text-muted hover:text-foreground">Meanings</summary>
+      <ul className="mt-2 space-y-2">
         {lines.map((l, i) => (
-          <li key={i} className="text-xs">
+          <li key={i} className="text-sm">
             <span className="font-medium text-foreground/90">{l.label}</span>
             <span className="text-muted">: {l.text}</span>
           </li>

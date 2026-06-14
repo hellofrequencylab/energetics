@@ -7,6 +7,10 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- The Convergence Chart: an interactive flagship visual in the reader. Systems
+  ring the edge colored by their independence group, convergences pull toward the
+  center in proportion to how many groups agree, tensions arc between poles, and
+  every point opens a details popover (`src/components/ConvergenceChart.tsx`).
 - A standardized site header (wordmark, navigation, auth-aware action) and a
   comprehensive footer (`src/components/site/`), applied across every page through
   a shared `SiteShell`.
@@ -53,6 +57,8 @@ also appear in the in-app Help Center ("what's new"), sourced from
 - `/auth/callback` route to complete PKCE magic-link sign in.
 
 ### Fixed
+- The reader's prose now renders `**bold**` and `*italic*` as emphasis instead of
+  showing the literal asterisks.
 - Chart compute on Vercel returned an HTML error instead of JSON. The native
   `sweph` binary is now force-included in serverless functions via
   `outputFileTracingIncludes`. See `docs/adr/0004-bundle-sweph-prebuilds.md`.
@@ -61,6 +67,10 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- Reader overhaul: larger, more readable type throughout; the chart wheel moved
+  into the Western (Tropical) system card; each system block now carries a plain
+  explanation; and a written reading is saved to the chart and shown at once, with
+  a Refresh control, instead of being rewritten on every visit.
 - Warmer, more readable styling: warmer dark background and surfaces, higher-
   contrast body and secondary text, a comfortable base type scale, and balanced
   headings. A single app background now sits under every page.
