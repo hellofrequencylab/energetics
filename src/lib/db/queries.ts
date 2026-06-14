@@ -107,3 +107,60 @@ export async function recentBirthEvents(supabase: DbClient, limit = 20) {
   if (error) throw error;
   return data;
 }
+
+export type AccountType = "personal" | "practitioner";
+
+export interface Profile {
+  account_type: AccountType;
+  display_name: string | null;
+}
+
+/** The signed-in user's profile, or null if they have not chosen one yet. */
+export async function getProfile(supabase: DbClient, userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("account_type, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Profile | null) ?? null;
+}
+
+/** Create or update the user's profile (account type is switchable). */
+export async function upsertProfile(
+  supabase: DbClient,
+  userId: string,
+  input: { accountType: AccountType; displayName?: string | null },
+): Promise<void> {
+  const { error } = await supabase.from("profiles").upsert(
+    {
+      user_id: userId,
+      account_type: input.accountType,
+      display_name: input.displayName ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (error) throw error;
+}
+
+/** A single saved chart with everything needed to recompute it. RLS-scoped. */
+export async function getBirthEvent(supabase: DbClient, id: string) {
+  const { data, error } = await supabase
+    .from("birth_events")
+    .select("id, name, date, time, lat, lng, tz, precision, notes")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data as {
+    id: string;
+    name: string | null;
+    date: string;
+    time: string | null;
+    lat: number | null;
+    lng: number | null;
+    tz: string | null;
+    precision: string;
+    notes: string | null;
+  } | null;
+}

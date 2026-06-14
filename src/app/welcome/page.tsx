@@ -70,6 +70,7 @@ export default function WelcomePage() {
             <a href="#how" className="hover:text-star">How it works</a>
             <a href="#systems" className="hover:text-star">The systems</a>
             <Link href="/help" className="hover:text-star">Help</Link>
+            <Link href="/account" className="hover:text-star">Account</Link>
           </div>
           <CenterCTA className="rounded-[10px] bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110">
             {CTA_LABEL}
