@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Deep cosmic palette */
+  /* Tool palette (the working app at /). Kept stable. */
   --background: #0b0b14;
   --surface: #14141f;
   --surface-2: #1c1c2b;
@@ -10,6 +10,29 @@
   --muted: #9a9ab0;
   --accent: #c9a96a; /* warm gold */
   --accent-2: #7c6cff; /* violet */
+
+  /* OneSky design tokens (docs/DESIGN.md, section 4): editorial twilight. */
+  --midnight: #121535; /* primary dark atmosphere */
+  --dusk: #2a2c5a; /* lifted surface on dark */
+  --ink: #1c1830; /* text on light surfaces */
+  --star: #ede9f2; /* text and fine lines on dark */
+  --horizon-amber: #e7b17e; /* warm horizon glow, primary accent */
+  --horizon-rose: #e29a86; /* secondary warm accent */
+  --bone: #f4efe6; /* secondary reading surface, long-form only */
+
+  /* Convergence threads (muted) and the bright shared node. */
+  --thread-gold: #c8a86a;
+  --thread-teal: #6e9c97;
+  --thread-violet: #8a7db0;
+  --thread-rose: #c58b83;
+  --node-glow: #f3d9a8;
+
+  /* Shape and motion. */
+  --radius: 14px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-slow: 700ms;
+  --dur-base: 320ms;
+  --dur-quick: 160ms;
 }
 
 @theme inline {
@@ -21,7 +44,23 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
-  --font-sans: var(--font-geist-sans);
+
+  /* OneSky brand colors as Tailwind utilities (bg-midnight, text-star, etc.). */
+  --color-midnight: var(--midnight);
+  --color-dusk: var(--dusk);
+  --color-ink: var(--ink);
+  --color-star: var(--star);
+  --color-horizon-amber: var(--horizon-amber);
+  --color-horizon-rose: var(--horizon-rose);
+  --color-bone: var(--bone);
+  --color-thread-gold: var(--thread-gold);
+  --color-thread-teal: var(--thread-teal);
+  --color-thread-violet: var(--thread-violet);
+  --color-thread-rose: var(--thread-rose);
+  --color-node-glow: var(--node-glow);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-hanken);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -31,5 +70,61 @@ body {
     radial-gradient(900px 500px at -10% 10%, rgba(201, 169, 106, 0.08), transparent),
     var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-hanken), system-ui, sans-serif;
+}
+
+/* Accessibility floor: a visible focus ring on every interactive element. */
+:focus-visible {
+  outline: 2px solid var(--horizon-amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The convergence reveal: threads draw inward, then the shared nodes light up. */
+@keyframes cg-thread-draw {
+  from {
+    stroke-dashoffset: 400;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+}
+
+@keyframes cg-node-light {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cg-thread {
+  stroke-dasharray: 400;
+  opacity: 0.75;
+  animation: cg-thread-draw var(--dur-slow) var(--ease) both;
+  animation-delay: var(--cg-delay, 0ms);
+}
+
+.cg-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cg-node-light var(--dur-base) var(--ease) both;
+  animation-delay: var(--cg-node-delay, 650ms);
+}
+
+/* Reduced motion: render the settled state at once. No drawing, no looping. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
