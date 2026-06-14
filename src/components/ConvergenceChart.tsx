@@ -1,20 +1,24 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComputedSystem, Convergence, Synthesis, Tension } from "@/lib/synthesis/types";
 import { shortName } from "@/lib/system-labels";
 import { energyCheatSheet } from "@/lib/cheatsheet";
 import { convergenceMeaning } from "@/lib/convergence-meaning";
+import { downloadSvgAsPng } from "@/lib/svg-export";
+import { StrengthsBar } from "./chart/StrengthsBar";
+import { ArcView } from "./chart/ArcView";
+import { ChartDataTable } from "./chart/ChartDataTable";
 
 /**
- * The Convergence Chart: the flagship, interactive visual of the reading.
+ * The Convergence Explorer: the flagship, interactive visual of the reading.
  *
- * Systems sit on the outer ring, colored by their independence group. EVERY
- * theme the chart found is a node, pulled toward the center by how many groups
- * agree and spread by a light layout pass so they are all visible; you can drag
- * any one. Tension lines connect the two themes that pull apart and follow them
- * as you drag (toggle them on or off). Hover a point for a tooltip; click a theme
- * or tension for details, including how it tends to show up in life.
+ * It is a small dashboard. Switch views (map, ranked bars, arcs, table), choose a
+ * lens (everything, your strengths, your tensions), filter by what each system
+ * reads from, and drag the map's theme points (the layout is remembered per
+ * chart). Hover a point for a tooltip; click a point in any view to open the
+ * Quick info panel, which explains the strength and the growth edge, and can write
+ * a deeper reading on demand. Empowerment-framed, themeable, keyboard accessible.
  */
 
 const VW = 640;
@@ -22,16 +26,9 @@ const VH = 640;
 const C = { x: 320, y: 320 };
 const R_SYS = 250;
 
-const GROUP_COLOR: Record<string, string> = {
-  ephemeris: "#6aa0cf",
-  date: "#d4b072",
-  name: "#8b7dff",
-};
-const GROUP_LABEL: Record<string, string> = {
-  ephemeris: "the sky",
-  date: "the calendar",
-  name: "your name",
-};
+const GROUP_COLOR: Record<string, string> = { ephemeris: "#6aa0cf", date: "#d4b072", name: "#8b7dff" };
+const GROUP_LABEL: Record<string, string> = { ephemeris: "the sky", date: "the calendar", name: "your name" };
+const GROUP_SHORT: Record<string, string> = { ephemeris: "Sky", date: "Calendar", name: "Name" };
 const GOLD = "#d4b072";
 const VIOLET = "#8b7dff";
 const SELF = "#f3d9a8";
@@ -67,6 +64,8 @@ interface TensionLink {
   a: Anchor;
   b: Anchor;
 }
+type View = "map" | "bars" | "arc" | "table";
+type Lens = "all" | "strengths" | "tensions";
 type Selection =
   | { kind: "self" }
   | { kind: "system"; i: number }
@@ -83,13 +82,35 @@ export function ConvergenceChart({
   computations: ComputedSystem[];
   selfName: string;
 }) {
+  const [view, setView] = useState<View>("map");
+  const [lens, setLens] = useState<Lens>("all");
   const [sel, setSel] = useState<Selection | null>(null);
   const [hover, setHover] = useState<Hover>(null);
   const [drag, setDrag] = useState<Record<number, XY>>({});
   const [dragging, setDragging] = useState(false);
-  const [showTensions, setShowTensions] = useState(true);
   const svgRef = useRef<SVGSVGElement>(null);
   const dragState = useRef<{ i: number; moved: boolean; sx: number; sy: number } | null>(null);
+
+  // Which source groups are shown (filter). Default: all present.
+  const groups = useMemo(() => [...new Set(computations.map((c) => c.meta.derivedFrom))], [computations]);
+  const [sources, setSources] = useState<Set<string>>(() => new Set(groups));
+  // Reset the source filter when the chart's set of systems changes.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSources(new Set(groups));
+  }, [groups]);
+
+  const storageKey = `onesky:layout:${synthesis.birthEventId}`;
+  // Load a remembered layout once on mount (after render, to avoid hydration drift).
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (raw) setDrag(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, [storageKey]);
 
   const sysNodes: SystemNode[] = useMemo(() => {
     const n = Math.max(computations.length, 1);
@@ -106,8 +127,8 @@ export function ConvergenceChart({
     });
   }, [computations]);
   const posOf = useMemo(() => new Map(sysNodes.map((s) => [s.id, s])), [sysNodes]);
+  const groupOf = (id: string) => posOf.get(id)?.derivedFrom ?? "";
 
-  // Every theme is a node now, spread so they are all visible.
   const convNodes: ConvNode[] = useMemo(() => {
     const base = synthesis.convergences
       .map((cv, i) => {
@@ -136,12 +157,15 @@ export function ConvergenceChart({
     for (const n of convNodes) m.set(`${n.cv.axis}::${n.cv.value}`, n);
     return m;
   }, [convNodes]);
+  const tensionPoleKeys = useMemo(() => {
+    const s = new Set<string>();
+    for (const t of synthesis.tensions) for (const side of t.sides) s.add(`${t.axis}::${side.value}`);
+    return s;
+  }, [synthesis.tensions]);
 
   const convPos = (n: ConvNode): XY => drag[n.i] ?? { x: n.bx, y: n.by };
   const anchorPos = (a: Anchor): XY => ("node" in a ? convPos(a.node) : a.xy);
 
-  // Tensions tie to the theme nodes for each pole, falling back to the centroid
-  // of the supporting systems if a pole has no node.
   const tensionLinks: TensionLink[] = useMemo(() => {
     const centroid = (ids: string[]): XY => {
       const pts = ids.map((id) => posOf.get(id)).filter((p): p is SystemNode => !!p);
@@ -158,6 +182,13 @@ export function ConvergenceChart({
     };
     return synthesis.tensions.map((t, i) => ({ t, i, a: anchorFor(t.axis, t.sides[0]), b: anchorFor(t.axis, t.sides[1]) }));
   }, [synthesis.tensions, nodeByKey, posOf]);
+
+  const showTensions = lens !== "strengths";
+
+  // --- filters / lens dimming ---------------------------------------------
+  const systemShown = (id: string) => sources.has(groupOf(id));
+  const themeShown = (n: ConvNode) => n.systemIds.some(systemShown);
+  const themeDim = (n: ConvNode) => !themeShown(n) || (lens === "tensions" && !tensionPoleKeys.has(`${n.cv.axis}::${n.cv.value}`));
 
   // --- drag plumbing -------------------------------------------------------
   function toSvg(e: React.PointerEvent): XY {
@@ -184,8 +215,25 @@ export function ConvergenceChart({
     if (!d) return;
     svgRef.current?.releasePointerCapture?.(e.pointerId);
     if (!d.moved) setSel({ kind: "convergence", i: d.i });
+    else
+      setDrag((cur) => {
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(cur));
+        } catch {
+          /* ignore */
+        }
+        return cur;
+      });
     dragState.current = null;
     setDragging(false);
+  }
+  function resetLayout() {
+    setDrag({});
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      /* ignore */
+    }
   }
 
   const keyActivate = (fn: () => void) => (e: React.KeyboardEvent) => {
@@ -197,211 +245,335 @@ export function ConvergenceChart({
   const litConv = (n: ConvNode) => hover?.label === humanize(n.cv.value) || isSel(sel, "convergence", n.i);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-      <div>
-        <div className="mb-2 flex items-center justify-end">
-          <button
-            type="button"
-            onClick={() => setShowTensions((v) => !v)}
-            aria-pressed={showTensions}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-              showTensions
-                ? "border-accent-2/50 bg-accent-2/10 text-accent-2"
-                : "border-border text-muted hover:text-foreground"
-            }`}
-          >
-            Tensions: {showTensions ? "on" : "off"}
-          </button>
-        </div>
-
-        <div className="relative">
-          <svg
-            ref={svgRef}
-            viewBox={`0 0 ${VW} ${VH}`}
-            className="w-full touch-none select-none"
-            role="img"
-            aria-label="Convergence chart: systems, the themes they agree on, and where they pull apart"
-            onPointerMove={onSvgPointerMove}
-            onPointerUp={onSvgPointerUp}
-          >
-            <circle cx={C.x} cy={C.y} r={R_SYS} fill="none" stroke={THREAD} strokeOpacity={0.3} />
-            <circle cx={C.x} cy={C.y} r={R_SYS * 0.62} fill="none" stroke={THREAD} strokeOpacity={0.16} />
-
-            {/* threads */}
-            {convNodes.map((n) => {
-              const p = convPos(n);
-              const lit = litConv(n);
-              return n.systemIds.map((sid) => {
-                const sp = posOf.get(sid)!;
-                const active = lit || hover?.label === sp.short;
-                return (
-                  <line
-                    key={`t${n.i}-${sid}`}
-                    x1={p.x}
-                    y1={p.y}
-                    x2={sp.x}
-                    y2={sp.y}
-                    stroke={GOLD}
-                    strokeWidth={active ? 2.4 : n.strong ? 1.2 : 0.7}
-                    strokeOpacity={active ? 0.9 : n.strong ? 0.4 : 0.2}
-                  />
-                );
-              });
-            })}
-
-            {/* tensions, tied to the theme nodes */}
-            {showTensions &&
-              tensionLinks.map((n) => {
-                const a = anchorPos(n.a);
-                const b = anchorPos(n.b);
-                const active = isSel(sel, "tension", n.i) || hover?.label === "Tension";
-                return (
-                  <g key={`x${n.i}`}>
-                    <line
-                      x1={a.x}
-                      y1={a.y}
-                      x2={b.x}
-                      y2={b.y}
-                      stroke={VIOLET}
-                      strokeWidth={active ? 2.6 : 1.4}
-                      strokeOpacity={active ? 0.95 : 0.45}
-                      strokeDasharray="5 5"
-                    />
-                    <g
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Tension: ${humanize(n.t.sides[0].value)} versus ${humanize(n.t.sides[1].value)}`}
-                      className="cursor-pointer focus:outline-none"
-                      onClick={() => setSel({ kind: "tension", i: n.i })}
-                      onKeyDown={keyActivate(() => setSel({ kind: "tension", i: n.i }))}
-                      onPointerEnter={() =>
-                        !dragging &&
-                        setHover({ label: "Tension", sub: `${humanize(n.t.sides[0].value)} ⟷ ${humanize(n.t.sides[1].value)}`, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
-                      }
-                      onPointerLeave={() => setHover(null)}
-                    >
-                      <circle cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={9} fill={VIOLET} fillOpacity={active ? 0.9 : 0.6} />
-                      <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 + 4} textAnchor="middle" fontSize={12} fill={INK} fontWeight={700} style={{ pointerEvents: "none" }}>
-                        ⟷
-                      </text>
-                    </g>
-                  </g>
-                );
-              })}
-
-            {/* system dots */}
-            {sysNodes.map((s, i) => {
-              const color = GROUP_COLOR[s.derivedFrom] ?? "#8a89a0";
-              const right = s.x >= C.x;
+    <div>
+      {/* Controls */}
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3">
+        <Segmented
+          label="View"
+          value={view}
+          onChange={(v) => setView(v as View)}
+          options={[
+            ["map", "Map"],
+            ["bars", "Bars"],
+            ["arc", "Arcs"],
+            ["table", "Table"],
+          ]}
+        />
+        <Segmented
+          label="Lens"
+          value={lens}
+          onChange={(v) => setLens(v as Lens)}
+          options={[
+            ["all", "Everything"],
+            ["strengths", "Strengths"],
+            ["tensions", "Tensions"],
+          ]}
+        />
+        {view === "map" && groups.length > 1 && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs uppercase tracking-wide text-muted">Sources</span>
+            {groups.map((g) => {
+              const on = sources.has(g);
               return (
-                <g
-                  key={s.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${s.name}, reads from ${GROUP_LABEL[s.derivedFrom] ?? s.derivedFrom}`}
-                  className="cursor-pointer focus:outline-none"
-                  onClick={() => setSel({ kind: "system", i })}
-                  onKeyDown={keyActivate(() => setSel({ kind: "system", i }))}
-                  onPointerEnter={() => !dragging && setHover({ label: s.short, sub: `reads ${GROUP_LABEL[s.derivedFrom] ?? s.derivedFrom}`, x: s.x, y: s.y })}
-                  onPointerLeave={() => setHover(null)}
+                <button
+                  key={g}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() =>
+                    setSources((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(g) && next.size > 1) next.delete(g);
+                      else next.add(g);
+                      return next;
+                    })
+                  }
+                  className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                    on ? "border-transparent text-ink" : "border-border text-muted"
+                  }`}
+                  style={on ? { background: GROUP_COLOR[g] ?? "#8a89a0" } : undefined}
                 >
-                  <circle cx={s.x} cy={s.y} r={isSel(sel, "system", i) ? 11 : 9} fill={color} fillOpacity={0.95} stroke={INK} strokeWidth={1.5} />
-                  <text
-                    x={s.x + (right ? 14 : -14)}
-                    y={s.y + 4}
-                    textAnchor={right ? "start" : "end"}
-                    fontSize={13}
-                    fill="#cfc9d6"
-                    style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3 }}
+                  {GROUP_SHORT[g] ?? g}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {view === "map" && (
+          <div className="ml-auto flex items-center gap-3">
+            <button type="button" onClick={resetLayout} className="text-xs text-muted transition hover:text-foreground">
+              Reset layout
+            </button>
+            <button
+              type="button"
+              onClick={() => svgRef.current && downloadSvgAsPng(svgRef.current, `${selfName || "chart"}-convergence.png`)}
+              className="rounded-full border border-border px-2.5 py-1 text-xs text-muted transition hover:text-foreground"
+            >
+              Save image
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
+        <div>
+          {view === "map" && (
+            <>
+              <div className="relative">
+                <svg
+                  ref={svgRef}
+                  viewBox={`0 0 ${VW} ${VH}`}
+                  className="w-full touch-none select-none"
+                  role="img"
+                  aria-label="Convergence map: systems, the themes they agree on, and where they pull apart"
+                  onPointerMove={onSvgPointerMove}
+                  onPointerUp={onSvgPointerUp}
+                >
+                  <rect x={0} y={0} width={VW} height={VH} fill="transparent" />
+                  <circle cx={C.x} cy={C.y} r={R_SYS} fill="none" stroke={THREAD} strokeOpacity={0.3} />
+                  <circle cx={C.x} cy={C.y} r={R_SYS * 0.62} fill="none" stroke={THREAD} strokeOpacity={0.16} />
+
+                  {/* threads */}
+                  {convNodes.map((n) => {
+                    const p = convPos(n);
+                    const lit = litConv(n);
+                    const dim = themeDim(n);
+                    return n.systemIds.map((sid) => {
+                      const sp = posOf.get(sid)!;
+                      const active = lit || hover?.label === sp.short;
+                      const faded = dim || !systemShown(sid);
+                      return (
+                        <line
+                          key={`t${n.i}-${sid}`}
+                          x1={p.x}
+                          y1={p.y}
+                          x2={sp.x}
+                          y2={sp.y}
+                          stroke={GOLD}
+                          strokeWidth={active ? 2.4 : n.strong ? 1.2 : 0.7}
+                          strokeOpacity={faded ? 0.07 : active ? 0.9 : n.strong ? 0.4 : 0.2}
+                        />
+                      );
+                    });
+                  })}
+
+                  {/* tensions */}
+                  {showTensions &&
+                    tensionLinks.map((n) => {
+                      const a = anchorPos(n.a);
+                      const b = anchorPos(n.b);
+                      const active = isSel(sel, "tension", n.i) || hover?.label === "Tension";
+                      const featured = lens === "tensions";
+                      return (
+                        <g key={`x${n.i}`}>
+                          <line
+                            x1={a.x}
+                            y1={a.y}
+                            x2={b.x}
+                            y2={b.y}
+                            stroke={VIOLET}
+                            strokeWidth={active || featured ? 2.6 : 1.4}
+                            strokeOpacity={active ? 0.95 : 0.5}
+                            strokeDasharray="5 5"
+                          />
+                          <g
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Tension: ${humanize(n.t.sides[0].value)} versus ${humanize(n.t.sides[1].value)}`}
+                            className="cursor-pointer focus:outline-none"
+                            onClick={() => setSel({ kind: "tension", i: n.i })}
+                            onKeyDown={keyActivate(() => setSel({ kind: "tension", i: n.i }))}
+                            onPointerEnter={() =>
+                              !dragging &&
+                              setHover({ label: "Tension", sub: `${humanize(n.t.sides[0].value)} ⟷ ${humanize(n.t.sides[1].value)}`, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
+                            }
+                            onPointerLeave={() => setHover(null)}
+                          >
+                            <circle cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} r={9} fill={VIOLET} fillOpacity={active ? 0.9 : 0.6} />
+                            <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 + 4} textAnchor="middle" fontSize={12} fill={INK} fontWeight={700} style={{ pointerEvents: "none" }}>
+                              ⟷
+                            </text>
+                          </g>
+                        </g>
+                      );
+                    })}
+
+                  {/* system dots */}
+                  {sysNodes.map((s, i) => {
+                    const color = GROUP_COLOR[s.derivedFrom] ?? "#8a89a0";
+                    const right = s.x >= C.x;
+                    const faded = !systemShown(s.id);
+                    return (
+                      <g
+                        key={s.id}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${s.name}, reads from ${GROUP_LABEL[s.derivedFrom] ?? s.derivedFrom}`}
+                        className="cursor-pointer focus:outline-none"
+                        opacity={faded ? 0.25 : 1}
+                        onClick={() => setSel({ kind: "system", i })}
+                        onKeyDown={keyActivate(() => setSel({ kind: "system", i }))}
+                        onPointerEnter={() => !dragging && setHover({ label: s.short, sub: `reads ${GROUP_LABEL[s.derivedFrom] ?? s.derivedFrom}`, x: s.x, y: s.y })}
+                        onPointerLeave={() => setHover(null)}
+                      >
+                        <circle cx={s.x} cy={s.y} r={isSel(sel, "system", i) ? 11 : 9} fill={color} fillOpacity={0.95} stroke={INK} strokeWidth={1.5} />
+                        <text
+                          x={s.x + (right ? 14 : -14)}
+                          y={s.y + 4}
+                          textAnchor={right ? "start" : "end"}
+                          fontSize={13}
+                          fill="#cfc9d6"
+                          style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3 }}
+                        >
+                          {s.short}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* theme dots (draggable) */}
+                  {convNodes.map((n) => {
+                    const p = convPos(n);
+                    const r = n.strong ? 7 + Math.min(n.cv.independentGroups, 4) * 2 : 4.5;
+                    const dx = p.x - C.x;
+                    const dy = p.y - C.y;
+                    const len = Math.hypot(dx, dy) || 1;
+                    const lit = litConv(n);
+                    const dim = themeDim(n) && !lit;
+                    const showLabel = (n.strong || lit) && !dim;
+                    return (
+                      <g
+                        key={`c${n.i}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${humanize(n.cv.value)}, ${n.cv.independentGroups} source${n.cv.independentGroups === 1 ? "" : "s"}. Drag to move, click for details.`}
+                        className="cursor-grab focus:outline-none active:cursor-grabbing"
+                        opacity={dim ? 0.18 : 1}
+                        onPointerDown={(e) => onNodePointerDown(e, n)}
+                        onKeyDown={keyActivate(() => setSel({ kind: "convergence", i: n.i }))}
+                        onPointerEnter={() => !dragging && setHover({ label: humanize(n.cv.value), sub: `${n.cv.independentGroups} source${n.cv.independentGroups === 1 ? "" : "s"}`, x: p.x, y: p.y })}
+                        onPointerLeave={() => setHover(null)}
+                      >
+                        <circle cx={p.x} cy={p.y} r={r + (lit ? 7 : 5)} fill={GOLD} fillOpacity={lit ? 0.2 : n.strong ? 0.12 : 0.06} />
+                        <circle cx={p.x} cy={p.y} r={r} fill={GOLD} fillOpacity={n.strong ? 0.95 : 0.6} stroke={lit ? "#f3eee7" : "transparent"} strokeWidth={1.5} />
+                        {showLabel && (
+                          <text
+                            x={p.x + (dx / len) * (r + 7)}
+                            y={p.y + (dy / len) * (r + 7) + 4}
+                            textAnchor={dx >= 0 ? "start" : "end"}
+                            fontSize={13}
+                            fontWeight={600}
+                            fill="#f3eee7"
+                            style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3.5, pointerEvents: "none" }}
+                          >
+                            {humanize(n.cv.value)}
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
+
+                  {/* self */}
+                  <g
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${selfName}, the center`}
+                    className="cursor-pointer focus:outline-none"
+                    onClick={() => setSel({ kind: "self" })}
+                    onKeyDown={keyActivate(() => setSel({ kind: "self" }))}
                   >
-                    {s.short}
-                  </text>
-                </g>
-              );
-            })}
-
-            {/* theme dots (draggable) */}
-            {convNodes.map((n) => {
-              const p = convPos(n);
-              const r = n.strong ? 7 + Math.min(n.cv.independentGroups, 4) * 2 : 4.5;
-              const dx = p.x - C.x;
-              const dy = p.y - C.y;
-              const len = Math.hypot(dx, dy) || 1;
-              const lit = litConv(n);
-              const showLabel = n.strong || lit;
-              return (
-                <g
-                  key={`c${n.i}`}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${humanize(n.cv.value)}, ${n.cv.independentGroups} source${n.cv.independentGroups === 1 ? "" : "s"}. Drag to move, click for details.`}
-                  className="cursor-grab focus:outline-none active:cursor-grabbing"
-                  onPointerDown={(e) => onNodePointerDown(e, n)}
-                  onKeyDown={keyActivate(() => setSel({ kind: "convergence", i: n.i }))}
-                  onPointerEnter={() => !dragging && setHover({ label: humanize(n.cv.value), sub: `${n.cv.independentGroups} source${n.cv.independentGroups === 1 ? "" : "s"}`, x: p.x, y: p.y })}
-                  onPointerLeave={() => setHover(null)}
-                >
-                  <circle cx={p.x} cy={p.y} r={r + (lit ? 7 : 5)} fill={GOLD} fillOpacity={lit ? 0.2 : n.strong ? 0.12 : 0.06} />
-                  <circle cx={p.x} cy={p.y} r={r} fill={GOLD} fillOpacity={n.strong ? 0.95 : 0.6} stroke={lit ? "#f3eee7" : "transparent"} strokeWidth={1.5} />
-                  {showLabel && (
-                    <text
-                      x={p.x + (dx / len) * (r + 7)}
-                      y={p.y + (dy / len) * (r + 7) + 4}
-                      textAnchor={dx >= 0 ? "start" : "end"}
-                      fontSize={13}
-                      fontWeight={600}
-                      fill="#f3eee7"
-                      style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3.5, pointerEvents: "none" }}
-                    >
-                      {humanize(n.cv.value)}
+                    <circle cx={C.x} cy={C.y} r={22} fill={SELF} fillOpacity={0.16} />
+                    <circle cx={C.x} cy={C.y} r={11} fill={SELF} />
+                    <text x={C.x} y={C.y + 38} textAnchor="middle" fontSize={13} fontWeight={600} fill="#f3eee7" style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3 }}>
+                      {selfName}
                     </text>
-                  )}
-                </g>
-              );
-            })}
+                  </g>
+                </svg>
 
-            {/* self */}
-            <g
-              role="button"
-              tabIndex={0}
-              aria-label={`${selfName}, the center`}
-              className="cursor-pointer focus:outline-none"
-              onClick={() => setSel({ kind: "self" })}
-              onKeyDown={keyActivate(() => setSel({ kind: "self" }))}
-            >
-              <circle cx={C.x} cy={C.y} r={22} fill={SELF} fillOpacity={0.16} />
-              <circle cx={C.x} cy={C.y} r={11} fill={SELF} />
-              <text x={C.x} y={C.y + 38} textAnchor="middle" fontSize={13} fontWeight={600} fill="#f3eee7" style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3 }}>
-                {selfName}
-              </text>
-            </g>
-          </svg>
+                {hover && !dragging && (
+                  <div
+                    className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg border border-border bg-surface/95 px-2.5 py-1.5 text-center text-xs shadow-lg backdrop-blur"
+                    style={{ left: `${(hover.x / VW) * 100}%`, top: `${(hover.y / VH) * 100}%`, marginTop: -8 }}
+                  >
+                    <div className="font-semibold text-foreground">{hover.label}</div>
+                    <div className="text-muted">{hover.sub}</div>
+                  </div>
+                )}
+              </div>
+              <Legend />
+            </>
+          )}
 
-          {hover && !dragging && (
-            <div
-              className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg border border-border bg-surface/95 px-2.5 py-1.5 text-center text-xs shadow-lg backdrop-blur"
-              style={{ left: `${(hover.x / VW) * 100}%`, top: `${(hover.y / VH) * 100}%`, marginTop: -8 }}
-            >
-              <div className="font-semibold text-foreground">{hover.label}</div>
-              <div className="text-muted">{hover.sub}</div>
-            </div>
+          {view === "bars" && (
+            <StrengthsBar
+              synthesis={synthesis}
+              computations={computations}
+              onSelectConvergence={(i) => setSel({ kind: "convergence", i })}
+              onSelectTension={(i) => setSel({ kind: "tension", i })}
+            />
+          )}
+          {view === "arc" && (
+            <ArcView
+              synthesis={synthesis}
+              computations={computations}
+              onSelectConvergence={(i) => setSel({ kind: "convergence", i })}
+              onSelectTension={(i) => setSel({ kind: "tension", i })}
+            />
+          )}
+          {view === "table" && (
+            <ChartDataTable
+              synthesis={synthesis}
+              computations={computations}
+              onSelectConvergence={(i) => setSel({ kind: "convergence", i })}
+              onSelectTension={(i) => setSel({ kind: "tension", i })}
+            />
           )}
         </div>
 
-        <Legend />
+        <QuickInfo
+          sel={sel}
+          synthesis={synthesis}
+          sysNodes={sysNodes}
+          convNodes={convNodes}
+          tensionLinks={tensionLinks}
+          computations={computations}
+          selfName={selfName}
+          onPick={setSel}
+          onClose={() => setSel(null)}
+        />
       </div>
+    </div>
+  );
+}
 
-      <QuickInfo
-        sel={sel}
-        synthesis={synthesis}
-        sysNodes={sysNodes}
-        convNodes={convNodes}
-        tensionLinks={tensionLinks}
-        computations={computations}
-        selfName={selfName}
-        onPick={setSel}
-        onClose={() => setSel(null)}
-      />
+function Segmented({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: [string, string][];
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-xs uppercase tracking-wide text-muted">{label}</span>
+      <div className="inline-flex rounded-full border border-border p-0.5">
+        {options.map(([v, l]) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={value === v}
+            onClick={() => onChange(v)}
+            className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+              value === v ? "bg-accent text-ink" : "text-muted hover:text-foreground"
+            }`}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -467,12 +639,68 @@ function Legend() {
   );
   return (
     <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs text-muted">
-      {item(GOLD, "Theme (bigger = more agreement)")}
+      {item(GOLD, "Strength (bigger = more agreement)")}
       {item(VIOLET, "Tension")}
       {item("#6aa0cf", "Sky")}
       {item("#d4b072", "Calendar")}
       {item("#8b7dff", "Name")}
       <span className="text-muted/70">Drag a theme to move it.</span>
+    </div>
+  );
+}
+
+function TellMore({ axis, value, systems, selfName }: { axis: string; value: string; systems: string[]; selfName: string }) {
+  const [state, setState] = useState<"idle" | "streaming" | "done" | "off">("idle");
+  const [text, setText] = useState("");
+  async function run() {
+    setState("streaming");
+    setText("");
+    try {
+      const res = await fetch("/api/themes/narrate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ axis, value, systems, selfName }),
+      });
+      if (res.headers.get("x-narrative-available") === "false") {
+        setText(await res.text());
+        setState("off");
+        return;
+      }
+      if (!res.body) {
+        setText(await res.text());
+        setState("done");
+        return;
+      }
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let acc = "";
+      for (;;) {
+        const { done, value: v } = await reader.read();
+        if (done) break;
+        acc += dec.decode(v, { stream: true });
+        setText(acc.replace(/\*\*/g, ""));
+      }
+      setState("done");
+    } catch {
+      setText("That reading could not be written right now.");
+      setState("done");
+    }
+  }
+  if (state === "idle")
+    return (
+      <button
+        onClick={run}
+        className="mt-3 rounded-lg border border-accent-2/40 px-3 py-1.5 text-xs font-medium text-accent-2 transition hover:bg-accent-2/10"
+      >
+        ✦ Tell me more
+      </button>
+    );
+  return (
+    <div className="mt-3 space-y-2 text-sm leading-relaxed text-foreground/85">
+      {text.split(/\n\n+/).map((p, i) => (
+        <p key={i}>{p}</p>
+      ))}
+      {state === "streaming" && <span className="inline-block h-3.5 w-2 animate-pulse bg-accent-2/70 align-middle" aria-hidden />}
     </div>
   );
 }
@@ -498,7 +726,7 @@ function QuickInfo({
   onPick: (s: Selection) => void;
   onClose: () => void;
 }) {
-  const wrap = "rounded-2xl border border-border bg-surface/40 p-4 sm:p-5 min-h-[300px]";
+  const wrap = "rounded-2xl border border-border bg-surface/40 p-4 sm:p-5 min-h-[320px]";
   const head = (
     <div className="mb-2 flex items-center justify-between gap-2">
       <h4 className="text-xs font-semibold uppercase tracking-wider text-accent">Quick info</h4>
@@ -509,21 +737,22 @@ function QuickInfo({
       )}
     </div>
   );
+  const sysName = (id: string) => sysNodes.find((s) => s.id === id)?.short ?? id;
 
   if (!sel) {
-    const top = convNodes.filter((n) => n.strong).slice(0, 5);
+    const strengths = convNodes.filter((n) => n.strong).slice(0, 6);
     return (
       <aside className={wrap}>
         {head}
         <p className="text-sm text-muted">
-          Hover any point for a quick label. Click a theme or a tension to read about it here,
-          including how it tends to show up in life. Drag a theme to move it.
+          This is a map of your strengths and your growth edges. Hover any point for a label, and
+          click a theme or tension to read what it means for you, including how it shows up in life.
         </p>
-        {top.length > 0 && (
+        {strengths.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Strongest threads</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Your strongest threads</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {top.map((n) => (
+              {strengths.map((n) => (
                 <button
                   key={n.i}
                   onClick={() => onPick({ kind: "convergence", i: n.i })}
@@ -567,13 +796,20 @@ function QuickInfo({
           </span>
         </div>
         <p className="mt-0.5 text-sm text-muted">{n.cv.axis}{meaning ? ` · ${meaning.essence}` : ""}</p>
-        {meaning && <p className="mt-3 text-sm leading-relaxed text-foreground/85">{meaning.life}</p>}
-        <p className="mt-3 text-sm text-muted">
-          {n.strong
-            ? `${n.cv.independentGroups} independent source groups land on this on their own, which makes it a reliable read on your energy.`
-            : "One source group points here, so read it as one lens rather than a verdict."}
-        </p>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">Found by</p>
+        {meaning && (
+          <div className="mt-3 space-y-2.5">
+            <p className="text-sm leading-relaxed text-foreground/85">{meaning.life}</p>
+            <p className="rounded-lg border border-accent/20 bg-accent/5 p-2.5 text-sm leading-relaxed">
+              <span className="font-semibold text-accent">Your strength. </span>
+              {meaning.strength}
+            </p>
+            <p className="rounded-lg border border-border p-2.5 text-sm leading-relaxed text-foreground/85">
+              <span className="font-semibold text-foreground">Growth edge. </span>
+              {meaning.growthEdge}
+            </p>
+          </div>
+        )}
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted">Found by</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {n.systemIds.map((id) => {
             const idx = sysNodes.findIndex((s) => s.id === id);
@@ -583,11 +819,12 @@ function QuickInfo({
                 onClick={() => onPick({ kind: "system", i: idx })}
                 className="rounded-full border border-border px-3 py-1 text-sm transition hover:border-accent/50 hover:text-foreground"
               >
-                {sysNodes[idx]?.short ?? id}
+                {sysName(id)}
               </button>
             );
           })}
         </div>
+        <TellMore key={`${n.cv.axis}:${n.cv.value}`} axis={n.cv.axis} value={n.cv.value} systems={n.systemIds.map(sysName)} selfName={selfName} />
       </aside>
     );
   }
@@ -625,7 +862,7 @@ function QuickInfo({
         )}
         <p className="mt-3 text-sm text-foreground/85">
           Both poles run strong in you. You hold them at once rather than settling at the midpoint.
-          This is where growth and friction live, and where timing matters most.
+          This is not a weakness, it is range, and it is where your timing matters most.
         </p>
       </aside>
     );
