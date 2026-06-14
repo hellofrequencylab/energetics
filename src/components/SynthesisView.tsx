@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ComputeResponse } from "@/lib/api-types";
-import { interpretationsFor } from "@/lib/corpus";
+import { energyCheatSheet } from "@/lib/cheatsheet";
 import { SYSTEM_BLURBS } from "@/lib/help/content";
 import type { TransitsResult } from "@/lib/transits";
 import type { ComputedSystem } from "@/lib/synthesis/types";
@@ -35,6 +35,17 @@ export function SynthesisView({
   const crossConfirmed = synthesis.convergences.filter((c) => c.independentGroups >= 2);
   const singleLens = synthesis.convergences.filter((c) => c.independentGroups < 2);
 
+  // A plain, deterministic takeaway for the chart: the most cross-confirmed
+  // themes and the most-supported tension. Read from the structure, not computed.
+  const topThemes = crossConfirmed.slice(0, 3).map((c) => humanizeValue(c.value));
+  const tensionReach = (t: (typeof synthesis.tensions)[number]) =>
+    new Set(t.sides.flatMap((s) => s.contributors.map((a) => a.systemId))).size;
+  const centralTension = [...synthesis.tensions].sort((a, b) => tensionReach(b) - tensionReach(a))[0];
+  const themeList =
+    topThemes.length <= 1
+      ? topThemes[0]
+      : `${topThemes.slice(0, -1).join(", ")} and ${topThemes[topThemes.length - 1]}`;
+
   return (
     <div className="space-y-12">
       <header className="border-b border-border pb-4">
@@ -50,9 +61,12 @@ export function SynthesisView({
       {/* Convergence chart: the flagship interactive visual ----------------- */}
       <section>
         <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">Convergence chart</h3>
-        <p className="mb-4 text-sm text-muted">
-          Your systems sit on the ring, colored by what they read from. Themes they agree on pull
-          toward the center; tensions arc between the poles. Tap any point for details.
+        <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted">
+          Your whole reading in one picture. Each tradition sits on the ring, colored by what it
+          reads from: the sky, the calendar, or your name. A theme moves toward the center when more
+          independent traditions arrive at it on their own, so the themes nearest the center are the
+          most reliable read on your energy. Gold lines connect a theme to the traditions that found
+          it. Dashed lines are tensions: two opposite pulls you hold at once. Tap any point for details.
         </p>
         <div className="mx-auto max-w-xl rounded-2xl border border-border bg-surface/30 p-4 sm:p-6">
           <ConvergenceChart
@@ -65,6 +79,26 @@ export function SynthesisView({
             selfName={name?.trim() || "You"}
           />
         </div>
+        <div className="mx-auto mt-4 max-w-xl rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm leading-relaxed text-foreground/90">
+          {topThemes.length > 0 ? (
+            <p>
+              <span className="font-medium text-accent">What this says about your energy: </span>
+              {themeList} {topThemes.length === 1 ? "is your most cross-confirmed theme" : "are your most cross-confirmed themes"},
+              where independent traditions agree on their own, so they describe your energy most reliably.
+              {centralTension &&
+                ` You also hold a central tension between ${humanizeValue(centralTension.sides[0].value)} and ${humanizeValue(
+                  centralTension.sides[1].value,
+                )}: two currents that both run strong, held together rather than averaged.`}
+            </p>
+          ) : (
+            <p>
+              <span className="font-medium text-accent">Reading your energy: </span>
+              No single theme is cross-confirmed across independent traditions at this precision. Add
+              your birth time and place to unlock more systems, and themes can start to agree and
+              surface here.
+            </p>
+          )}
+        </div>
       </section>
 
       {/* Deterministic synthesis map ----------------------------------------- */}
@@ -72,8 +106,10 @@ export function SynthesisView({
         <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">
           Convergences
         </h3>
-        <p className="mb-4 text-sm text-muted">
-          Ranked by how many <em>independent</em> source groups agree, not a blended score.
+        <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted">
+          The themes more than one independent tradition reached on its own. The more independent
+          sources agree, the more reliably a theme describes your energy. Ranked by agreement, never
+          blended into a single score.
         </p>
 
         {crossConfirmed.length > 0 ? (
@@ -119,7 +155,10 @@ export function SynthesisView({
       {synthesis.tensions.length > 0 && (
         <section>
           <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent-2">Tensions</h3>
-          <p className="mb-4 text-sm text-muted">Declared oppositions where both poles are present: held, not averaged.</p>
+          <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted">
+            Two opposite pulls that both show up strongly in your chart. Your energy holds both at
+            once, rather than settling at the midpoint. These are where growth and friction live.
+          </p>
           <ul className="space-y-2">
             {synthesis.tensions.map((t, i) => (
               <li key={i} className="rounded-lg border border-border bg-surface/40 p-4 text-sm">
@@ -195,7 +234,7 @@ export function SynthesisView({
               ) : (
                 <p className="text-sm italic text-muted">Registered · no output yet (scaffold).</p>
               )}
-              <Meanings computation={c} />
+              <CheatSheet computation={c} />
               {c.meta.lineage !== "traditional" && (
                 <p className="mt-3 text-xs uppercase tracking-wide text-accent-2">{c.meta.lineage}</p>
               )}
@@ -242,21 +281,22 @@ function Pole({ value, sources }: { value: string; sources: string[] }) {
   );
 }
 
-function Meanings({ computation }: { computation: ComputedSystem }) {
-  const lines = interpretationsFor(computation.meta.id, computation.native);
+/** A visible "energy at a glance" cheat sheet: the few lines that matter most. */
+function CheatSheet({ computation }: { computation: ComputedSystem }) {
+  const lines = energyCheatSheet(computation);
   if (lines.length === 0) return null;
   return (
-    <details className="mt-3">
-      <summary className="cursor-pointer text-sm text-muted hover:text-foreground">Meanings</summary>
-      <ul className="mt-2 space-y-2">
+    <div className="mt-3 rounded-lg border border-accent/20 bg-accent/5 p-3">
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-accent">Energy at a glance</p>
+      <ul className="space-y-1.5">
         {lines.map((l, i) => (
-          <li key={i} className="text-sm">
-            <span className="font-medium text-foreground/90">{l.label}</span>
-            <span className="text-muted">: {l.text}</span>
+          <li key={i} className="text-sm leading-relaxed">
+            <span className="font-medium text-foreground/90">{l.term}</span>
+            <span className="text-muted">: {l.gist}</span>
           </li>
         ))}
       </ul>
-    </details>
+    </div>
   );
 }
 
@@ -299,7 +339,10 @@ function TransitsSection({ intakeBody }: { intakeBody: unknown }) {
       </div>
 
       {state === "idle" && (
-        <p className="text-sm text-muted">The current sky read against this chart: daily and seasonal movement.</p>
+        <p className="text-sm text-muted">
+          How today&apos;s sky meets your chart: the moving energy around you right now, daily and
+          seasonal. This is weather, not your core chart.
+        </p>
       )}
       {state === "loading" && <p className="text-sm text-muted">Reading the sky…</p>}
       {error && <p className="text-sm text-red-300">{error}</p>}

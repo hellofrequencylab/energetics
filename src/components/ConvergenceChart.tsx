@@ -31,6 +31,25 @@ const GOLD = "#d4b072";
 const VIOLET = "#8b7dff";
 const SELF = "#f3d9a8";
 const THREAD = "#4a4358";
+const INK = "#0e0b12";
+
+/** Short labels so the ring stays legible. Falls back to the first word. */
+const SHORT_NAME: Record<string, string> = {
+  "western-tropical": "Western",
+  "vedic-jyotish": "Vedic",
+  "chinese-bazi": "BaZi",
+  "human-design": "Human Design",
+  "numerology-pythagorean": "Numerology",
+  "numerology-chaldean": "Name number",
+  tzolkin: "Tzolk'in",
+  dreamspell: "Dreamspell",
+  "tarot-birth-cards": "Tarot",
+  hellenistic: "Hellenistic",
+  "zi-wei-dou-shu": "Zi Wei",
+  "gene-keys": "Gene Keys",
+  "nine-star-ki": "Nine Star Ki",
+};
+const shortName = (id: string, name: string) => SHORT_NAME[id] ?? name.split(" ")[0];
 
 function humanize(value: string): string {
   const bare = value.includes(":") ? value.split(":")[1] : value;
@@ -73,18 +92,23 @@ export function ConvergenceChart({
   }, [systems]);
   const posOf = useMemo(() => new Map(sysNodes.map((s) => [s.id, s])), [sysNodes]);
 
-  // A convergence node sits at the average of its systems, pulled toward center.
+  // Only the cross-confirmed themes (2+ independent groups) get a node here, so
+  // the chart shows the reliable signal, not every single-lens dot. Each sits at
+  // the average of its systems, pulled toward the center as more groups agree.
   const convNodes = useMemo(() => {
     return synthesis.convergences
       .map((cv, i) => {
+        if (cv.independentGroups < 2) return null;
         const pts = [...new Set(cv.contributors.map((a) => a.systemId))]
           .map((id) => posOf.get(id))
           .filter((p): p is SystemNode => !!p);
         if (!pts.length) return null;
         const ax = pts.reduce((s, p) => s + p.x, 0) / pts.length;
         const ay = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-        const x = C.x + (ax - C.x) * 0.62;
-        const y = C.y + (ay - C.y) * 0.62;
+        // More agreement pulls the node closer to the center.
+        const pull = Math.max(0.32, 0.66 - (cv.independentGroups - 2) * 0.12);
+        const x = C.x + (ax - C.x) * pull;
+        const y = C.y + (ay - C.y) * pull;
         return { cv, i, x, y, systemIds: pts.map((p) => p.id) };
       })
       .filter((n): n is { cv: Convergence; i: number; x: number; y: number; systemIds: string[] } => !!n);
@@ -188,47 +212,55 @@ export function ConvergenceChart({
               onMouseLeave={() => setHovered(null)}
               opacity={isDim(s.id) ? 0.4 : 1}
             >
-              <circle cx={s.x} cy={s.y} r={9} fill={color} fillOpacity={0.9} stroke="#0e0b12" strokeWidth={1.5} />
+              <circle cx={s.x} cy={s.y} r={9} fill={color} fillOpacity={0.9} stroke={INK} strokeWidth={1.5} />
               <text
                 x={s.x + (labelRight ? 14 : -14)}
                 y={s.y + 4}
                 textAnchor={labelRight ? "start" : "end"}
-                fontSize={12}
+                fontSize={13}
                 fill="#cfc9d6"
+                style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3 }}
               >
-                {s.name}
+                {shortName(s.id, s.name)}
               </text>
             </g>
           );
         })}
 
-        {/* convergence nodes */}
+        {/* convergence nodes (labeled, cross-confirmed themes) */}
         {convNodes.map((n) => {
-          const strong = n.cv.independentGroups >= 2;
-          const r = strong ? 7 + Math.min(n.cv.independentGroups, 4) * 2 : 4;
+          const r = 7 + Math.min(n.cv.independentGroups, 4) * 2;
+          const dx = n.x - C.x;
+          const dy = n.y - C.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const lx = n.x + (dx / len) * (r + 7);
+          const ly = n.y + (dy / len) * (r + 7) + 4;
+          const anchor = dx >= 0 ? "start" : "end";
           return (
             <g
               key={`c${n.i}`}
               role="button"
               tabIndex={0}
-              aria-label={`${humanize(n.cv.value)}, ${n.cv.independentGroups} independent source${n.cv.independentGroups === 1 ? "" : "s"}`}
+              aria-label={`${humanize(n.cv.value)}, ${n.cv.independentGroups} independent sources`}
               className="cursor-pointer focus:outline-none"
               onClick={() => setSel({ kind: "convergence", i: n.i })}
               onKeyDown={keyActivate(() => setSel({ kind: "convergence", i: n.i }))}
               onMouseEnter={() => setHovered(`conv:${n.i}`)}
               onMouseLeave={() => setHovered(null)}
             >
-              {strong && <circle cx={n.x} cy={n.y} r={r + 5} fill={GOLD} fillOpacity={0.12} />}
-              <circle
-                cx={n.x}
-                cy={n.y}
-                r={r}
-                fill={strong ? GOLD : "#2a2438"}
-                fillOpacity={strong ? 0.92 : 1}
-                stroke={GOLD}
-                strokeWidth={strong ? 0 : 1.2}
-                strokeOpacity={0.7}
-              />
+              <circle cx={n.x} cy={n.y} r={r + 5} fill={GOLD} fillOpacity={0.12} />
+              <circle cx={n.x} cy={n.y} r={r} fill={GOLD} fillOpacity={0.92} />
+              <text
+                x={lx}
+                y={ly}
+                textAnchor={anchor}
+                fontSize={13}
+                fontWeight={600}
+                fill="#f3eee7"
+                style={{ paintOrder: "stroke", stroke: INK, strokeWidth: 3.5 }}
+              >
+                {humanize(n.cv.value)}
+              </text>
             </g>
           );
         })}
@@ -298,9 +330,9 @@ function Legend() {
   );
   return (
     <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs text-muted">
-      {item(GOLD, "Cross-confirmed")}
-      {item(GOLD, "Single source", true)}
+      {item(GOLD, "Cross-confirmed theme")}
       {item(VIOLET, "Tension")}
+      <span className="text-muted/70">Systems by source:</span>
       {item("#6aa0cf", "Sky")}
       {item("#d4b072", "Calendar")}
       {item("#8b7dff", "Name")}

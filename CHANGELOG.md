@@ -67,6 +67,12 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- The Convergence Chart now reads clearly: cross-confirmed themes are labeled and
+  pulled toward the center by agreement, single-lens noise is dropped from the
+  visual, system names are shortened, and a plain takeaway under the chart names
+  your strongest themes and central tension. Every section gained a description of
+  what it tells you about your energy, and each system block now shows an "energy
+  at a glance" cheat sheet (`src/lib/cheatsheet.ts`).
 - Reader overhaul: larger, more readable type throughout; the chart wheel moved
   into the Western (Tropical) system card; each system block now carries a plain
   explanation; and a written reading is saved to the chart and shown at once, with
