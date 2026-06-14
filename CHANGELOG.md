@@ -6,6 +6,17 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-14
 
+### Changed
+- Convergence map: single-source tension poles are now first-class theme nodes on
+  the map, not separate floating "ghost" points. Each one is drawn near, and
+  threaded to, the system that holds it, and is draggable like any theme; the
+  tension line between two poles follows as either end moves. This replaces the
+  earlier ghost-pole approach (poles that floated at the ring, read as
+  disconnected, and could not be repositioned). Every tension is now a line
+  between two grounded, draggable nodes. Single-source theme dots are tinted
+  violet to match the tension they anchor; the connections filter never hides a
+  tension pole. (`ConvergenceChart.tsx`.)
+
 ### Fixed
 - Convergence map: tensions whose poles are both single-source (for example
   air vs earth when one tradition holds both) drew as a stray dot or a tiny line,
