@@ -146,6 +146,19 @@ export async function setSystemEnabled(
   if (error) throw error;
 }
 
+/**
+ * Persist the catalog display order. Admin-only (enforced by RLS). Writes a
+ * `sort_order` per system, leaving each row's `enabled` override untouched (rows
+ * created here for never-toggled systems get a null, inherit-default, enabled).
+ */
+export async function setSystemOrder(supabase: DbClient, orderedIds: string[]): Promise<void> {
+  if (orderedIds.length === 0) return;
+  const now = new Date().toISOString();
+  const rows = orderedIds.map((system_id, i) => ({ system_id, sort_order: i, updated_at: now }));
+  const { error } = await supabase.from("system_settings").upsert(rows, { onConflict: "system_id" });
+  if (error) throw error;
+}
+
 /** Pin (or clear) the user's primary chart, their "My Sky." */
 export async function setPrimaryChart(
   supabase: DbClient,
