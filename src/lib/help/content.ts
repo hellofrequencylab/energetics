@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "The convergence chart now makes sense at a glance",
+    notes: [
+      "The chart labels your strongest themes and pulls them toward the center as more traditions agree, with a plain summary of what it says about your energy.",
+      "Every section now explains what it is, and each system shows an energy cheat sheet so you can read it quickly.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "An interactive convergence chart, and a clearer reader",
     notes: [
       "Your reading now opens with an interactive convergence chart: your systems on a ring, the themes they agree on pulling toward the center, and the tensions between them. Tap any point for details.",
