@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Every theme on the chart, and what it means for you",
+    notes: [
+      "The convergence chart now shows every theme it found, with tension lines that connect opposing themes and follow them as you drag.",
+      "Turn the tension lines on or off, and click any theme or tension to read how it tends to show up in your life.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "The convergence chart is now interactive",
     notes: [
       "Hover any point for a label, click a theme or tension to read about it in the panel beside the chart, and click a system to see its chart and stats.",
