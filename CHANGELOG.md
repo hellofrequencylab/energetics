@@ -67,6 +67,11 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `docs/adr/0003-pkce-magic-link-callback.md`.
 
 ### Changed
+- The reader's per-system blocks are now a consistent dashboard: the chart drawing
+  on the left, the energy cheat sheet on the right, how it applies and things to
+  note underneath, and a row of shared convergences whose chips jump to the
+  related system on the page. A jump nav at the top moves between systems
+  (`src/components/SystemCard.tsx`, `src/lib/system-labels.ts`).
 - Reworked the home page copy and structure end to end: a clearer hero that names
   the traditions and the convergence idea, a sharper "how it works", a new "what
   you get" benefits section, a credibility note (Swiss Ephemeris), and stronger,

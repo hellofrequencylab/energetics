@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Convergence, Synthesis, Tension } from "@/lib/synthesis/types";
+import { shortName } from "@/lib/system-labels";
 
 /**
  * The Convergence Chart: the flagship visual of the reading. Systems sit on an
@@ -32,24 +33,6 @@ const VIOLET = "#8b7dff";
 const SELF = "#f3d9a8";
 const THREAD = "#4a4358";
 const INK = "#0e0b12";
-
-/** Short labels so the ring stays legible. Falls back to the first word. */
-const SHORT_NAME: Record<string, string> = {
-  "western-tropical": "Western",
-  "vedic-jyotish": "Vedic",
-  "chinese-bazi": "BaZi",
-  "human-design": "Human Design",
-  "numerology-pythagorean": "Numerology",
-  "numerology-chaldean": "Name number",
-  tzolkin: "Tzolk'in",
-  dreamspell: "Dreamspell",
-  "tarot-birth-cards": "Tarot",
-  hellenistic: "Hellenistic",
-  "zi-wei-dou-shu": "Zi Wei",
-  "gene-keys": "Gene Keys",
-  "nine-star-ki": "Nine Star Ki",
-};
-const shortName = (id: string, name: string) => SHORT_NAME[id] ?? name.split(" ")[0];
 
 function humanize(value: string): string {
   const bare = value.includes(":") ? value.split(":")[1] : value;

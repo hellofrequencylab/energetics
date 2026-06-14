@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { ComputeResponse } from "@/lib/api-types";
-import { energyCheatSheet } from "@/lib/cheatsheet";
-import { SYSTEM_BLURBS } from "@/lib/help/content";
+import { shortName } from "@/lib/system-labels";
 import type { TransitsResult } from "@/lib/transits";
-import type { ComputedSystem } from "@/lib/synthesis/types";
 import { EthicsPanel } from "./EthicsPanel";
 import { NarrativePanel } from "./NarrativePanel";
 import { ConvergenceChart } from "./ConvergenceChart";
-import { SystemDiagram } from "./diagrams";
+import { SystemCard, type SystemConnection } from "./SystemCard";
 
 /** Strip the ontology namespace ("western:fire" → "Fire") and title-case. */
 function humanizeValue(value: string): string {
@@ -45,6 +42,25 @@ export function SynthesisView({
     topThemes.length <= 1
       ? topThemes[0]
       : `${topThemes.slice(0, -1).join(", ")} and ${topThemes[topThemes.length - 1]}`;
+
+  // The themes a given system shares with others, for its dashboard card. Each
+  // partner links to that system's card on the page.
+  const shortOf = (id: string) =>
+    shortName(id, computations.find((c) => c.meta.id === id)?.meta.displayName ?? id);
+  const connectionsFor = (systemId: string): SystemConnection[] =>
+    synthesis.convergences
+      .filter((cv) => cv.contributors.some((a) => a.systemId === systemId))
+      .map((cv) => ({
+        theme: cv.value,
+        groups: cv.independentGroups,
+        partners: [...new Set(cv.contributors.map((a) => a.systemId))]
+          .filter((id) => id !== systemId)
+          .map((id) => ({ id, short: shortOf(id) })),
+      }))
+      .filter((c) => c.partners.length > 0)
+      .sort((a, b) => b.groups - a.groups)
+      .slice(0, 8)
+      .map(({ theme, partners }) => ({ theme, partners }));
 
   return (
     <div className="space-y-12">
@@ -188,57 +204,36 @@ export function SynthesisView({
         idleBlurb="Prose over the synthesis above. It reads the convergences and tensions and never computes them. Once written, it stays saved on this chart until you refresh it."
       />
 
-      {/* Per-system native output ------------------------------------------- */}
+      {/* Per-system dashboard ---------------------------------------------- */}
       <section>
         <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">Systems</h3>
-        <p className="mb-4 text-sm text-muted">
-          Each tradition read on its own, drawn in its traditional form, with what it found in your chart.
+        <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted">
+          Each tradition read on its own, with the same layout: your chart on the left, your energy
+          at a glance on the right, how it applies underneath, and the themes it shares with other
+          systems. Jump to any system below.
         </p>
-        <div className="grid gap-4 md:grid-cols-2">
+
+        {/* Jump navigation across the dashboard. */}
+        <nav className="mb-6 flex flex-wrap gap-2" aria-label="Jump to a system">
           {computations.map((c) => (
-            <div key={c.meta.id} className="rounded-xl border border-border bg-surface/40 p-5">
-              <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                {chartId ? (
-                  <Link
-                    href={`/account/chart/${chartId}/system/${c.meta.id}`}
-                    className="text-lg font-semibold transition hover:text-accent"
-                  >
-                    {c.meta.displayName}
-                  </Link>
-                ) : (
-                  <h4 className="text-lg font-semibold">{c.meta.displayName}</h4>
-                )}
-                <span className="shrink-0 text-xs uppercase tracking-wide text-muted">{c.meta.derivedFrom}</span>
-              </div>
-              {SYSTEM_BLURBS[c.meta.id] && (
-                <p className="mb-3 text-sm leading-relaxed text-muted">{SYSTEM_BLURBS[c.meta.id]}</p>
-              )}
-              <SystemDiagram computation={c} />
-              {chartId && (
-                <Link
-                  href={`/account/chart/${chartId}/system/${c.meta.id}`}
-                  className="mb-3 inline-block text-sm font-medium text-accent transition hover:underline"
-                >
-                  View details and connections →
-                </Link>
-              )}
-              {Object.values(c.native.factors).length ? (
-                <ul className="space-y-2 border-t border-border/60 pt-3">
-                  {Object.values(c.native.factors).map((f) => (
-                    <li key={f.key} className="flex justify-between gap-3 text-sm">
-                      <span className="text-muted">{f.label}</span>
-                      <span className="text-right font-medium">{f.display ?? String(f.value)}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm italic text-muted">Registered · no output yet (scaffold).</p>
-              )}
-              <CheatSheet computation={c} />
-              {c.meta.lineage !== "traditional" && (
-                <p className="mt-3 text-xs uppercase tracking-wide text-accent-2">{c.meta.lineage}</p>
-              )}
-            </div>
+            <a
+              key={c.meta.id}
+              href={`#system-${c.meta.id}`}
+              className="rounded-full border border-border bg-surface/40 px-3 py-1 text-sm text-muted transition hover:border-accent/40 hover:text-foreground"
+            >
+              {shortName(c.meta.id, c.meta.displayName)}
+            </a>
+          ))}
+        </nav>
+
+        <div className="space-y-5">
+          {computations.map((c) => (
+            <SystemCard
+              key={c.meta.id}
+              computation={c}
+              chartId={chartId}
+              connections={connectionsFor(c.meta.id)}
+            />
           ))}
         </div>
 
@@ -277,25 +272,6 @@ function Pole({ value, sources }: { value: string; sources: string[] }) {
     <div className="flex-1">
       <div className="font-medium">{humanizeValue(value)}</div>
       <div className="text-xs text-muted">{[...new Set(sources)].join(", ")}</div>
-    </div>
-  );
-}
-
-/** A visible "energy at a glance" cheat sheet: the few lines that matter most. */
-function CheatSheet({ computation }: { computation: ComputedSystem }) {
-  const lines = energyCheatSheet(computation);
-  if (lines.length === 0) return null;
-  return (
-    <div className="mt-3 rounded-lg border border-accent/20 bg-accent/5 p-3">
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-accent">Energy at a glance</p>
-      <ul className="space-y-1.5">
-        {lines.map((l, i) => (
-          <li key={i} className="text-sm leading-relaxed">
-            <span className="font-medium text-foreground/90">{l.term}</span>
-            <span className="text-muted">: {l.gist}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
