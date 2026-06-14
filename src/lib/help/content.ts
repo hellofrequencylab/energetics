@@ -386,10 +386,10 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
-    title: "Every tension reads as a clear line",
+    title: "Tensions connect real points now",
     notes: [
-      "Tensions held entirely by one tradition now spread out around the edge instead of bunching up, so each one is a clear line you can read.",
-      "Tension endpoints are now fixed in place; drag a theme to move its lines, and the rest stay put.",
+      "Every end of a tension is a theme point on the map, linked to the tradition that holds it, so nothing floats off on its own.",
+      "Drag any point, including a single-tradition tension pole, and its lines follow.",
     ],
   },
   {

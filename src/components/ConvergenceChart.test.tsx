@@ -61,9 +61,9 @@ function len(l: SVGLineElement): number {
   );
 }
 
-// A realistic spread of all five oppositions: convergence-to-convergence,
-// convergence-to-ghost, and (the case that used to render a stray dot) two
-// ghost-to-ghost tensions whose poles share systems.
+// All five oppositions: convergence-to-convergence, convergence-to-single-source,
+// and (the case that used to look broken) two single-source-to-single-source
+// tensions whose poles share systems.
 const synthesis: Synthesis = {
   birthEventId: "t1",
   ontologyVersion: "1",
@@ -72,6 +72,13 @@ const synthesis: Synthesis = {
     { axis: "polarity", value: "receptive", independentGroups: 2, weight: 2, contributors: [attr("name"), attr("cal")] },
     { axis: "theme", value: "structure", independentGroups: 2, weight: 2, contributors: [attr("sky"), attr("name")] },
     { axis: "element", value: "western:fire", independentGroups: 2, weight: 2, contributors: [attr("sky"), attr("cal")] },
+    // The single-source poles still appear as convergences with one group.
+    { axis: "element", value: "western:water", independentGroups: 1, weight: 1, contributors: [attr("name")] },
+    { axis: "element", value: "western:air", independentGroups: 1, weight: 1, contributors: [attr("sky")] },
+    { axis: "element", value: "western:earth", independentGroups: 1, weight: 1, contributors: [attr("sky")] },
+    { axis: "theme", value: "play", independentGroups: 1, weight: 1, contributors: [attr("cal")] },
+    { axis: "theme", value: "discipline", independentGroups: 1, weight: 1, contributors: [attr("hd")] },
+    { axis: "theme", value: "exploration", independentGroups: 1, weight: 1, contributors: [attr("hd")] },
   ],
   tensions: [
     { axis: "polarity", poles: ["active", "receptive"], sides: [{ value: "active", contributors: [attr("sky"), attr("cal")] }, { value: "receptive", contributors: [attr("name"), attr("cal")] }] },
@@ -83,44 +90,47 @@ const synthesis: Synthesis = {
 };
 
 describe("ConvergenceChart tension lines", () => {
-  it("draws every tension as a clear, separated line (incl. ghost-to-ghost with shared systems)", () => {
+  it("draws every tension as a clear, separated line (incl. single-source pairs)", () => {
     const { container } = render(<ConvergenceChart synthesis={synthesis} computations={computations} selfName="Test" />);
     const lines = dashedLines(container);
     expect(lines).toHaveLength(synthesis.tensions.length);
-    // None should be a degenerate stray: every tension is a real line.
-    for (const l of lines) expect(len(l)).toBeGreaterThan(40);
+    for (const l of lines) expect(len(l)).toBeGreaterThan(40); // none is a degenerate stray
   });
 
-  it("a tension line follows its convergence endpoint when dragged", () => {
+  it("a single-source tension pole is a real, draggable theme node and its line follows", () => {
+    const { container } = render(<ConvergenceChart synthesis={synthesis} computations={computations} selfName="Test" />);
+    const svg = container.querySelector("svg") as SVGSVGElement;
+    const air = byLabelPrefix(container, "Air,")!; // "Air, tension pole · 1 source. Drag to move, ..."
+    expect(air).toBeTruthy();
+    const before = dotCenter(air);
+
+    fireEvent.pointerDown(air, { clientX: before.x, clientY: before.y, pointerId: 1 });
+    fireEvent.pointerMove(svg, { clientX: 330, clientY: 330, pointerId: 1 });
+    fireEvent.pointerUp(svg, { clientX: 330, clientY: 330, pointerId: 1 });
+
+    const after = dotCenter(byLabelPrefix(container, "Air,")!);
+    expect(after.x).not.toBe(before.x); // the pole moved
+    const followed = dashedLines(container).some(
+      (l) =>
+        (Number(l.getAttribute("x1")) === after.x && Number(l.getAttribute("y1")) === after.y) ||
+        (Number(l.getAttribute("x2")) === after.x && Number(l.getAttribute("y2")) === after.y),
+    );
+    expect(followed).toBe(true); // the air↔earth line followed the pole
+  });
+
+  it("a convergence node is draggable and its tension line follows", () => {
     const { container } = render(<ConvergenceChart synthesis={synthesis} computations={computations} selfName="Test" />);
     const svg = container.querySelector("svg") as SVGSVGElement;
     const dotG = byLabelPrefix(container, "Active,")!;
-    expect(dotG).toBeTruthy();
     const before = dotCenter(dotG);
-
-    fireEvent.pointerDown(dotG, { clientX: before.x, clientY: before.y, pointerId: 1 });
-    fireEvent.pointerMove(svg, { clientX: 320, clientY: 320, pointerId: 1 });
-    fireEvent.pointerUp(svg, { clientX: 320, clientY: 320, pointerId: 1 });
-
+    fireEvent.pointerDown(dotG, { clientX: before.x, clientY: before.y, pointerId: 2 });
+    fireEvent.pointerMove(svg, { clientX: 320, clientY: 320, pointerId: 2 });
+    fireEvent.pointerUp(svg, { clientX: 320, clientY: 320, pointerId: 2 });
     const after = dotCenter(byLabelPrefix(container, "Active,")!);
-    expect(after.x).not.toBe(before.x); // the dot moved
-    // The active⟷receptive line's "active" end moved with it.
-    const moved = dashedLines(container).some(
+    expect(after.x).not.toBe(before.x);
+    const followed = dashedLines(container).some(
       (l) => Number(l.getAttribute("x1")) === after.x && Number(l.getAttribute("y1")) === after.y,
     );
-    expect(moved).toBe(true);
-  });
-
-  it("ghost tension poles are fixed (not draggable)", () => {
-    const { container } = render(<ConvergenceChart synthesis={synthesis} computations={computations} selfName="Test" />);
-    const svg = container.querySelector("svg") as SVGSVGElement;
-    const ghost = byLabelPrefix(container, "Air tension pole")!;
-    expect(ghost).toBeTruthy();
-    const before = dotCenter(ghost);
-    fireEvent.pointerDown(ghost, { clientX: before.x, clientY: before.y, pointerId: 3 });
-    fireEvent.pointerMove(svg, { clientX: 320, clientY: 320, pointerId: 3 });
-    fireEvent.pointerUp(svg, { clientX: 320, clientY: 320, pointerId: 3 });
-    const after = dotCenter(byLabelPrefix(container, "Air tension pole")!);
-    expect(after).toEqual(before); // it did not move
+    expect(followed).toBe(true);
   });
 });
