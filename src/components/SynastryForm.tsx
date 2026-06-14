@@ -197,6 +197,7 @@ export function SynastryForm({
             body={{ a: toIntake(a), b: toIntake(b), mode }}
             title={mode === "intimate" ? "Your resonance reading" : "Your connection reading"}
             ctaLabel="Write the reading"
+            autoStart
             idleBlurb="Optional prose over the comparison above. It reads the shared emphases, complementary tensions, and cross-aspects through this lens, and never computes them. It streams in live and is saved."
           />
         </>

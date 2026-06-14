@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * The prose reading panel, shared by the single-chart reader and the resonance
  * reader. It streams text from a narrate endpoint token by token, renders light
  * markdown live, and shows whether the reading came fresh from the model or from
  * the cache. It reads the deterministic synthesis above it and never computes it.
+ *
+ * With `autoStart`, the reading writes itself as soon as the output renders, so
+ * the AI read is part of every chart output rather than waiting for a click. The
+ * content-addressed cache keeps repeat views free.
  */
 export function NarrativePanel({
   endpoint,
@@ -14,12 +18,14 @@ export function NarrativePanel({
   title = "Reading",
   ctaLabel = "Write the reading",
   idleBlurb,
+  autoStart = false,
 }: {
   endpoint: string;
   body: unknown;
   title?: string;
   ctaLabel?: string;
   idleBlurb: string;
+  autoStart?: boolean;
 }) {
   const [state, setState] = useState<"idle" | "streaming" | "done">("idle");
   const [text, setText] = useState("");
@@ -27,6 +33,16 @@ export function NarrativePanel({
     available: true,
     cached: false,
   });
+  // Guards the auto-start so it fires once per mount (not twice under StrictMode).
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (autoStart && !started.current) {
+      started.current = true;
+      void run();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   async function run() {
     setState("streaming");

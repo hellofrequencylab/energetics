@@ -73,6 +73,12 @@ export function ChartRoster({
           </Link>
           <div className="flex shrink-0 items-center gap-1.5">
             <Link
+              href={`/account/chart/${c.id}#edit`}
+              className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-star/70 transition hover:border-horizon-amber/40 hover:text-star"
+            >
+              Edit
+            </Link>
+            <Link
               href={`/synastry?a=${c.id}`}
               className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-star/70 transition hover:border-horizon-amber/40 hover:text-star"
             >

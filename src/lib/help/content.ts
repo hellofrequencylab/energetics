@@ -264,7 +264,7 @@ export const CATEGORIES: HelpCategory[] = [
         body: [
           {
             type: "p",
-            text: "Open a saved chart and find edit birth data under manage. You can change the date, the time, or the birthplace, or mark the time or place as unknown.",
+            text: "Open a saved chart and select edit on the birth data card, or use the edit link next to any chart on your account page. You can change the date, the time, or the birthplace, or mark the time or place as unknown.",
           },
           {
             type: "p",
