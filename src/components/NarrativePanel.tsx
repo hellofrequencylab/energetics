@@ -19,6 +19,7 @@ export function NarrativePanel({
   ctaLabel = "Write the reading",
   idleBlurb,
   autoStart = false,
+  initial,
 }: {
   endpoint: string;
   body: unknown;
@@ -26,18 +27,22 @@ export function NarrativePanel({
   ctaLabel?: string;
   idleBlurb: string;
   autoStart?: boolean;
+  /** A reading already saved for this chart. Shown at once, refreshed on demand. */
+  initial?: { text: string; model?: string } | null;
 }) {
-  const [state, setState] = useState<"idle" | "streaming" | "done">("idle");
-  const [text, setText] = useState("");
+  const [state, setState] = useState<"idle" | "streaming" | "done">(initial ? "done" : "idle");
+  const [text, setText] = useState(initial?.text ?? "");
   const [meta, setMeta] = useState<{ available: boolean; cached: boolean; model?: string }>({
     available: true,
-    cached: false,
+    cached: !!initial,
+    model: initial?.model,
   });
   // Guards the auto-start so it fires once per mount (not twice under StrictMode).
   const started = useRef(false);
 
   useEffect(() => {
-    if (autoStart && !started.current) {
+    // Auto-write the first reading only when there is none saved yet.
+    if (autoStart && !initial && !started.current) {
       started.current = true;
       void run();
     }
@@ -96,7 +101,7 @@ export function NarrativePanel({
         )}
         {state === "done" && meta.available && (
           <button onClick={run} className="text-xs text-muted transition hover:text-foreground">
-            Rewrite
+            Refresh reading
           </button>
         )}
       </div>
@@ -116,7 +121,7 @@ export function NarrativePanel({
             {state === "done" && (
               <p className="pt-2 text-xs text-muted">
                 {meta.cached
-                  ? "From the reading cache"
+                  ? "Saved to your chart"
                   : meta.model
                     ? `Written live by ${meta.model}`
                     : "Written live"}
@@ -131,14 +136,34 @@ export function NarrativePanel({
   );
 }
 
-/** Minimal markdown: ## headings, - bullets, paragraphs. */
+/**
+ * Inline markdown: **bold** and *italic*. Returns React nodes so the asterisks
+ * render as emphasis instead of showing as literal characters.
+ */
+function inline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const re = /\*\*([^*]+)\*\*|\*([^*]+)\*|__([^_]+)__/g;
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    if (m[1] != null || m[3] != null) nodes.push(<strong key={key++}>{m[1] ?? m[3]}</strong>);
+    else nodes.push(<em key={key++}>{m[2]}</em>);
+    last = re.lastIndex;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
+
+/** Minimal markdown: ## / ### headings, - bullets, paragraphs, inline bold/italic. */
 function renderMarkdown(text: string) {
   const blocks: React.ReactNode[] = [];
   let list: string[] = [];
   let para: string[] = [];
   const flushPara = () => {
     if (para.length) {
-      blocks.push(<p key={`p${blocks.length}`}>{para.join(" ")}</p>);
+      blocks.push(<p key={`p${blocks.length}`}>{inline(para.join(" "))}</p>);
       para = [];
     }
   };
@@ -147,7 +172,7 @@ function renderMarkdown(text: string) {
       blocks.push(
         <ul key={`l${blocks.length}`} className="list-disc space-y-1 pl-5">
           {list.map((it, i) => (
-            <li key={i}>{it}</li>
+            <li key={i}>{inline(it)}</li>
           ))}
         </ul>,
       );
@@ -156,12 +181,13 @@ function renderMarkdown(text: string) {
   };
   for (const raw of text.split("\n")) {
     const line = raw.trim();
-    if (line.startsWith("## ")) {
+    const heading = line.startsWith("### ") ? line.slice(4) : line.startsWith("## ") ? line.slice(3) : null;
+    if (heading !== null) {
       flushPara();
       flushList();
       blocks.push(
         <h4 key={`h${blocks.length}`} className="pt-2 text-sm font-semibold uppercase tracking-wider text-accent">
-          {line.slice(3)}
+          {inline(heading)}
         </h4>,
       );
     } else if (line.startsWith("- ") || line.startsWith("* ")) {

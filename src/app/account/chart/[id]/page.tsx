@@ -6,6 +6,8 @@ import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { synthesize } from "@/lib/synthesis";
+import { chartNarration } from "@/lib/synthesis/narrative";
+import { getCachedNarration } from "@/lib/synthesis/narrate-stream";
 import type { ComputeResponse } from "@/lib/api-types";
 import { SynthesisView } from "@/components/SynthesisView";
 import { SiteShell } from "@/components/site/SiteShell";
@@ -42,6 +44,9 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const synthesis = synthesize(event.id, computations);
   const data: ComputeResponse = { event, name, computations, unavailable, synthesis, ephemerisVersion };
 
+  // A reading already written for this exact synthesis shows at once (no rewrite).
+  const initialReading = await getCachedNarration(chartNarration(synthesis, computations)).catch(() => null);
+
   const profile = await getProfile(supabase, user.id).catch(() => null);
   const practitioner = profile?.account_type === "practitioner";
 
@@ -74,7 +79,7 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
       </div>
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-background/60 p-5 sm:p-6">
-        <SynthesisView data={data} intakeBody={body} chartId={row.id} />
+        <SynthesisView data={data} intakeBody={body} chartId={row.id} initialReading={initialReading} />
       </div>
     </SiteShell>
   );

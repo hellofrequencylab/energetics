@@ -371,6 +371,15 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "An interactive convergence chart, and a clearer reader",
+    notes: [
+      "Your reading now opens with an interactive convergence chart: your systems on a ring, the themes they agree on pulling toward the center, and the tensions between them. Tap any point for details.",
+      "Bigger, easier-to-read text, a plain explanation on every system, and the chart wheel now sits with your Western astrology.",
+      "Your written reading is saved to your chart and shown right away, until you choose to refresh it.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "A warmer look, and a page for every system",
     notes: [
       "OneSky has a warmer, more readable look, with one consistent header and footer across the site.",
