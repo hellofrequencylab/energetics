@@ -371,6 +371,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "A clearer systems dashboard",
+    notes: [
+      "Each system now reads as a tidy card: your chart on the left, your energy at a glance on the right, how it applies underneath.",
+      "A row on each card shows the themes you share with other systems, and tapping one jumps you straight there.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "A clearer home page",
     notes: [
       "The home page now explains plainly what OneSky does: your chart read across many traditions at once, with the few things they all agree on surfaced for you.",
