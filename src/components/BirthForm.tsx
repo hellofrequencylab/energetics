@@ -13,6 +13,25 @@ const PRESETS = [
   { label: "Tokyo, Japan", lat: 35.6762, lng: 139.6503 },
 ];
 
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function formatDate(d: string): string {
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y || !m || !day) return "";
+  return `${day} ${MONTHS[m - 1]} ${y}`;
+}
+
+function formatTime(t: string): string {
+  const [h, mm] = t.split(":").map(Number);
+  if (Number.isNaN(h)) return "";
+  const ap = h < 12 ? "am" : "pm";
+  const h12 = ((h + 11) % 12) + 1;
+  return `${h12}:${String(mm).padStart(2, "0")} ${ap}`;
+}
+
 export function BirthForm({
   onResult,
   submitLabel,
@@ -87,101 +106,145 @@ export function BirthForm({
     }
   }
 
+  // Live profile, written as they type.
+  const hasTime = !form.unknownTime && !!form.time;
+  const hasPlace = !form.noPlace && !!placeLabel;
+  const who = form.name.trim() || "You";
+  const dateStr = formatDate(form.date);
+  const tier = hasPlace ? "full" : hasTime ? "timed" : "dated";
+  const unlock =
+    tier === "full"
+      ? "Every tradition can read your full chart, ascendant and houses included."
+      : tier === "timed"
+        ? "Add your birthplace and we can place your houses and angles."
+        : "Add your birth time and place to open up the deeper reading.";
+
+  const sentence = [
+    `${who}, born ${dateStr || "on a day you choose"}`,
+    hasTime ? ` at ${formatTime(form.time)}` : "",
+    hasPlace ? ` in ${placeLabel}` : "",
+    ".",
+  ].join("");
+
   return (
     <div className="space-y-10">
-      <form onSubmit={onSubmit} className="grid gap-4 rounded-xl border border-border bg-surface/50 p-6 sm:grid-cols-2">
-        <Field label="Name (optional)" className="sm:col-span-2">
-          <input
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g. Albert Einstein"
-            className={inputClass}
-          />
-        </Field>
+      <form onSubmit={onSubmit} className="rounded-2xl border border-border bg-surface/60 p-6 sm:p-7">
+        <div className="grid gap-7 lg:grid-cols-2">
+          {/* Left: the fields */}
+          <div className="space-y-4">
+            <Field label="Name (optional)">
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Albert Einstein"
+                className={inputClass}
+              />
+            </Field>
 
-        <Field label="Birth date">
-          <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={inputClass} />
-        </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Birth date">
+                <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Birth time">
+                <input
+                  type="time"
+                  value={form.time}
+                  disabled={form.unknownTime}
+                  onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  className={`${inputClass} disabled:opacity-40`}
+                />
+              </Field>
+            </div>
 
-        <Field label="Birth time (local)">
-          <input
-            type="time"
-            value={form.time}
-            disabled={form.unknownTime}
-            onChange={(e) => setForm({ ...form, time: e.target.value })}
-            className={`${inputClass} disabled:opacity-40`}
-          />
-        </Field>
+            <Field label="Birthplace">
+              <PlaceSearch onSelect={selectPlace} placeholder="Start typing any city in the world…" />
+              {placeLabel && (
+                <p className="mt-1 text-xs text-accent">
+                  ✓ {placeLabel}
+                  {form.timeZone ? ` · ${form.timeZone}` : ""}
+                </p>
+              )}
+            </Field>
 
-        <Field label="Birthplace" className="sm:col-span-2">
-          <PlaceSearch onSelect={selectPlace} placeholder="Start typing any city in the world…" />
-          {placeLabel && (
-            <p className="mt-1 text-xs text-accent">
-              ✓ {placeLabel}
-              {form.timeZone ? ` · ${form.timeZone}` : ""}
-            </p>
-          )}
-        </Field>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-foreground/80">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={form.unknownTime} onChange={(e) => setForm({ ...form, unknownTime: e.target.checked })} />
+                Time unknown
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={form.noPlace} onChange={(e) => setForm({ ...form, noPlace: e.target.checked })} />
+                Place unknown
+              </label>
+            </div>
 
-        <div className="flex flex-col justify-end gap-2 text-sm text-muted">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={form.unknownTime} onChange={(e) => setForm({ ...form, unknownTime: e.target.checked })} />
-            Time unknown
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={form.noPlace} onChange={(e) => setForm({ ...form, noPlace: e.target.checked })} />
-            Place unknown
-          </label>
+            <Field label="Or pick a preset">
+              <select onChange={(e) => applyPreset(e.target.value)} className={inputClass} defaultValue="">
+                <option value="" disabled>
+                  Offline fallback…
+                </option>
+                {PRESETS.map((p) => (
+                  <option key={p.label} value={p.label}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <details className="text-sm text-foreground/70">
+              <summary className="cursor-pointer text-xs uppercase tracking-wide">Enter coordinates manually</summary>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  step="any"
+                  value={form.latitude}
+                  disabled={form.noPlace}
+                  onChange={(e) => setForm({ ...form, latitude: e.target.value })}
+                  placeholder="Latitude"
+                  className={`${inputClass} disabled:opacity-40`}
+                />
+                <input
+                  type="number"
+                  step="any"
+                  value={form.longitude}
+                  disabled={form.noPlace}
+                  onChange={(e) => setForm({ ...form, longitude: e.target.value })}
+                  placeholder="Longitude"
+                  className={`${inputClass} disabled:opacity-40`}
+                />
+              </div>
+            </details>
+          </div>
+
+          {/* Right: the live profile, written as they type */}
+          <div className="rounded-xl border border-border bg-background/50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Your profile</p>
+            <p className="mt-3 text-lg leading-relaxed text-foreground">{sentence}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{unlock}</p>
+
+            <dl className="mt-6 space-y-2.5 border-t border-border pt-5 text-sm">
+              <Row label="Born" value={dateStr || "Choose a date"} />
+              <Row label="Time" value={hasTime ? formatTime(form.time) : "Time unknown"} />
+              <Row label="Place" value={hasPlace ? placeLabel : "Place unknown"} />
+              <Row
+                label="Unlocks"
+                value={tier === "full" ? "Signs, degrees, houses" : tier === "timed" ? "Signs, degrees, aspects" : "Planetary signs"}
+                accent
+              />
+            </dl>
+          </div>
         </div>
 
-        <Field label="Or pick a preset">
-          <select onChange={(e) => applyPreset(e.target.value)} className={inputClass} defaultValue="">
-            <option value="" disabled>
-              Offline fallback…
-            </option>
-            {PRESETS.map((p) => (
-              <option key={p.label} value={p.label}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <details className="sm:col-span-2 text-sm text-muted">
-          <summary className="cursor-pointer text-xs uppercase tracking-wide">Enter coordinates manually</summary>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              step="any"
-              value={form.latitude}
-              disabled={form.noPlace}
-              onChange={(e) => setForm({ ...form, latitude: e.target.value })}
-              placeholder="Latitude"
-              className={`${inputClass} disabled:opacity-40`}
-            />
-            <input
-              type="number"
-              step="any"
-              value={form.longitude}
-              disabled={form.noPlace}
-              onChange={(e) => setForm({ ...form, longitude: e.target.value })}
-              placeholder="Longitude"
-              className={`${inputClass} disabled:opacity-40`}
-            />
-          </div>
-        </details>
-
-        <div className="sm:col-span-2">
+        <div className="mt-7">
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-accent px-4 py-2.5 font-semibold text-[#1a1410] transition hover:brightness-110 disabled:opacity-50"
+            className="w-full rounded-lg bg-accent px-4 py-3 font-semibold text-[#1a1410] [text-shadow:0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-110 disabled:opacity-50"
           >
             {loading ? "Computing…" : (submitLabel ?? "Compute chart & synthesize")}
           </button>
           <p className="mt-2 text-center text-xs text-muted">
-            More precision unlocks more systems: date · date+time · date+time+place.
+            More precision unlocks more systems: date · date and time · date, time, and place.
           </p>
         </div>
       </form>
@@ -199,8 +262,17 @@ const inputClass =
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <label className={`flex flex-col gap-1.5 ${className}`}>
-      <span className="text-xs font-medium uppercase tracking-wide text-muted">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-foreground/70">{label}</span>
       {children}
     </label>
+  );
+}
+
+function Row({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-muted">{label}</dt>
+      <dd className={`text-right font-medium ${accent ? "text-accent" : "text-foreground"}`}>{value}</dd>
+    </div>
   );
 }

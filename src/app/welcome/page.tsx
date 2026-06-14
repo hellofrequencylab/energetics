@@ -39,15 +39,15 @@ function lineageCounts(): {
 const STEPS = [
   {
     title: "Enter your birth moment",
-    body: "Your date is enough to begin. Add your time and place to unlock more of the chart.",
+    body: "Your date alone is enough to begin. Share your time and place when you have them, and more of the chart opens up.",
   },
   {
     title: "See every tradition, kept whole",
-    body: "Each system reads your chart on its own terms. Nothing is averaged into one number.",
+    body: "Each tradition reads your chart in its own voice. We never flatten them into a single number.",
   },
   {
     title: "Watch them converge",
-    body: "We show where independent traditions agree about you, and where they pull apart.",
+    body: "We surface where independent traditions quietly agree about you, and where they pull apart.",
   },
 ];
 
@@ -94,6 +94,15 @@ export default function WelcomePage() {
         />
         <Starfield count={30} className="absolute inset-0 z-0 opacity-40" />
         <HeroConvergence className="pointer-events-none absolute inset-0 z-0" />
+        {/* Blue gradient fading the hero into the page below. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-48"
+          aria-hidden="true"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent 0%, rgba(42,44,90,0.35) 45%, var(--midnight) 100%)",
+          }}
+        />
 
         <div className="relative z-10 mx-auto max-w-2xl px-5 py-12 text-center">
           <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight [text-shadow:0_2px_30px_rgba(6,8,20,0.65)] sm:text-7xl">
@@ -126,9 +135,9 @@ export default function WelcomePage() {
     <>
       <section className="px-5 py-24 text-center sm:py-28">
         <Reveal>
-          <p className="mx-auto max-w-2xl font-display text-2xl leading-snug text-star/90 sm:text-3xl">
-            You have read your horoscope. You have outgrown it. The sky has more to say, and it
-            speaks in more than one language.
+          <p className="mx-auto max-w-2xl font-display text-2xl leading-snug text-star sm:text-3xl">
+            You have read your horoscope a hundred times. You have outgrown it. The sky has so much
+            more to say, and it speaks in more than one language.
           </p>
         </Reveal>
       </section>
@@ -145,10 +154,10 @@ export default function WelcomePage() {
           <ol className="mt-12 grid gap-6 sm:grid-cols-3">
             {STEPS.map((s, i) => (
               <Reveal key={i} delay={i * 120}>
-                <li className="h-full rounded-[16px] border border-white/10 bg-dusk/25 p-6 transition duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-horizon-amber/40 hover:bg-dusk/40">
+                <li className="h-full rounded-[16px] border border-white/10 bg-dusk/30 p-6 transition duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-horizon-amber/40 hover:bg-dusk/45">
                   <span className="font-mono text-sm text-horizon-amber">{`0${i + 1}`}</span>
                   <h3 className="mt-3 font-display text-xl font-semibold">{s.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-star/70">{s.body}</p>
+                  <p className="mt-2 text-[15px] leading-relaxed text-star/85">{s.body}</p>
                 </li>
               </Reveal>
             ))}
@@ -175,13 +184,13 @@ export default function WelcomePage() {
               <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">
                 When separate traditions land on the same truth
               </h2>
-              <p className="mt-5 text-star/75">
-                OneSky keeps each system apart, then shows only the overlap that is real. The
-                agreement means something because nothing was nudged to create it. We rank what you
-                see by how many independent traditions point the same way, and we always tell you
-                which one said what.
+              <p className="mt-5 text-[15px] leading-relaxed text-star/85">
+                OneSky keeps each tradition apart, then shows you only the overlap that is real. When
+                they agree, it means something, because nothing was nudged to create it. We rank what
+                you see by how many independent traditions point the same way, and we always tell you
+                which one said it.
               </p>
-              <p className="mt-4 text-star/75">No other reading does this.</p>
+              <p className="mt-4 font-medium text-star/90">Nothing else reads you this way.</p>
               <CenterCTA className={`mt-8 ${ctaPrimary}`}>{CTA_LABEL}</CenterCTA>
             </div>
           </Reveal>
@@ -195,11 +204,11 @@ export default function WelcomePage() {
             <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
               Each tradition, true to its roots
             </h2>
-            <p className="mt-5 text-ink/75">
-              OneSky reads {counts.total} traditions today. We name the lineage of every one. Living
-              traditions are honored as they are. Modern reconstructions are labeled as such, and
-              some are shown for interest while staying out of the structural synthesis, so a recent
-              invention never poses as an ancient lineage.
+            <p className="mt-5 text-[15px] leading-relaxed text-ink/85">
+              OneSky reads {counts.total} traditions today, and we name the lineage of every one.
+              Living traditions are honored as they are. Modern reconstructions are labeled as such,
+              and some are shown for interest while staying out of the structural synthesis, so a
+              recent invention never poses as an ancient lineage.
             </p>
           </Reveal>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -213,7 +222,7 @@ export default function WelcomePage() {
                   <div className="font-display text-4xl font-semibold">
                     <CountUp to={stat.n} />
                   </div>
-                  <div className="mt-1 text-sm text-ink/70">{stat.label}</div>
+                  <div className="mt-1 text-sm font-medium text-ink/80">{stat.label}</div>
                 </div>
               </Reveal>
             ))}
