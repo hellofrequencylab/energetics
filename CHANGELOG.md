@@ -7,6 +7,19 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-14
 
 ### Added
+- Convergence map: a "min connections" control. A slider sets how many points a
+  theme must connect (its threads to systems) before it shows, from 2 up to the
+  most any theme reaches in this chart, so a reader can thin a busy map down to
+  the most-connected themes. The current threshold and the count shown are
+  displayed beside it. (`ConvergenceChart.tsx`.)
+
+### Changed
+- Convergence map: tension lines now stick to their endpoints when dragged. Both
+  the theme dots and the ghost tension poles are draggable through a single
+  position store keyed by theme, so dragging either end moves the dashed tension
+  line with it. (`ConvergenceChart.tsx`.)
+
+### Added
 - Per-system depth (batch one, the offered systems). Each system now has an
   in-depth overview (`src/lib/systems/<id>/overview.ts`, collected in
   `src/lib/system-overviews.ts`): what it is, how to read your result, how it

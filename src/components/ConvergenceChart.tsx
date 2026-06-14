@@ -104,10 +104,11 @@ export function ConvergenceChart({
   const [lens, setLens] = useState<Lens>("all");
   const [sel, setSel] = useState<Selection | null>(null);
   const [hover, setHover] = useState<Hover>(null);
-  const [drag, setDrag] = useState<Record<number, XY>>({});
+  const [drag, setDrag] = useState<Record<string, XY>>({});
   const [dragging, setDragging] = useState(false);
+  const [minConn, setMinConn] = useState(2);
   const svgRef = useRef<SVGSVGElement>(null);
-  const dragState = useRef<{ i: number; moved: boolean; sx: number; sy: number } | null>(null);
+  const dragState = useRef<{ key: string; moved: boolean; sx: number; sy: number; onClick: () => void } | null>(null);
 
   // Which source groups are shown (filter). Default: all present.
   const groups = useMemo(() => [...new Set(computations.map((c) => c.meta.derivedFrom))], [computations]);
@@ -188,7 +189,20 @@ export function ConvergenceChart({
     return s;
   }, [synthesis.tensions]);
 
-  const convPos = (n: ConvNode): XY => drag[n.i] ?? { x: n.bx, y: n.by };
+  // A theme dot and a ghost pole are both keyed by `${axis}::${value}` (a value is
+  // either a convergence node or a ghost, never both), so a single drag store moves
+  // them and the tension lines that attach to them follow.
+  const keyOf = (n: ConvNode): string => `${n.cv.axis}::${n.cv.value}`;
+  const convPos = (n: ConvNode): XY => drag[keyOf(n)] ?? { x: n.bx, y: n.by };
+
+  // How many points a theme connects (its threads to systems). The reader can raise
+  // the minimum to thin out a busy map; 2 shows everything.
+  const maxConn = useMemo(() => convNodes.reduce((m, n) => Math.max(m, n.systemIds.length), 2), [convNodes]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMinConn((m) => Math.min(m, maxConn));
+  }, [maxConn]);
+  const meetsConn = (n: ConvNode): boolean => n.systemIds.length >= minConn;
 
   // Ghost poles: any tension pole whose value is not itself a convergence node
   // gets a placed endpoint near the systems that hold it, so every tension can be
@@ -221,7 +235,8 @@ export function ConvergenceChart({
   }, [synthesis.tensions, nodeByKey, posOf, convNodes]);
 
   const ghostByKey = useMemo(() => new Map(ghostPoles.map((g) => [g.key, g])), [ghostPoles]);
-  const poleXY = (p: TensionPole): XY => (p.conv ? convPos(p.conv) : { x: p.ghost!.x, y: p.ghost!.y });
+  const ghostPos = (g: GhostPole): XY => drag[g.key] ?? { x: g.x, y: g.y };
+  const poleXY = (p: TensionPole): XY => (p.conv ? convPos(p.conv) : ghostPos(p.ghost!));
 
   // Every tension draws: each pole resolves to a convergence node (draggable) or a
   // ghost pole (placed near its systems). A tension renders when both poles resolve.
@@ -255,10 +270,10 @@ export function ConvergenceChart({
     const r = svgRef.current!.getBoundingClientRect();
     return { x: ((e.clientX - r.left) / r.width) * VW, y: ((e.clientY - r.top) / r.height) * VH };
   }
-  function onNodePointerDown(e: React.PointerEvent, n: ConvNode) {
+  function onNodePointerDown(e: React.PointerEvent, key: string, onClick: () => void) {
     e.stopPropagation();
     const p = toSvg(e);
-    dragState.current = { i: n.i, moved: false, sx: p.x, sy: p.y };
+    dragState.current = { key, moved: false, sx: p.x, sy: p.y, onClick };
     svgRef.current?.setPointerCapture(e.pointerId);
     setHover(null);
     setDragging(true);
@@ -268,13 +283,13 @@ export function ConvergenceChart({
     if (!d) return;
     const p = toSvg(e);
     if (Math.hypot(p.x - d.sx, p.y - d.sy) > 4) d.moved = true;
-    setDrag((prev) => ({ ...prev, [d.i]: clampAnnulus(p) }));
+    setDrag((prev) => ({ ...prev, [d.key]: clampAnnulus(p) }));
   }
   function onSvgPointerUp(e: React.PointerEvent) {
     const d = dragState.current;
     if (!d) return;
     svgRef.current?.releasePointerCapture?.(e.pointerId);
-    if (!d.moved) setSel({ kind: "convergence", i: d.i });
+    if (!d.moved) d.onClick();
     else
       setDrag((cur) => {
         try {
@@ -358,6 +373,23 @@ export function ConvergenceChart({
             })}
           </div>
         )}
+        {view === "map" && maxConn > 2 && (
+          <label className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide text-muted">Min connections</span>
+            <input
+              type="range"
+              min={2}
+              max={maxConn}
+              step={1}
+              value={minConn}
+              onChange={(e) => setMinConn(Number(e.target.value))}
+              className="h-1 w-24 cursor-pointer accent-[#d4b072]"
+              aria-label="Minimum connections a theme needs to show on the map"
+            />
+            <span className="tabular-nums text-xs font-semibold text-foreground">{minConn}+</span>
+            <span className="text-xs text-muted">· {convNodes.filter(meetsConn).length} shown</span>
+          </label>
+        )}
         {view === "map" && (
           <div className="ml-auto flex items-center gap-3">
             <button type="button" onClick={resetLayout} className="text-xs text-muted transition hover:text-foreground">
@@ -394,6 +426,7 @@ export function ConvergenceChart({
 
                   {/* threads */}
                   {convNodes.map((n) => {
+                    if (!meetsConn(n)) return null;
                     const p = convPos(n);
                     const lit = litConv(n);
                     const dim = themeDim(n);
@@ -419,6 +452,9 @@ export function ConvergenceChart({
                   {/* tensions */}
                   {showTensions &&
                     tensionLinks.map((n) => {
+                      // If a convergence pole is hidden by the connections filter, its
+                      // tension would dangle to nothing, so hide it too.
+                      if ((n.a.conv && !meetsConn(n.a.conv)) || (n.b.conv && !meetsConn(n.b.conv))) return null;
                       const a = poleXY(n.a);
                       const b = poleXY(n.b);
                       const active = isSel(sel, "tension", n.i) || hover?.label === "Tension";
@@ -457,20 +493,33 @@ export function ConvergenceChart({
                       );
                     })}
 
-                  {/* ghost poles: the tension endpoints that are not convergences */}
+                  {/* ghost poles: the tension endpoints that are not convergences.
+                      Draggable, so the tension line follows them too. */}
                   {showTensions &&
                     ghostPoles.map((g) => {
-                      const right = g.x >= C.x;
+                      const p = ghostPos(g);
+                      const right = p.x >= C.x;
+                      const selectGhost = () => {
+                        const tl = tensionLinks.find((x) => x.a.ghost?.key === g.key || x.b.ghost?.key === g.key);
+                        if (tl) setSel({ kind: "tension", i: tl.i });
+                      };
                       return (
                         <g
                           key={`g${g.key}`}
-                          onPointerEnter={() => !dragging && setHover({ label: humanize(g.value), sub: "tension pole", x: g.x, y: g.y })}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${humanize(g.value)} tension pole. Drag to move, click for details.`}
+                          className="cursor-grab focus:outline-none active:cursor-grabbing"
+                          onPointerDown={(e) => onNodePointerDown(e, g.key, selectGhost)}
+                          onKeyDown={keyActivate(selectGhost)}
+                          onPointerEnter={() => !dragging && setHover({ label: humanize(g.value), sub: "tension pole", x: p.x, y: p.y })}
                           onPointerLeave={() => setHover(null)}
                         >
-                          <circle cx={g.x} cy={g.y} r={5} fill={VIOLET} fillOpacity={0.65} stroke={INK} strokeWidth={1} />
+                          <circle cx={p.x} cy={p.y} r={7} fill={VIOLET} fillOpacity={0.06} />
+                          <circle cx={p.x} cy={p.y} r={5} fill={VIOLET} fillOpacity={0.65} stroke={INK} strokeWidth={1} />
                           <text
-                            x={g.x + (right ? 10 : -10)}
-                            y={g.y + 4}
+                            x={p.x + (right ? 10 : -10)}
+                            y={p.y + 4}
                             textAnchor={right ? "start" : "end"}
                             fontSize={12}
                             fill="#cdc4ff"
@@ -517,6 +566,7 @@ export function ConvergenceChart({
 
                   {/* theme dots (draggable) */}
                   {convNodes.map((n) => {
+                    if (!meetsConn(n)) return null;
                     const p = convPos(n);
                     const r = n.strong ? 7 + Math.min(n.cv.independentGroups, 4) * 2 : 4.5;
                     const dx = p.x - C.x;
@@ -533,7 +583,7 @@ export function ConvergenceChart({
                         aria-label={`${humanize(n.cv.value)}, ${n.cv.independentGroups} source${n.cv.independentGroups === 1 ? "" : "s"}. Drag to move, click for details.`}
                         className="cursor-grab focus:outline-none active:cursor-grabbing"
                         opacity={dim ? 0.18 : 1}
-                        onPointerDown={(e) => onNodePointerDown(e, n)}
+                        onPointerDown={(e) => onNodePointerDown(e, keyOf(n), () => setSel({ kind: "convergence", i: n.i }))}
                         onKeyDown={keyActivate(() => setSel({ kind: "convergence", i: n.i }))}
                         onPointerEnter={() => !dragging && setHover({ label: humanize(n.cv.value), sub: `${n.cv.independentGroups} source${n.cv.independentGroups === 1 ? "" : "s"}`, x: p.x, y: p.y })}
                         onPointerLeave={() => setHover(null)}
@@ -775,7 +825,7 @@ function Legend() {
       {item("#6aa0cf", "Sky")}
       {item("#d4b072", "Calendar")}
       {item("#8b7dff", "Name")}
-      <span className="text-muted/70">Drag a theme to move it.</span>
+      <span className="text-muted/70">Drag any point to move it; lines follow.</span>
     </div>
   );
 }

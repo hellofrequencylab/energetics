@@ -386,6 +386,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-14",
+    title: "Tidy a busy map, and lines that follow",
+    notes: [
+      "A new min connections slider on the map lets you show only the themes that connect a number of points you choose, so you can thin out a crowded chart.",
+      "Drag any point, a theme or a tension pole, and the lines attached to it now follow as you move it.",
+    ],
+  },
+  {
+    date: "2026-06-14",
     title: "Every tension shows on the map",
     notes: [
       "The convergence map now draws all of your tensions, not just the ones between two cross-confirmed themes.",
