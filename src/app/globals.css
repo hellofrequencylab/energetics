@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  /* Tool palette (the working app at /). Kept stable. */
-  --background: #0b0b14;
-  --surface: #14141f;
-  --surface-2: #1c1c2b;
-  --border: #2a2a3d;
-  --foreground: #ececf2;
-  --muted: #9a9ab0;
-  --accent: #c9a96a; /* warm gold */
-  --accent-2: #7c6cff; /* violet */
+  /* Tool palette. Warm dark, tuned for readability and a softer, candlelit feel. */
+  --background: #0e0b12; /* warm near-black */
+  --surface: #181320; /* lifted card */
+  --surface-2: #221b2c;
+  --border: #342b3f; /* warmer hairline */
+  --foreground: #f3eee7; /* warm off-white, high contrast */
+  --muted: #b6acba; /* lighter + warmer, so secondary text stays readable */
+  --accent: #d4b072; /* warm gold */
+  --accent-2: #8b7dff; /* violet, lifted for contrast */
 
-  /* OneSky design tokens (docs/DESIGN.md, section 4): editorial twilight. */
-  --midnight: #121535; /* primary dark atmosphere */
-  --dusk: #2a2c5a; /* lifted surface on dark */
+  /* OneSky design tokens (docs/DESIGN.md, section 4): editorial twilight, warmed. */
+  --midnight: #161229; /* primary dark atmosphere, warm indigo */
+  --dusk: #2c2750; /* lifted surface on dark */
   --ink: #1c1830; /* text on light surfaces */
-  --star: #ede9f2; /* text and fine lines on dark */
-  --horizon-amber: #e7b17e; /* warm horizon glow, primary accent */
-  --horizon-rose: #e29a86; /* secondary warm accent */
-  --bone: #f4efe6; /* secondary reading surface, long-form only */
+  --star: #f3eee7; /* text and fine lines on dark (matches foreground) */
+  --horizon-amber: #ecb885; /* warm horizon glow, primary accent */
+  --horizon-rose: #e6a08a; /* secondary warm accent */
+  --bone: #f6f1e8; /* secondary reading surface, long-form only */
 
   /* Convergence threads (muted) and the bright shared node. */
   --thread-gold: #c8a86a;
@@ -66,11 +66,25 @@
 
 body {
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(124, 108, 255, 0.12), transparent),
-    radial-gradient(900px 500px at -10% 10%, rgba(201, 169, 106, 0.08), transparent),
+    radial-gradient(1100px 560px at 82% -8%, rgba(236, 184, 133, 0.10), transparent),
+    radial-gradient(960px 520px at -8% 8%, rgba(139, 125, 255, 0.10), transparent),
+    radial-gradient(1400px 800px at 50% 120%, rgba(236, 160, 138, 0.06), transparent),
     var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-hanken), system-ui, sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Readable defaults for long-form body copy without touching component classes. */
+p {
+  text-wrap: pretty;
+}
+h1, h2, h3, h4 {
+  text-wrap: balance;
 }
 
 /* Accessibility floor: a visible focus ring on every interactive element. */

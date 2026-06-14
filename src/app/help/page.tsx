@@ -1,7 +1,7 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { offeredMeta } from "@/lib/core/registry";
 import { isBuilt } from "@/lib/core/registry";
+import { SiteShell } from "@/components/site/SiteShell";
 import {
   CATEGORIES,
   CHANGELOG,
@@ -58,21 +58,16 @@ export default function HelpPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-5 py-12 sm:py-16">
+    <SiteShell width="max-w-3xl">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <div className="mb-6 flex items-center justify-between text-xs text-muted">
-        <Link href="/" className="hover:text-foreground">
-          ← Back
-        </Link>
-        <div className="flex gap-3">
-          <a href="#systems" className="hover:text-foreground">Systems</a>
-          <a href="#faq" className="hover:text-foreground">FAQ</a>
-          <a href="#whats-new" className="hover:text-foreground">What is new</a>
-        </div>
+      <div className="mb-6 flex flex-wrap justify-end gap-3 text-xs text-muted">
+        <a href="#systems" className="hover:text-foreground">Systems</a>
+        <a href="#faq" className="hover:text-foreground">FAQ</a>
+        <a href="#whats-new" className="hover:text-foreground">What is new</a>
       </div>
 
       <header className="mb-10">
@@ -189,6 +184,6 @@ export default function HelpPage() {
         </a>{" "}
         and tell us what happened and what you expected.
       </footer>
-    </main>
+    </SiteShell>
   );
 }
