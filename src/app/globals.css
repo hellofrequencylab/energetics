@@ -221,10 +221,10 @@ body {
 }
 
 /* Hero photograph: cinematic slow zoom (Ken Burns). The file lives at
-   public/hero-sky.jpg. If absent, the layer is simply empty over the twilight
+   public/hero-sky.png. If absent, the layer is simply empty over the twilight
    base, so the hero degrades gracefully. */
 .hero-photo {
-  background-image: url("/hero-sky.jpg");
+  background-image: url("/hero-sky.png");
   background-size: cover;
   background-position: center;
 }
