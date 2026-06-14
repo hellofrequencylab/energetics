@@ -56,7 +56,7 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const practitioner = profile?.account_type === "practitioner";
 
   return (
-    <SiteShell>
+    <SiteShell width="max-w-6xl">
       <Link href="/account" className="text-sm text-star/60 transition hover:text-star">
         ← Back to account
       </Link>

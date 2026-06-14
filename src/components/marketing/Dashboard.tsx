@@ -52,7 +52,7 @@ export function Dashboard({
     <div className="min-h-screen bg-midnight text-star">
       {/* Account bar */}
       <header className="sticky top-0 z-30 border-b border-white/5 bg-midnight/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-3">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3">
           <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">
             <ConvergenceGraph animated={false} className="h-6 w-8" label="OneSky" />
             <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
@@ -75,7 +75,7 @@ export function Dashboard({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl px-5 py-10">
+      <main className="mx-auto w-full max-w-6xl px-5 py-10">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">Your reading</p>
         <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
           {name ? `${name}, here is your sky` : "Here is your sky"}
