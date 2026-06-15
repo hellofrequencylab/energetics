@@ -131,7 +131,7 @@ export function BirthForm({
       <form onSubmit={onSubmit} className="rounded-2xl border border-border bg-surface/60 p-6 sm:p-7">
         <div className="grid gap-7 lg:grid-cols-2">
           {/* Left: the fields */}
-          <div className="space-y-4">
+          <div className="order-1 space-y-4">
             <Field label="Your full name">
               <input
                 type="text"
@@ -221,8 +221,9 @@ export function BirthForm({
             </details>
           </div>
 
-          {/* Right: the live profile, written as they type */}
-          <div className="rounded-xl border border-border bg-background/50 p-5">
+          {/* The live profile, written as they type. On mobile it sits below the
+              submit button; on desktop it is the right column. */}
+          <div className="order-3 rounded-xl border border-border bg-background/50 p-5 lg:order-2">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">Your profile</p>
             <p className="mt-3 text-lg leading-relaxed text-foreground">{sentence}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">{unlock}</p>
@@ -238,19 +239,21 @@ export function BirthForm({
               />
             </dl>
           </div>
-        </div>
 
-        <div className="mt-7">
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-accent px-4 py-3 font-semibold text-[#1a1410] [text-shadow:0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-110 disabled:opacity-50"
-          >
-            {loading ? "Computing…" : (submitLabel ?? "Compute chart & synthesize")}
-          </button>
-          <p className="mt-2 text-center text-xs text-muted">
-            More precision unlocks more systems: date · date and time · date, time, and place.
-          </p>
+          {/* Submit: directly under the fields on mobile (order-2), and full width
+              below both columns on desktop (order-3). */}
+          <div className="order-2 lg:order-3 lg:col-span-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-accent px-4 py-3 font-semibold text-[#1a1410] [text-shadow:0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-110 disabled:opacity-50"
+            >
+              {loading ? "Computing…" : (submitLabel ?? "Compute chart & synthesize")}
+            </button>
+            <p className="mt-2 text-center text-xs text-muted">
+              More precision unlocks more systems: date · date and time · date, time, and place.
+            </p>
+          </div>
         </div>
       </form>
 
