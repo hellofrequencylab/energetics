@@ -1,7 +1,8 @@
-import { themeNarration } from "@/lib/synthesis/narrative";
-import { streamNarration } from "@/lib/synthesis/narrate-stream";
+import { themeNarration, NARRATIVE_MODEL } from "@/lib/synthesis/narrative";
+import { streamNarration, NARRATIVE_MAX_TOKENS } from "@/lib/synthesis/narrate-stream";
+import { openNarrateGate } from "@/lib/ai/guard";
+import { estimateGenerationCostUsd } from "@/lib/ai/pricing";
 
-import { rateLimitShared, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 // The reading streams with adaptive thinking; allow time for the model.
 export const maxDuration = 120;
@@ -14,10 +15,13 @@ export const maxDuration = 120;
  * that independently landed on it. Cached per request (kind "chart", the only
  * single-chart kind the cache table accepts) so reopening a theme is instant and
  * never re-bills.
+ *
+ * Drill-down is a OneSky Plus feature (enforced by the gate); free readers see
+ * the structural theme above without the prose deep-dive.
  */
 export async function POST(request: Request) {
-  const rl = await rateLimitShared(request, { key: "ai", limit: 15, windowMs: 60_000 });
-  if (!rl.ok) return tooManyRequests(rl.retryAfter);
+  const gate = await openNarrateGate(request, "theme");
+  if (!gate.ok) return gate.response;
   let body: unknown;
   try {
     body = await request.json();
@@ -46,13 +50,16 @@ export async function POST(request: Request) {
     return new Response("Invalid request.", { status: 400 });
   }
 
-  return streamNarration(
-    "chart",
-    themeNarration({
-      axis,
-      value,
-      systems,
-      selfName: typeof selfName === "string" ? selfName.slice(0, 80) : undefined,
-    }),
-  );
+  const req = themeNarration({
+    axis,
+    value,
+    systems,
+    selfName: typeof selfName === "string" ? selfName.slice(0, 80) : undefined,
+  });
+  const estCost = estimateGenerationCostUsd({
+    model: NARRATIVE_MODEL,
+    inputText: req.system + req.prompt,
+    maxTokens: NARRATIVE_MAX_TOKENS,
+  });
+  return streamNarration("chart", req, { beforeGenerate: () => gate.reserve(estCost) });
 }

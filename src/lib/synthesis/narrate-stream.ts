@@ -17,6 +17,19 @@ import { NARRATIVE_MODEL, narrationKey, type NarrationRequest } from "./narrativ
 
 type Kind = "chart" | "resonance";
 
+/** Output token budget per generation. Shared so cost estimates match the call. */
+export const NARRATIVE_MAX_TOKENS = 8000;
+
+/**
+ * Optional cost-safety hook (ADR-0008). `beforeGenerate` runs only on a true cache
+ * miss with the model configured, i.e. right before a billable call. It returns a
+ * Response to short-circuit (quota or global budget hit), or null to proceed.
+ * Cache hits and the "not configured" note never invoke it, so they are free.
+ */
+export interface NarrateGuard {
+  beforeGenerate?: () => Promise<Response | null>;
+}
+
 const NOT_CONFIGURED =
   "The reading is not configured yet. The convergences and tensions above are computed without a model and need no setup. Add an API key to turn on the prose layer.";
 
@@ -70,7 +83,11 @@ async function writeCache(key: string, kind: Kind, body: string): Promise<void> 
   }
 }
 
-export async function streamNarration(kind: Kind, req: NarrationRequest): Promise<Response> {
+export async function streamNarration(
+  kind: Kind,
+  req: NarrationRequest,
+  guard?: NarrateGuard,
+): Promise<Response> {
   const cacheKey = narrationKey(req);
 
   // 1. Cache hit: return the stored reading instantly, no model call.
@@ -84,7 +101,15 @@ export async function streamNarration(kind: Kind, req: NarrationRequest): Promis
     return new Response(NOT_CONFIGURED, { headers: headersFor({ available: false, cached: false }) });
   }
 
-  // 3. Fresh: stream tokens to the client, accumulate, then cache.
+  // 3. Cost safety: a real generation is about to run, so pre-authorize it
+  // against the per-user quota and the global daily budget. Cache hits above
+  // never reach here, so they are never billed and never count against quota.
+  if (guard?.beforeGenerate) {
+    const blocked = await guard.beforeGenerate();
+    if (blocked) return blocked;
+  }
+
+  // 4. Fresh: stream tokens to the client, accumulate, then cache.
   const client = new Anthropic();
   const encoder = new TextEncoder();
 
@@ -94,7 +119,7 @@ export async function streamNarration(kind: Kind, req: NarrationRequest): Promis
       try {
         const ai = client.messages.stream({
           model: NARRATIVE_MODEL,
-          max_tokens: 8000,
+          max_tokens: NARRATIVE_MAX_TOKENS,
           thinking: { type: "adaptive" },
           system: req.system,
           messages: [{ role: "user", content: req.prompt }],

@@ -8,7 +8,7 @@
 type Bucket = { count: number; reset: number };
 const buckets = new Map<string, Bucket>();
 
-function clientIp(req: Request): string {
+export function clientIp(req: Request): string {
   // Trust only platform-set headers. A client can send an arbitrary
   // X-Forwarded-For, and the edge proxy APPENDS the real peer on the right, so
   // the leftmost entry is attacker-controlled (rotating it would mint unlimited
