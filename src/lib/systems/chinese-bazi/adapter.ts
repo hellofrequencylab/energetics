@@ -32,6 +32,37 @@ const ELEMENT_THEME: Record<string, string> = {
   water: "intuition",
 };
 
+/**
+ * Ten Gods (十神) → life domain. The classic gods group into peer, output,
+ * wealth, authority, and resource families, which map cleanly to ontology
+ * domains: peers → community, output → creativity, wealth → resources,
+ * authority → vocation, resource → philosophy (study and support).
+ */
+const GOD_DOMAIN: Record<string, string> = {
+  Friend: "community",
+  "Rob Wealth": "community",
+  "Eating God": "creativity",
+  "Hurting Officer": "creativity",
+  "Direct Wealth": "resources",
+  "Indirect Wealth": "resources",
+  "Direct Officer": "vocation",
+  "Seven Killings": "vocation",
+  "Direct Resource": "philosophy",
+  "Indirect Resource": "philosophy",
+};
+
+/** Ten Gods → curated theme, naming the working force each god brings. */
+const GOD_THEME: Record<string, string> = {
+  "Eating God": "play",
+  "Hurting Officer": "communication",
+  "Direct Wealth": "discipline",
+  "Indirect Wealth": "exploration",
+  "Direct Officer": "structure",
+  "Seven Killings": "leadership",
+  "Direct Resource": "nurture",
+  "Indirect Resource": "intuition",
+};
+
 export const adapter: SemanticAdapter = {
   systemId: meta.id,
   ontologyVersion: ONTOLOGY_VERSION,
@@ -109,6 +140,108 @@ export const adapter: SemanticAdapter = {
           derivedFrom: "date",
           native: { factorKey: "animal", raw: animal },
         });
+      }
+    }
+
+    // Ten Gods → domain + theme. The month and hour gods carry the strongest read
+    // on what arena of life a chart leans into (career, study, output, peers).
+    const tenGods = native.factors["ten-gods"];
+    if (tenGods) {
+      const gods = tenGods.value as Record<string, string>;
+      const seenDomains = new Set<string>();
+      const seenThemes = new Set<string>();
+      // Month god leads (the season root), then hour, then year.
+      for (const [slot, weight] of [["month", 0.6], ["hour", 0.45], ["year", 0.35]] as const) {
+        const god = gods[slot];
+        if (!god) continue;
+        const domain = GOD_DOMAIN[god];
+        if (domain && !seenDomains.has(domain)) {
+          seenDomains.add(domain);
+          primitives.push({
+            axis: "domain",
+            value: domain,
+            weight,
+            source: meta.id,
+            derivedFrom: "date",
+            native: { factorKey: "ten-gods", raw: { slot, god } },
+          });
+        }
+        const theme = GOD_THEME[god];
+        if (theme && !seenThemes.has(theme)) {
+          seenThemes.add(theme);
+          primitives.push({
+            axis: "theme",
+            value: theme,
+            weight: weight * 0.8,
+            source: meta.id,
+            derivedFrom: "date",
+            native: { factorKey: "ten-gods", raw: { slot, god } },
+          });
+        }
+      }
+    }
+
+    // Day Master strength → polarity. A well-rooted day master tends to initiate
+    // (active); a supported one tends to gather and respond (receptive). Lighter
+    // weight than the day-stem polarity above, since it is a derived strength read.
+    const strength = native.factors.strength;
+    if (strength) {
+      const { rooting } = strength.value as { rooting: string };
+      if (rooting) {
+        primitives.push({
+          axis: "polarity",
+          value: rooting === "strong" ? "active" : "receptive",
+          weight: 0.35,
+          source: meta.id,
+          derivedFrom: "date",
+          native: { factorKey: "strength", raw: rooting },
+        });
+      }
+    }
+
+    // NaYin element of the day pillar, an independent older element read of the
+    // day. Light weight, it backs the day-master element family.
+    const nayin = native.factors.nayin;
+    if (nayin) {
+      const { element } = nayin.value as { element: string };
+      if (element) {
+        primitives.push({
+          axis: "element",
+          value: `chinese:${element}`,
+          weight: 0.3,
+          source: meta.id,
+          derivedFrom: "date",
+          native: { factorKey: "nayin", raw: element },
+        });
+      }
+    }
+
+    // Useful Element, the phase the chart most wants more of. It points to a
+    // growth direction, so it earns its own element signal with a self-aware
+    // theme (the quality you are reaching toward).
+    const useful = native.factors["useful-element"];
+    if (useful) {
+      const { element } = useful.value as { element: string };
+      if (element) {
+        primitives.push({
+          axis: "element",
+          value: `chinese:${element}`,
+          weight: 0.4,
+          source: meta.id,
+          derivedFrom: "date",
+          native: { factorKey: "useful-element", raw: element },
+        });
+        const theme = ELEMENT_THEME[element];
+        if (theme) {
+          primitives.push({
+            axis: "theme",
+            value: theme,
+            weight: 0.3,
+            source: meta.id,
+            derivedFrom: "date",
+            native: { factorKey: "useful-element", raw: element },
+          });
+        }
       }
     }
 

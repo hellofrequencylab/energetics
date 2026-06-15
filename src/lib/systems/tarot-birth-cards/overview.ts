@@ -22,5 +22,11 @@ export const overview: SystemOverview = {
       "Your inner card, the single-digit root: a quieter, long-running theme that motivates you underneath.",
     teacher:
       "The higher octave of your Soul number: where the same lesson shows up in its more demanding form.",
+    element:
+      "The elemental suit your Soul card draws on: Wands for fire and drive, Pentacles for earth and making, Swords for air and thought, Cups for water and feeling.",
+    polarity:
+      "Whether your Soul number leans active, the energy that starts and reaches out, or receptive, the energy that gathers and waits.",
+    constellation:
+      "Whether your outer and inner cards land on the same number. When they double, the theme reads as one clear calling instead of two layers.",
   },
 };

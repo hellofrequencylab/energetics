@@ -4,11 +4,11 @@ export const overview: SystemOverview = {
   intro:
     "Pythagorean numerology reads the numbers folded into your birth date. We add up the year, month, and day, reduce them down step by step, and keep the numbers that come out as your through-lines.",
   how:
-    "Start with your Life Path, the headline number drawn from your whole birth date. The rest add texture: your Birthday number is the day you were born reduced down, your Attitude comes from the month and day together, your Maturity is the note that ripens as you grow, and your Main Challenge names the friction you keep meeting. Single digits run 1 to 9. The master numbers 11, 22, and 33 stay whole instead of reducing, because tradition treats them as carrying extra charge. Read them as invitations, not verdicts.",
+    "Start with your Life Path, the headline number drawn from your whole birth date. The rest add texture: your Birthday number is the day you were born reduced down, your Attitude comes from the month and day together, your Maturity is the note that ripens as you grow, and your Main Challenge names the friction you keep meeting. Two longer arcs round out the picture: your four Pinnacles mark the high themes of each life stage, and your four Challenges mark the work of each. Single digits run 1 to 9. The master numbers 11, 22, and 33 stay whole instead of reducing, because tradition treats them as carrying extra charge. Read them as invitations, not verdicts.",
   appliesToLife:
-    "These numbers tend to surface in how you make decisions, what kind of work feels like yours, and the patterns that repeat in your relationships. Your Life Path points at the direction that feels true over a lifetime. Your Birthday and Attitude show up in the everyday: how you greet a new day and the gifts you reach for first. Your Maturity number often comes into focus later, and your Main Challenge marks the edge worth working with rather than around.",
+    "These numbers tend to surface in how you make decisions, what kind of work feels like yours, and the patterns that repeat in your relationships. Your Life Path points at the direction that feels true over a lifetime. Your Birthday and Attitude show up in the everyday: how you greet a new day and the gifts you reach for first. Your Maturity number often comes into focus later, and your Main Challenge marks the edge worth working with rather than around. The Pinnacles and Challenges read as a rough arc across the seasons of a life, the gift on offer in each stage and the lesson paired with it.",
   lineageNote:
-    "This is a traditional numerology system. The method of reducing a birth date to single digits and master numbers has been carried through numerology lineages for generations. We compute it openly from your date alone, with no hidden inputs. Your birth date stays private to your chart.",
+    "This is a traditional numerology system. The method of reducing a birth date to single digits and master numbers, and the four-stage cycle of pinnacles and challenges, have been carried through numerology lineages for generations. We compute it openly from your date alone, with no hidden inputs. Your birth date stays private to your chart.",
   stats: {
     "life-path":
       "The through-line of your whole birth date: the direction and lessons that recur across a lifetime.",
@@ -20,5 +20,9 @@ export const overview: SystemOverview = {
       "Your Life Path and Birthday read together: the note that ripens and steadies as you grow.",
     challenge:
       "The gap between your month and day: the friction you keep meeting and the edge worth working with.",
+    pinnacles:
+      "Four high themes, one for each life stage, drawn from pairs of your date parts: what each season tends to offer you.",
+    challenges:
+      "Four lessons, one for each life stage, read as differences in your date parts: the work paired with each pinnacle.",
   },
 };

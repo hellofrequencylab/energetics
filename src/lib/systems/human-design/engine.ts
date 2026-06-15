@@ -39,10 +39,16 @@ export interface HumanDesignData {
   strategy: string;
   authority: string;
   profile: string;
+  profileAngle: string;
+  signature: string;
+  notSelf: string;
   definition: string;
   centers: Record<CenterId, boolean>;
+  openCenters: CenterId[];
   channels: string[];
+  definedGates: number[];
   incarnationCross: number[]; // [persSun, persEarth, designSun, designEarth]
+  crossKind: string;
   activations: Activation[];
 }
 
@@ -177,23 +183,62 @@ export const engine: SystemEngine = {
     const desSunLine = activations.find((a) => a.body === "Sun" && a.side === "design")!.line;
     const profile = `${persSunLine}/${desSunLine}`;
 
+    // Profile angle: lines 1-3 read as a personal "right angle" arc (self-focused
+    // early life), 5-6 lean transpersonal ("left angle"), 4 is the "juxtaposition"
+    // hinge. This is a coarse, derived read, not corpus text.
+    const profileAngle =
+      persSunLine <= 3 && desSunLine <= 3
+        ? "Right Angle"
+        : persSunLine >= 5 && desSunLine >= 5
+          ? "Left Angle"
+          : "Juxtaposition";
+
     const compCount = components(defined, definedChannels);
     const definition = ["None", "Single", "Split", "Triple Split", "Quadruple Split"][compCount] ?? "Complex";
 
     const centersRecord = Object.fromEntries(CENTERS.map((c) => [c, defined.has(c)])) as Record<CenterId, boolean>;
+    const openCenters = CENTERS.filter((c) => !defined.has(c));
     const g = (body: string, side: "personality" | "design") =>
       activations.find((a) => a.body === body && a.side === side)!.gate;
     const incarnationCross = [g("Sun", "personality"), g("Earth", "personality"), g("Sun", "design"), g("Earth", "design")];
+    const crossKind = `${profileAngle} Cross`;
+
+    // Every gate switched on by any activation (sorted), plus the count. This is
+    // the reader's full "defined gates" picture, derived from the activations.
+    const definedGates = [...activeGates].sort((a, b) => a - b);
+
+    // Signature (the feeling of living on-strategy) and not-self theme (the tell
+    // that you're off it) follow directly from type. Coarse, derived labels.
+    const SIGNATURE: Record<string, string> = {
+      Manifestor: "Peace",
+      Generator: "Satisfaction",
+      "Manifesting Generator": "Satisfaction",
+      Projector: "Success",
+      Reflector: "Surprise",
+    };
+    const NOT_SELF: Record<string, string> = {
+      Manifestor: "Anger",
+      Generator: "Frustration",
+      "Manifesting Generator": "Frustration and anger",
+      Projector: "Bitterness",
+      Reflector: "Disappointment",
+    };
 
     const data: HumanDesignData = {
       type,
       strategy: STRATEGY[type],
       authority,
       profile,
+      profileAngle,
+      signature: SIGNATURE[type],
+      notSelf: NOT_SELF[type],
       definition,
       centers: centersRecord,
+      openCenters,
       channels: definedChannels.map(([a, b]) => `${a}-${b}`),
+      definedGates,
       incarnationCross,
+      crossKind,
       activations,
     };
 
@@ -202,6 +247,24 @@ export const engine: SystemEngine = {
       strategy: { key: "strategy", label: "Strategy", value: data.strategy, display: data.strategy },
       authority: { key: "authority", label: "Authority", value: authority, display: authority },
       profile: { key: "profile", label: "Profile", value: profile, display: profile },
+      profileAngle: {
+        key: "profileAngle",
+        label: "Profile Angle",
+        value: profileAngle,
+        display: profileAngle,
+      },
+      signature: {
+        key: "signature",
+        label: "Signature",
+        value: data.signature,
+        display: data.signature,
+      },
+      notSelf: {
+        key: "notSelf",
+        label: "Not-Self Theme",
+        value: data.notSelf,
+        display: data.notSelf,
+      },
       definition: { key: "definition", label: "Definition", value: definition, display: definition },
       centers: {
         key: "centers",
@@ -209,17 +272,31 @@ export const engine: SystemEngine = {
         value: centersRecord,
         display: CENTERS.filter((c) => defined.has(c)).join(", ") || "none (Reflector)",
       },
+      openCenters: {
+        key: "openCenters",
+        label: "Open Centers",
+        value: openCenters,
+        display: openCenters.join(", ") || "none (fully defined)",
+      },
       channels: {
         key: "channels",
         label: "Defined Channels",
         value: data.channels,
         display: data.channels.join(", ") || "none",
       },
+      definedGates: {
+        key: "definedGates",
+        label: "Defined Gates",
+        value: definedGates,
+        display: definedGates.length
+          ? `${definedGates.length} gates: ${definedGates.join(", ")}`
+          : "none",
+      },
       cross: {
         key: "cross",
         label: "Incarnation Cross",
         value: incarnationCross,
-        display: `Gates ${incarnationCross[0]}/${incarnationCross[1]} | ${incarnationCross[2]}/${incarnationCross[3]}`,
+        display: `${crossKind}, gates ${incarnationCross[0]}/${incarnationCross[1]} | ${incarnationCross[2]}/${incarnationCross[3]}`,
       },
       note: {
         key: "note",

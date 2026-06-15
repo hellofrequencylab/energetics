@@ -38,6 +38,13 @@ const PROFILE_LINE_THEME: Record<number, string> = {
   1: "analysis", 2: "intuition", 3: "exploration", 4: "devotion", 5: "leadership", 6: "vision",
 };
 
+/** Profile angle → a coarse polarity: personal arc reads active, transpersonal receptive. */
+const PROFILE_ANGLE_POLARITY: Record<string, string> = {
+  "Right Angle": "active", // personal destiny, self-focused arc
+  "Left Angle": "receptive", // transpersonal, woven through others
+  Juxtaposition: "balanced", // the fixed-fate hinge between the two
+};
+
 /** Definition (how defined centers connect) → a structural theme + polarity. */
 const DEFINITION_MAP: Record<string, { theme?: string; polarity?: string }> = {
   None: { polarity: "receptive" }, // Reflector: nothing fixed, all open
@@ -45,6 +52,23 @@ const DEFINITION_MAP: Record<string, { theme?: string; polarity?: string }> = {
   Split: { theme: "communication" }, // two areas that look for a bridge
   "Triple Split": { theme: "communication" },
   "Quadruple Split": { theme: "communication" },
+};
+
+/**
+ * Open centers are where you take in and amplify the world. Each contributes a
+ * receptive read of its domain (where you stay porous), at a lighter weight than
+ * a defined center's consistent, self-generated read.
+ */
+const OPEN_CENTER_DOMAIN: Record<CenterId, string> = {
+  Head: "philosophy",
+  Ajna: "philosophy",
+  Throat: "communication",
+  G: "self",
+  Heart: "resources",
+  Sacral: "vocation",
+  SolarPlexus: "relationship",
+  Spleen: "service-health",
+  Root: "transformation",
 };
 
 export const adapter: SemanticAdapter = {
@@ -76,6 +100,18 @@ export const adapter: SemanticAdapter = {
       }
     }
 
+    // Open centers: porous, receptive areas where you take in and amplify others.
+    const openCenters = native.factors.openCenters?.value as CenterId[] | undefined;
+    if (openCenters) {
+      for (const center of openCenters) {
+        emit("center", CENTER_MAP[center].value, 0.4, "openCenters", center);
+        emit("domain", OPEN_CENTER_DOMAIN[center], 0.4, "openCenters", center);
+        emit("polarity", "receptive", 0.4, "openCenters", center);
+        // Openness is where the world conditions you: a sensitivity surface.
+        emit("theme", "sensitivity", 0.4, "openCenters", center);
+      }
+    }
+
     const profile = native.factors.profile?.value as string | undefined;
     if (profile) {
       for (const part of profile.split("/")) {
@@ -84,11 +120,24 @@ export const adapter: SemanticAdapter = {
       }
     }
 
+    const profileAngle = native.factors.profileAngle?.value as string | undefined;
+    if (profileAngle && PROFILE_ANGLE_POLARITY[profileAngle]) {
+      emit("polarity", PROFILE_ANGLE_POLARITY[profileAngle], 0.45, "profileAngle", profileAngle);
+    }
+
     const definition = native.factors.definition?.value as string | undefined;
     if (definition && DEFINITION_MAP[definition]) {
       const d = DEFINITION_MAP[definition];
       if (d.theme) emit("theme", d.theme, 0.55, "definition", definition);
       if (d.polarity) emit("polarity", d.polarity, 0.55, "definition", definition);
+    }
+
+    // The incarnation cross is your Sun/Earth axis, a broad pointer at life
+    // direction and contribution. We map the structure (not licensed gate text)
+    // to the vocation domain at a light weight.
+    const cross = native.factors.cross?.value as number[] | undefined;
+    if (cross && cross.length === 4) {
+      emit("domain", "vocation", 0.5, "cross", cross);
     }
 
     return primitives;

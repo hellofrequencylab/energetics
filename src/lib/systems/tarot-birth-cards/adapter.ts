@@ -1,5 +1,5 @@
 import type { NativeResult, Primitive, SemanticAdapter } from "@/lib/core/contracts";
-import { isRegistered } from "@/lib/ontology/axes";
+import { elementTerm, isRegistered } from "@/lib/ontology/axes";
 import { ONTOLOGY_VERSION } from "@/lib/ontology/version";
 import { meta } from "./engine";
 
@@ -94,7 +94,10 @@ export const adapter: SemanticAdapter = {
     for (const key of ["personality", "soul", "teacher"]) {
       const factor = native.factors[key];
       if (!factor) continue;
-      const { number } = factor.value as { number: number };
+      const { number, element } = factor.value as {
+        number: number;
+        element?: "fire" | "earth" | "air" | "water";
+      };
       const base = {
         source: meta.id,
         derivedFrom: "date" as const,
@@ -121,7 +124,53 @@ export const adapter: SemanticAdapter = {
       if (domain && isRegistered("domain", domain)) {
         primitives.push({ axis: "domain", value: domain, weight: w * 0.5, ...base });
       }
+
+      // Elemental dignity of the card itself (its trump attribution), namespaced to
+      // the Western four-element family. Emitted per card so the personality, soul,
+      // and teacher each contribute their element.
+      if (element) {
+        const value = elementTerm("western", element);
+        if (isRegistered("element", value)) {
+          primitives.push({ axis: "element", value, weight: w * 0.55, ...base });
+        }
+      }
     }
+
+    // The Soul card's element carried once more at full salience through the
+    // dedicated element/suit factor, so the reader's headline suit registers as a
+    // strong elemental signal in the synthesis.
+    const elementFactor = native.factors.element;
+    if (elementFactor) {
+      const { element } = elementFactor.value as { element: string };
+      const value = elementTerm("western", element);
+      if (isRegistered("element", value)) {
+        primitives.push({
+          axis: "element",
+          value,
+          weight: 0.6,
+          source: meta.id,
+          derivedFrom: "date",
+          native: { factorKey: "element", raw: element },
+        });
+      }
+    }
+
+    // Card polarity carried once at full salience through the dedicated factor.
+    const polarityFactor = native.factors.polarity;
+    if (polarityFactor) {
+      const value = polarityFactor.value as string;
+      if (isRegistered("polarity", value)) {
+        primitives.push({
+          axis: "polarity",
+          value,
+          weight: 0.55,
+          source: meta.id,
+          derivedFrom: "date",
+          native: { factorKey: "polarity", raw: value },
+        });
+      }
+    }
+
     return primitives;
   },
 };

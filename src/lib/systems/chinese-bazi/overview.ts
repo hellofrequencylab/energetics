@@ -9,7 +9,7 @@ export const overview: SystemOverview = {
   intro:
     "BaZi, also called the Four Pillars of Destiny, reads the moment you were born as four pairs of Chinese characters. Each pillar covers your year, month, day, and hour, and each one pairs a heavenly stem above an earthly branch. Together the eight characters describe the mix of energies you were born into, the five elements of wood, fire, earth, metal, and water moving through your life.",
   how:
-    "Start with your Day Master, the heavenly stem of your day pillar. It stands for you, and its element and its yin or yang quality set the tone for the whole reading. From there, look at the balance of the five elements across all four pillars. An element you carry a lot of points to a natural strength you lean on, while one you carry little of points to a quality you may seek out or grow into over time. Read the pillars in order as a rough arc, with the year and month leaning toward your early life and roots, and the day and hour leaning toward your adult self and later years. Hold it as a picture of tendencies, not a fixed script. Your hour pillar needs an exact birth time, so the more precise your time, the fuller the chart.",
+    "Start with your Day Master, the heavenly stem of your day pillar. It stands for you, and its element and its yin or yang quality set the tone for the whole reading. From there, look at the balance of the five elements across all eight characters, stems and branches alike. An element you carry a lot of points to a natural strength you lean on, while your weakest element, shown as your useful element, points to a quality you may seek out or grow into over time. Your day master strength tells you how well rooted you are, from a fresh start through your prime to a quieter, more receptive footing. The ten gods name the working forces around you: peers, your creative output, wealth, authority, and the support you draw on, one read off each pillar. Read the pillars in order as a rough arc, with the year and month leaning toward your early life and roots, and the day and hour leaning toward your adult self and later years. Hold it as a picture of tendencies, not a fixed script. Your hour pillar needs an exact birth time, so the more precise your time, the fuller the chart.",
   appliesToLife:
     "In daily life your Day Master shows up as your default way of meeting the world: whether you tend to push forward and initiate, or to gather, sense, and respond. The element balance often explains why some settings feel like home and others feel like effort. A chart strong in one element brings an easy, reliable strength to lean on, and a thinner element marks a place where pairing up with people who carry it, or building the habit yourself, pays off. In relationships and work it can be a gentle guide to where you give freely and where you may want to ask for support, so you can spend your energy where it flows best.",
   lineageNote:
@@ -22,6 +22,14 @@ export const overview: SystemOverview = {
     pillars:
       "Your four pillars for year, month, day, and hour, each a heavenly stem over an earthly branch, read together as the shape of your life.",
     elements:
-      "Your balance of wood, fire, earth, metal, and water across the four pillars, showing which element you carry most and which you carry least.",
+      "Your balance of wood, fire, earth, metal, and water across all eight characters, stems and branches, showing which element you carry most and which you carry least.",
+    "ten-gods":
+      "The ten gods read off your year, month, day, and hour stems: how each part of the chart relates to you as peer, creative output, wealth, authority, or support.",
+    strength:
+      "Your day master strength, set by where your day stem sits on the twelve growth stages, from a fresh Birth through your Prime to a quieter, more receptive footing.",
+    nayin:
+      "The NaYin sound element of your day pillar, an older paired-stem reading that names a poetic image and the underlying phase it carries.",
+    "useful-element":
+      "Your useful element, the phase your chart carries least and tends to want more of: a gentle direction to lean toward rather than a fix.",
   },
 };
