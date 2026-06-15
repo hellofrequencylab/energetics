@@ -70,6 +70,9 @@ const synthesis: Synthesis = {
   convergences: [
     { axis: "polarity", value: "active", independentGroups: 2, weight: 2, contributors: [attr("sky"), attr("cal")] },
     { axis: "polarity", value: "receptive", independentGroups: 2, weight: 2, contributors: [attr("name"), attr("cal")] },
+    // A strong, NON-tension theme with three sources, so the min-connections
+    // slider appears (max > 2) and can be raised above the tension poles' counts.
+    { axis: "theme", value: "leadership", independentGroups: 3, weight: 3, contributors: [attr("sky"), attr("cal"), attr("name")] },
     { axis: "theme", value: "structure", independentGroups: 2, weight: 2, contributors: [attr("sky"), attr("name")] },
     { axis: "element", value: "western:fire", independentGroups: 2, weight: 2, contributors: [attr("sky"), attr("cal")] },
     // The single-source poles still appear as convergences with one group.
@@ -116,6 +119,16 @@ describe("ConvergenceChart tension lines", () => {
         (Number(l.getAttribute("x2")) === after.x && Number(l.getAttribute("y2")) === after.y),
     );
     expect(followed).toBe(true); // the air↔earth line followed the pole
+  });
+
+  it("raising the min-connections threshold keeps every tension intact", () => {
+    const { container } = render(<ConvergenceChart synthesis={synthesis} computations={computations} selfName="Test" />);
+    const slider = container.querySelector('input[type="range"]') as HTMLInputElement;
+    expect(slider).toBeTruthy();
+    // Raise the threshold above the tension poles' source counts. Tension poles are
+    // exempt, so all five tensions must still draw.
+    fireEvent.change(slider, { target: { value: "3" } });
+    expect(dashedLines(container)).toHaveLength(synthesis.tensions.length);
   });
 
   it("a convergence node is draggable and its tension line follows", () => {
