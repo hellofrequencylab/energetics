@@ -6,6 +6,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-15
 
+### Added
+- Save and manage resonance comparisons. A new `energetics.resonances` table
+  (migration `0007`, owner-scoped RLS) stores a pairing of two saved charts plus the
+  lens (platonic or intimate). The comparison page shows a "Save this resonance"
+  button when both sides are saved charts, and the account page gains a "Saved
+  resonances" section to reopen or remove them. Create, list, and delete queries
+  with `/api/resonances` routes; reopening recomputes fresh from the current charts.
+  (`db/queries.ts`, `api/resonances/`, `SynastryForm.tsx`, `account/ResonanceRoster.tsx`.)
+
 ### Changed
 - Chart page details rail, reorganized. The rail now opens with an editable Profile
   card (the person's name and birth chart info, name and birth data edited in one

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getProfile, recentBirthEvents } from "@/lib/db/queries";
+import { getProfile, recentBirthEvents, listResonances, listSavedCharts } from "@/lib/db/queries";
 import { SiteShell } from "@/components/site/SiteShell";
 import { AppSectionNav } from "@/components/site/AppSectionNav";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import { AccountTypeSwitch } from "@/components/account/AccountTypeSwitch";
 import { DisplayNameEditor } from "@/components/account/DisplayNameEditor";
 import { ChartRoster } from "@/components/account/ChartRoster";
 import { AddChartPanel } from "@/components/account/AddChartPanel";
+import { ResonanceRoster } from "@/components/account/ResonanceRoster";
 
 export const metadata: Metadata = { title: "Your account · ONESKY" };
 export const runtime = "nodejs";
@@ -51,6 +52,18 @@ export default async function AccountPage() {
   }
 
   const charts = (await recentBirthEvents(supabase).catch(() => [])) ?? [];
+  const resonances = (await listResonances(supabase).catch(() => [])) ?? [];
+  const nameSource = resonances.length ? await listSavedCharts(supabase).catch(() => []) : [];
+  const nameOf = new Map(nameSource.map((c) => [c.id, c.name]));
+  const resonanceItems = resonances.map((r) => ({
+    id: r.id,
+    mode: r.mode,
+    label: r.label,
+    aChartId: r.a_chart_id,
+    bChartId: r.b_chart_id,
+    aName: nameOf.get(r.a_chart_id) ?? null,
+    bName: nameOf.get(r.b_chart_id) ?? null,
+  }));
   const practitioner = profile.account_type === "practitioner";
   const rosterLabel = practitioner ? "Clients" : "People";
   const addLabel = practitioner ? "Add a client" : "Add a chart";
@@ -143,6 +156,14 @@ export default async function AccountPage() {
           primaryChartId={profile.primary_chart_id}
         />
       </section>
+
+      {resonanceItems.length > 0 && (
+        <section className="mt-12">
+          <h2 className="font-display text-xl font-semibold">Saved resonances</h2>
+          <p className="mt-1 text-sm text-muted">Comparisons you saved. Open one to read it again.</p>
+          <ResonanceRoster items={resonanceItems} />
+        </section>
+      )}
     </SiteShell>
   );
 }

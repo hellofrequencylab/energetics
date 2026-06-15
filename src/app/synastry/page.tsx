@@ -23,12 +23,16 @@ export default async function SynastryPage({
   let saved: SavedChart[] = [];
   let initialA: Person | undefined;
   let initialB: Person | undefined;
+  let initialAId: string | undefined;
+  let initialBId: string | undefined;
+  let signedIn = false;
 
   if (supabase) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
+      signedIn = true;
       saved = await listSavedCharts(supabase).catch(() => []);
       const profile = await getProfile(supabase, user.id).catch(() => null);
 
@@ -41,11 +45,17 @@ export default async function SynastryPage({
 
       if (aId) {
         const row = await getBirthEvent(supabase, aId).catch(() => null);
-        if (row) initialA = fromSaved(row);
+        if (row) {
+          initialA = fromSaved(row);
+          initialAId = aId;
+        }
       }
       if (bId) {
         const row = await getBirthEvent(supabase, bId).catch(() => null);
-        if (row) initialB = fromSaved(row);
+        if (row) {
+          initialB = fromSaved(row);
+          initialBId = bId;
+        }
       }
     }
   }
@@ -62,7 +72,15 @@ export default async function SynastryPage({
           Tip: pick from your saved charts at the top of each side.
         </p>
       )}
-      <SynastryForm savedCharts={saved} initialA={initialA} initialB={initialB} initialMode={resonanceMode} />
+      <SynastryForm
+        savedCharts={saved}
+        initialA={initialA}
+        initialB={initialB}
+        initialAId={initialAId}
+        initialBId={initialBId}
+        initialMode={resonanceMode}
+        canSave={signedIn}
+      />
     </SiteShell>
   );
 }

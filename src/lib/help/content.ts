@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "Save your resonance comparisons",
+    notes: [
+      "When you compare two of your saved charts, you can now save that resonance to your account.",
+      "Your saved resonances live on your account page: open one to read it again, or remove it.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "A clearer chart page",
     notes: [
       "Your convergence chart now sits front and center at the top of the page.",

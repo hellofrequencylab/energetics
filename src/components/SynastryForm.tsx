@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { SynastryResult } from "@/lib/synastry";
 import { PlaceSearch, type SelectedPlace } from "./PlaceSearch";
 import { NarrativePanel } from "./NarrativePanel";
+import { Button } from "@/components/ui";
 
 export type ResonanceMode = "platonic" | "intimate";
 
@@ -112,15 +113,33 @@ export function SynastryForm({
   savedCharts = [],
   initialA,
   initialB,
+  initialAId,
+  initialBId,
   initialMode = "platonic",
+  canSave = false,
 }: {
   savedCharts?: SavedChart[];
   initialA?: Person;
   initialB?: Person;
+  initialAId?: string;
+  initialBId?: string;
   initialMode?: ResonanceMode;
+  canSave?: boolean;
 }) {
   const [a, setA] = useState<Person>(initialA ?? emptyPerson("Person A", "1990-06-15"));
   const [b, setB] = useState<Person>(initialB ?? emptyPerson("Person B", "1988-11-02"));
+  // The saved-chart ids behind each side, set when picked from a saved chart. A
+  // resonance can only be saved when both sides are saved charts.
+  const [aId, setAId] = useState<string | null>(initialAId ?? null);
+  const [bId, setBId] = useState<string | null>(initialBId ?? null);
+  const pickA = (c: SavedChart) => {
+    setA(fromSaved(c));
+    setAId(c.id);
+  };
+  const pickB = (c: SavedChart) => {
+    setB(fromSaved(c));
+    setBId(c.id);
+  };
   const [mode, setMode] = useState<ResonanceMode>(initialMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,8 +190,8 @@ export function SynastryForm({
       </div>
 
       <form onSubmit={onSubmit} className="grid gap-6 sm:grid-cols-2">
-        <PersonFields person={a} onChange={setA} savedCharts={savedCharts} />
-        <PersonFields person={b} onChange={setB} savedCharts={savedCharts} />
+        <PersonFields person={a} onChange={setA} onSelectSaved={pickA} savedCharts={savedCharts} />
+        <PersonFields person={b} onChange={setB} onSelectSaved={pickB} savedCharts={savedCharts} />
         <div className="sm:col-span-2">
           <button
             type="submit"
@@ -190,6 +209,17 @@ export function SynastryForm({
 
       {result && (
         <>
+          {canSave && aId && bId && (
+            <div className="flex items-center justify-end">
+              <SaveResonance
+                key={mode}
+                aId={aId}
+                bId={bId}
+                mode={mode}
+                label={`${a.name.trim() || "A"} & ${b.name.trim() || "B"}`}
+              />
+            </div>
+          )}
           <SynastryResults result={result} aName={a.name} bName={b.name} mode={mode} />
           <NarrativePanel
             key={`${runId}-${mode}`}
@@ -209,10 +239,12 @@ export function SynastryForm({
 function PersonFields({
   person,
   onChange,
+  onSelectSaved,
   savedCharts,
 }: {
   person: Person;
   onChange: (p: Person) => void;
+  onSelectSaved?: (c: SavedChart) => void;
   savedCharts: SavedChart[];
 }) {
   const set = (patch: Partial<Person>) => onChange({ ...person, ...patch });
@@ -227,7 +259,10 @@ function PersonFields({
           defaultValue=""
           onChange={(e) => {
             const c = savedCharts.find((x) => x.id === e.target.value);
-            if (c) onChange(fromSaved(c));
+            if (c) {
+              if (onSelectSaved) onSelectSaved(c);
+              else onChange(fromSaved(c));
+            }
             e.target.value = "";
           }}
           aria-label="Use one of your saved charts"
@@ -354,6 +389,43 @@ function SynastryResults({
           <p className="text-sm text-muted">No tight cross-aspects (add birth times for angles).</p>
         )}
       </section>
+    </div>
+  );
+}
+
+/** Save this pairing of two saved charts (plus the lens) to the account. */
+function SaveResonance({
+  aId,
+  bId,
+  mode,
+  label,
+}: {
+  aId: string;
+  bId: string;
+  mode: ResonanceMode;
+  label: string;
+}) {
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  async function save() {
+    setState("saving");
+    try {
+      const res = await fetch("/api/resonances", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ aChartId: aId, bChartId: bId, mode, label }),
+      });
+      setState(res.ok ? "saved" : "error");
+    } catch {
+      setState("error");
+    }
+  }
+  if (state === "saved") return <p className="text-sm text-accent">✓ Saved to your account.</p>;
+  return (
+    <div className="flex items-center gap-3">
+      {state === "error" && <span className="text-sm text-red-300">Could not save.</span>}
+      <Button type="button" variant="secondary" size="sm" onClick={save} disabled={state === "saving"}>
+        {state === "saving" ? "Saving…" : "Save this resonance"}
+      </Button>
     </div>
   );
 }
