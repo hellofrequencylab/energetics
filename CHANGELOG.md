@@ -34,6 +34,12 @@ also appear in the in-app Help Center ("what's new"), sourced from
   roles (migration `0009`).
 
 ### Performance
+- Opening a saved chart now reads the version-keyed native-result cache
+  (`chart_computations`) and re-runs only the cheap, pure adapters instead of
+  every engine (`src/lib/compute-cache.ts`). Strict all-or-nothing: any missing
+  system, corpus/ephemeris version mismatch, or adapter error falls back to a full
+  recompute, which then warms the cache. Output is identical (adapters are
+  deterministic functions of the stored native result); covered by a unit test.
 - Database advisors addressed (migration `0009_perf_and_rls_hardening.sql`):
   covering indexes for every foreign key the linter flagged
   (`birth_events.user_id`, `profiles.primary_chart_id`, both `resonances` chart

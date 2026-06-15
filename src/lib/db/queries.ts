@@ -12,7 +12,7 @@ import type { ComputedSystem, Synthesis } from "@/lib/synthesis/types";
  * `energetics` schema typing (db.schema) stays in sync automatically. Both the
  * server and browser clients share this shape.
  */
-type DbClient = NonNullable<Awaited<ReturnType<typeof createClient>>>;
+export type DbClient = NonNullable<Awaited<ReturnType<typeof createClient>>>;
 
 export interface PersistChartInput {
   event: BirthEvent;
@@ -95,6 +95,32 @@ export async function persistChart(
   });
 
   return birthEventId;
+}
+
+/**
+ * Warm the native-result cache for a chart without touching primitives or the
+ * synthesis snapshot. Used by the saved-chart page on a cache miss (e.g. after an
+ * engine or ephemeris version bump) so the next open reads from cache. Idempotent
+ * via the version-keyed unique constraint; owner-scoped by RLS on the parent row.
+ */
+export async function cacheChartComputations(
+  supabase: DbClient,
+  birthEventId: string,
+  ephemerisVersion: string,
+  computations: { meta: { id: string; corpusVersion: string }; native: unknown }[],
+): Promise<void> {
+  if (computations.length === 0) return;
+  const { error } = await supabase.from("chart_computations").upsert(
+    computations.map((c) => ({
+      birth_event_id: birthEventId,
+      system_id: c.meta.id,
+      ephemeris_version: ephemerisVersion,
+      corpus_version: c.meta.corpusVersion,
+      native: c.native,
+    })),
+    { onConflict: "birth_event_id,system_id,ephemeris_version,corpus_version" },
+  );
+  if (error) throw error;
 }
 
 /** Recent birth events for the signed-in user. */

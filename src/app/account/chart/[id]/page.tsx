@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getBirthEvent } from "@/lib/db/queries";
+import { getBirthEvent, cacheChartComputations } from "@/lib/db/queries";
 import { currentUser, currentProfile } from "@/lib/auth/session";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
+import { loadCachedChart } from "@/lib/compute-cache";
+import { getEphemeris } from "@/lib/core/ephemeris";
 import { effectiveEnabledIds, effectiveOrderMap, sortByOrder } from "@/lib/core/system-settings";
 import { synthesize } from "@/lib/synthesis";
 import { chartNarration } from "@/lib/synthesis/narrative";
@@ -31,7 +33,9 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const row = await getBirthEvent(supabase, id).catch(() => null);
   if (!row) notFound();
 
-  const body: Record<string, unknown> = { date: row.date };
+  // Pin the event id to the saved row so the native-result cache, the warm
+  // write, and any client recompute all key to this chart (not a fresh id).
+  const body: Record<string, unknown> = { id: row.id, date: row.date };
   if (row.name) body.name = row.name;
   if (row.time) body.time = String(row.time).slice(0, 5);
   if (row.lat != null && row.lng != null) {
@@ -40,8 +44,17 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
 
   const { event, name } = intake(body);
   const only = await effectiveEnabledIds();
-  const { computations, unavailable, ephemerisVersion } = computeChart(event, { only });
+
+  // Read the version-keyed cache first; recompute (and warm it) only on a miss.
+  const ephemerisVersion = getEphemeris().version;
+  const cached = await loadCachedChart(supabase, event.id, event.precision, only, ephemerisVersion).catch(
+    () => null,
+  );
+  const { computations, unavailable } = cached ?? computeChart(event, { only });
   const synthesis = synthesize(event.id, computations);
+  if (!cached) {
+    await cacheChartComputations(supabase, event.id, ephemerisVersion, computations).catch(() => {});
+  }
 
   // A reading already written for this exact synthesis shows at once (no rewrite).
   // Built from the stable registry order, matching the narrate route's cache key.
