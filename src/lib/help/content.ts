@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "One consistent look across the site",
+    notes: [
+      "Every page now shares the same width, headings, cards, and buttons, so moving around feels of a piece.",
+      "The convergence map opens less crowded, with more room between points and a clear center.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Sign in with a password, or a magic link",
     notes: [
       "You can now create an account with an email and password, and sign in with them anytime.",

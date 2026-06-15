@@ -1,5 +1,6 @@
 import { SiteShell } from "@/components/site/SiteShell";
 import { GlossarySearch } from "@/components/glossary/GlossarySearch";
+import { PageHeader } from "@/components/ui";
 
 export const metadata = {
   title: "Glossary · ONESKY",
@@ -8,12 +9,12 @@ export const metadata = {
 
 export default async function GlossaryPage() {
   return (
-    <SiteShell width="max-w-2xl">
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">Glossary</p>
-      <h1 className="mb-2 mt-2 font-display text-3xl font-semibold sm:text-4xl">Look anything up</h1>
-      <p className="mb-6 text-muted">
-        Search the interpretation corpus: signs, planets, numbers, day-signs, tones, and arcana.
-      </p>
+    <SiteShell>
+      <PageHeader
+        eyebrow="Glossary"
+        title="Look anything up"
+        description="Search the interpretation corpus: signs, planets, numbers, day-signs, tones, and arcana."
+      />
       <GlossarySearch />
     </SiteShell>
   );

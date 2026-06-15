@@ -7,6 +7,7 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-15
 
 ### Added
+- A calm, on-brand 404 page using the convergence sand mark (`src/app/not-found.tsx`).
 - Full accounts: email and password sign in and sign up, alongside the existing
   one-time magic link. The sign-in page has a Password / Magic link toggle and a
   create-account switch; password sign-up respects the project's email-confirmation
@@ -15,6 +16,14 @@ also appear in the in-app Help Center ("what's new"), sourced from
   `/reset-password` page that calls `updateUser`). Profiles are still created lazily
   on first sign-in, so new password accounts get the same onboarding.
   (`auth/LoginForm.tsx`, `auth/ResetPasswordForm.tsx`, `reset-password/`, `login/`.)
+
+### Changed
+- The remaining content pages (about, help, glossary) now use the design system:
+  the uniform width, `PageHeader`, `Card`, and `Badge`, with semantic tokens. The
+  whole site (splash aside) is now on one framework. (`about/`, `help/`, `glossary/`.)
+- Convergence map: the opening layout is less crowded. Theme points now keep more
+  space between each other and a clear gap around the center, so the self node and
+  its label are never overlapped. (`ConvergenceChart.tsx`, the `relax` pass.)
 
 ### Fixed
 - Convergence map: raising "min connections" no longer breaks tensions. Tension
