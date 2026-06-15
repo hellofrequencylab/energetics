@@ -75,7 +75,7 @@ export function Dashboard({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-5 py-10">
+      <main id="main" className="mx-auto w-full max-w-6xl px-5 py-10">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-horizon-amber">Your reading</p>
         <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
           {name ? `${name}, here is your sky` : "Here is your sky"}

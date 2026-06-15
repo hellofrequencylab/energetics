@@ -27,11 +27,21 @@ on only when Supabase is configured; the narrative switches on only with a key.
 | `SUPABASE_SERVICE_ROLE_KEY` | narrative cache (optional) | Server only. Lets the server write the narrative cache so readings are reused instead of re-billed. Without it, readings still stream, they just regenerate each time. Never expose in a `NEXT_PUBLIC_` variable. |
 | `SE_EPHE_PATH` | higher precision (optional) | Path to `.se1` files. Without it, `sweph` uses the built-in Moshier model, which is fine for a baseline. |
 | `NEXT_PUBLIC_SITE_URL` | SEO / sharing (optional) | The canonical origin (e.g. `https://onesky.app`). Used by `sitemap.xml`, `robots.txt`, OpenGraph, and `metadataBase`. Falls back to a default for local and preview builds. |
+| `UPSTASH_REDIS_REST_URL` | shared AI rate limit (optional) | Server only. With its token, the narrate routes share a per-IP limit across instances. Absent, the limiter is per-instance in-memory. |
+| `UPSTASH_REDIS_REST_TOKEN` | shared AI rate limit (optional) | Server only. Pairs with the URL above. Never expose in a `NEXT_PUBLIC_` variable. |
 
 The compute and AI routes are rate-limited per IP (`src/lib/rate-limit.ts`). The
-limiter is in-memory, so on serverless it is per-instance and resets on cold start.
-For hard, multi-instance limits, back it with a shared store (for example Upstash
-Redis); the call site stays the same.
+client IP comes from the platform-trusted header (`x-real-ip`, then the rightmost
+`x-forwarded-for` hop), never the spoofable leftmost value. The default limiter is
+in-memory, so on serverless it is per-instance and resets on cold start. The AI
+narrate routes call `rateLimitShared`, which uses Upstash Redis for a true
+multi-instance limit when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+are set, and falls back to the in-memory window (fail-open) otherwise.
+
+State-changing `/api` requests are guarded against CSRF in `src/middleware.ts`
+(`src/lib/http/csrf.ts`): a cross-site mutation is rejected with 403, using the
+browser's `Sec-Fetch-Site` signal with an `Origin`-vs-host fallback. Non-browser
+clients (no `Origin`/`Sec-Fetch-Site`) are unaffected.
 
 ## First-time activation (Supabase)
 
@@ -41,9 +51,10 @@ idempotent enough to repeat on a fresh project.
 1. **Apply the schema.** Run the migrations in `supabase/migrations/` in order
    (`0001_init.sql` through the latest). `0001` creates the `energetics` schema,
    the core tables, row level security policies, indexes, and grants to the API
-   roles; later migrations add profiles, the primary chart, and the narrative
-   cache (`0004_narratives.sql`). The `vector` extension lives in `public` and is
-   referenced as `public.vector`.
+   roles; later migrations add profiles, the primary chart, the narrative
+   cache (`0004_narratives.sql`), security hardening (`0008`), and foreign-key
+   indexes plus RLS init-plan optimization (`0009`). The `vector` extension lives
+   in `public` and is referenced as `public.vector`.
 2. **Expose the schema to the Data API.** Supabase dashboard, Settings, Data API,
    Exposed schemas: add `energetics` alongside `public`. Without this, the app
    connects but every table read returns a 404 from PostgREST. Do this in the

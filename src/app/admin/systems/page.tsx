@@ -10,7 +10,7 @@ import { AppSectionNav } from "@/components/site/AppSectionNav";
 import { PageHeader, ButtonLink } from "@/components/ui";
 import { SystemCatalog, type CatalogRow } from "@/components/admin/SystemCatalog";
 
-export const metadata: Metadata = { title: "Systems · Admin · ONESKY" };
+export const metadata: Metadata = { title: "Systems · Admin · ONESKY", robots: { index: false, follow: false } };
 export const runtime = "nodejs";
 
 /**

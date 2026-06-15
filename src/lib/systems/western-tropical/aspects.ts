@@ -70,5 +70,5 @@ export function computeAspects(bodies: AspectBody[]): Aspect[] {
       });
     }
   }
-  return aspects.sort((x, y) => x.orb - y.orb);
+  return aspects.sort((x, y) => x.orb - y.orb || x.a.localeCompare(y.a) || x.b.localeCompare(y.b));
 }

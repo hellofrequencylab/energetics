@@ -30,8 +30,9 @@ export const CATALOG: Record<string, CatalogEntry> = {
   tzolkin: { defaultEnabled: true, inSynthesis: true, group: "core" },
   "chinese-bazi": { defaultEnabled: true, inSynthesis: true, group: "core" },
   "tarot-birth-cards": { defaultEnabled: true, inSynthesis: true, group: "core" },
-  // Name numerology: the only name-derived system, so it forms its own
-  // independence group. On by default; it needs the person's full name.
+  // Name numerology. Shares the "numerology" independence group with the other
+  // numerology systems (see synthesis/independence.ts), since they reduce the
+  // same name and date. On by default; it needs the person's full name.
   "numerology-chaldean": { defaultEnabled: true, inSynthesis: true, group: "core" },
   // Dreamspell rides with the Maya count: shown, but kept out of the synthesis.
   dreamspell: { defaultEnabled: true, inSynthesis: false, group: "core" },

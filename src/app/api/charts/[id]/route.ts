@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deleteBirthEvent, updateBirthEvent } from "@/lib/db/queries";
 import { intake } from "@/lib/core/birth-event";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 
@@ -28,7 +29,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const input: Parameters<typeof updateBirthEvent>[2] = {};
+  const input: Parameters<typeof updateBirthEvent>[3] = {};
   if (typeof body.name === "string") input.name = body.name.trim() || null;
   if (typeof body.notes === "string") input.notes = body.notes;
 
@@ -57,9 +58,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   try {
-    await updateBirthEvent(supabase, id, input);
+    await updateBirthEvent(supabase, user.id, id, input);
   } catch (err) {
-    console.error("charts PATCH failed", err);
+    logError("charts.patch", err);
     return NextResponse.json({ error: "Could not save." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
@@ -77,9 +78,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
 
   try {
-    await deleteBirthEvent(supabase, id);
+    await deleteBirthEvent(supabase, user.id, id);
   } catch (err) {
-    console.error("charts DELETE failed", err);
+    logError("charts.delete", err);
     return NextResponse.json({ error: "Could not delete." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });

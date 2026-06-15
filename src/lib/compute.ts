@@ -50,7 +50,7 @@ export function computeChart(birth: BirthEvent, opts?: { only?: ReadonlySet<stri
   return { computations, unavailable, ephemerisVersion: ephemeris.version };
 }
 
-function requirementReason(meta: SystemMeta): string {
+export function requirementReason(meta: SystemMeta): string {
   const needs: string[] = [];
   if (meta.requires.time) needs.push("birth time");
   if (meta.requires.place) needs.push("birth place");

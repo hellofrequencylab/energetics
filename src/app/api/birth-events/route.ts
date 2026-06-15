@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { intake } from "@/lib/core/birth-event";
 import { createClient } from "@/lib/supabase/server";
 import { recentBirthEvents } from "@/lib/db/queries";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     { onConflict: "id" },
   );
   if (error) {
-    console.error("birth-events upsert failed", error);
+    logError("birth-events.upsert", error);
     return NextResponse.json({ error: "Could not save this chart." }, { status: 500 });
   }
 
@@ -73,7 +74,7 @@ export async function GET() {
     const birthEvents = await recentBirthEvents(supabase);
     return NextResponse.json({ birthEvents });
   } catch (err) {
-    console.error("birth-events list failed", err);
+    logError("birth-events.list", err);
     return NextResponse.json({ birthEvents: [], error: "Query failed." }, { status: 500 });
   }
 }

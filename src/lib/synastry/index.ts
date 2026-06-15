@@ -88,7 +88,12 @@ function crossChartAspects(westA?: NativeResult, westB?: NativeResult): CrossAsp
       if (best) hits.push({ a: a.id, b: b.id, aspect: best.type, orb: Number(best.orb.toFixed(2)) });
     }
   }
-  return hits.sort((x, y) => x.orb - y.orb).slice(0, 15);
+  return hits
+    .sort(
+      (x, y) =>
+        x.orb - y.orb || x.a.localeCompare(y.a) || x.b.localeCompare(y.b) || x.aspect.localeCompare(y.aspect),
+    )
+    .slice(0, 15);
 }
 
 export function computeSynastry(a: ComputedSystem[], b: ComputedSystem[]): SynastryResult {
@@ -104,7 +109,12 @@ export function computeSynastry(a: ComputedSystem[], b: ComputedSystem[]): Synas
       sharedEmphases.push({ axis: ca.axis, value: ca.value, aGroups: ca.independentGroups, bGroups: cb.independentGroups });
     }
   }
-  sharedEmphases.sort((x, y) => y.aGroups + y.bGroups - (x.aGroups + x.bGroups));
+  sharedEmphases.sort(
+    (x, y) =>
+      y.aGroups + y.bGroups - (x.aGroups + x.bGroups) ||
+      x.axis.localeCompare(y.axis) ||
+      x.value.localeCompare(y.value),
+  );
 
   // Complementary tensions: declared oppositions split across the two people.
   const aVals = new Set(synA.convergences.map((c) => `${c.axis}::${c.value}`));

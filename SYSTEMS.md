@@ -160,9 +160,15 @@ full registry, so it is unaffected by which systems are currently offered.
    calculator. Gene Keys is now unblockable (reuses these activations).
 2. **North Node** — DECIDED (for now): true node (affects node gate activations).
 3. **House system default** — Whole Sign (chosen) vs Placidus config.
-4. **Name capture at intake** — DONE: `name` is on `BirthEvent`; `numerology-chaldean`
-   now forms the third independence group (ephemeris + date + name three-source
-   convergences confirmed at runtime).
+4. **Name capture at intake** — DONE: `name` is on `BirthEvent`, feeding the
+   numerology systems.
+
+**Independence grouping** — convergences are ranked by how many INDEPENDENT
+groups agree. Groups are DECLARED in `src/lib/synthesis/independence.ts` by the
+signal a system reads, not by `derivedFrom`: zodiac systems (`sky`) count once,
+Chinese systems (`chinese`) count once, numerology (`numerology`) counts once,
+but the Maya count, the Chinese cycle, and seasonal bands are independent of each
+other. See ADR-0007.
 
 ## Build order (next)
 

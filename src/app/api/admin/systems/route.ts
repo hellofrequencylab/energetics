@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin, setSystemEnabled } from "@/lib/db/queries";
 import { CATALOG } from "@/lib/core/catalog";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 
@@ -40,10 +41,8 @@ export async function POST(request: Request) {
   try {
     await setSystemEnabled(supabase, systemId, body.enabled);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not save." },
-      { status: 500 },
-    );
+    logError("admin.systems.set", err);
+    return NextResponse.json({ error: "Could not save." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

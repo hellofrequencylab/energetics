@@ -257,7 +257,7 @@ export function BirthForm({
         </div>
       </form>
 
-      {error && <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>}
+      {error && <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</p>}
 
       {result && <SynthesisView data={result} intakeBody={intakeBody} />}
     </div>

@@ -88,6 +88,7 @@ export function WelcomeShell({
         melting ? "pointer-events-none scale-[0.98] opacity-0 blur-lg" : ""
       }`}
     >
+      <main id="main">
       {hero}
 
       {/* The input app, pulled up so its handle peeks into the hero. On mobile it
@@ -134,6 +135,7 @@ export function WelcomeShell({
       </section>
 
       {sections}
+      </main>
       {footer}
     </div>
   );

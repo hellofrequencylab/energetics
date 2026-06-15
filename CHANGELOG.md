@@ -23,6 +23,46 @@ also appear in the in-app Help Center ("what's new"), sourced from
 - API 500s no longer return raw database error messages to clients (which could
   disclose schema or policy detail); they log server-side and return a generic
   message.
+- Second review pass. Defense in depth on the account routes: editing or deleting
+  a saved chart or resonance now scopes the write to the owner in the query itself
+  (`.eq("user_id", ...)`), not RLS alone. The per-IP rate limiter derives the
+  client IP from a trusted platform header instead of the leftmost
+  `X-Forwarded-For` (which a client can spoof to mint unlimited buckets), and it
+  now also covers `/api/search`; `search` and `geocode` bound their query length,
+  and the profile display name is capped. The admin-guard trigger function
+  `guard_profile_is_admin` is no longer executable as a PostgREST RPC by the API
+  roles (migration `0009`).
+- Hardening round. A CSRF guard in middleware rejects cross-site, state-changing
+  `/api` requests (via `Sec-Fetch-Site`, with an `Origin`-vs-host fallback), as
+  defense in depth alongside SameSite cookies. Server errors now go through one
+  structured JSON logger (`src/lib/log.ts`), a single choke point for adding an
+  error tracker later. The costly AI routes can share a per-IP limit across
+  serverless instances via Upstash Redis when `UPSTASH_REDIS_REST_*` are set,
+  falling back to the in-memory window otherwise.
+
+### Performance
+- The service worker now serves static assets stale-while-revalidate (instant
+  from cache, refreshed in the background), so stable assets like icons and fonts
+  stay fresh without a hard cache bump. Cache version `onesky-v2`.
+- Opening a saved chart now reads the version-keyed native-result cache
+  (`chart_computations`) and re-runs only the cheap, pure adapters instead of
+  every engine (`src/lib/compute-cache.ts`). Strict all-or-nothing: any missing
+  system, corpus/ephemeris version mismatch, or adapter error falls back to a full
+  recompute, which then warms the cache. Output is identical (adapters are
+  deterministic functions of the stored native result); covered by a unit test.
+- Database advisors addressed (migration `0009_perf_and_rls_hardening.sql`):
+  covering indexes for every foreign key the linter flagged
+  (`birth_events.user_id`, `profiles.primary_chart_id`, both `resonances` chart
+  refs, `syntheses.birth_event_id`), and all owner/admin RLS policies rewritten to
+  evaluate `auth.uid()` once per query via `(select auth.uid())` instead of once
+  per row.
+
+### Accessibility
+- Added a "Skip to content" link and a `<main id="main">` landmark on every page,
+  including the landing page, which previously had no main landmark at all. Birth
+  form errors are now announced to assistive tech (`role="alert"`).
+- Account, admin, and password-reset pages are marked `noindex` so they cannot be
+  surfaced by search engines.
 
 ### Fixed
 - Numerology (Pythagorean): the Life Path is now the full digit sum of the date,
@@ -37,13 +77,33 @@ also appear in the in-app Help Center ("what's new"), sourced from
 - Synthesis determinism: the cluster representative value and the convergence
   ranking now break ties lexically, so output never depends on system registry
   order.
+- Synastry and resonance output is order-independent too: the cross-aspect and
+  shared-emphasis sorts break ties deterministically, so the comparison and its
+  content-addressed cached reading never depend on iteration order.
 
 ### Changed
+- Synthesis breadth is now honest per tradition. Independence groups are declared
+  explicitly (`src/lib/synthesis/independence.ts`) by the signal a system reads,
+  not by the coarse `derivedFrom` class. Correlated families still count once (all
+  zodiac systems, all Chinese systems, all numerology), but genuinely distinct
+  date traditions (the Maya count, the Chinese cycle, seasonal bands) are now
+  independent of each other, so a theme they share can rank above the old
+  three-group ceiling. See ADR-0007. The narrative cache self-invalidates (its key
+  includes the group count), so no migration is needed.
 - The BaZi and Nine Star Ki adapters now self-check every emitted value against the
   registered ontology (`isRegistered`), matching the other adapters.
 - Signed-in pages read the session and profile once per request (React `cache()` in
   `src/lib/auth/session.ts`), removing two or three duplicate `profiles` reads per
   page render.
+
+### Added
+- A daily-use home at `/today` for signed-in users. It reads the current sky
+  against your primary chart: a season strip (Sun sign, Moon sign, Moon phase),
+  your natal Sun/Moon/Rising at a glance, today's transits to your chart (tightest
+  first, applying vs separating), and quick links to recent charts and resonances.
+  Deterministic (no model calls), cache-backed via the saved-chart loader, and
+  linked from the header, the signed-in section nav, the footer, and the mobile
+  tab bar. When no primary chart is pinned, it invites you to choose one.
 
 ### Added
 - Production hardening. Route and root error boundaries (`error.tsx`,
