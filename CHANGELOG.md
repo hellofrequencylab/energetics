@@ -7,6 +7,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-15
 
 ### Added
+- OneSky is now an installable app (PWA). A web app manifest (`app/manifest.ts`),
+  a convergence app icon (`public/icon.svg`, plus generated favicon and iOS
+  apple-touch-icon via `app/icon.tsx` and `app/apple-icon.tsx`), a theme color and
+  standalone display, and a conservative service worker (`public/sw.js`, registered
+  by `PwaRegister`) that serves an offline fallback page (`/offline`) when a
+  navigation fails. Add to Home Screen installs it and it runs full-screen. Signed-in
+  pages gain an app-style bottom tab bar on phones (`MobileTabBar`).
+
+### Added
 - More depth for every system in the catalog. Each of the 21 systems now has a real
   engine and adapter (the last scaffolds, Kabbalah Tree of Life, Tibetan astrology,
   and Lo Shu grid numerology, are now built), exposes more native factors, maps more

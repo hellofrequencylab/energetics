@@ -3,6 +3,7 @@ import { cn } from "@/lib/ui/cn";
 import { CONTAINER } from "@/components/ui/Container";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
+import { MobileTabBar } from "./MobileTabBar";
 import { getNavRole } from "./role";
 
 /**
@@ -30,7 +31,7 @@ export async function SiteShell({
 }) {
   const role = await getNavRole();
   return (
-    <div className="flex min-h-screen flex-col text-foreground">
+    <div className={cn("flex min-h-screen flex-col text-foreground", role.signedIn && "pb-16 sm:pb-0")}>
       <SiteHeader role={role} />
       {nav && (
         <div className="sticky top-0 z-30 border-b border-border bg-midnight/70 backdrop-blur sm:top-[57px]">
@@ -43,6 +44,7 @@ export async function SiteShell({
         <div className="flex-1">{children}</div>
       )}
       <SiteFooter role={role} />
+      {role.signedIn && <MobileTabBar />}
     </div>
   );
 }
