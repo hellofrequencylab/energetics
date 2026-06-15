@@ -11,7 +11,7 @@ import type { ComputeResponse } from "@/lib/api-types";
 import { SynthesisView } from "@/components/SynthesisView";
 import { SiteShell } from "@/components/site/SiteShell";
 import { AppSectionNav } from "@/components/site/AppSectionNav";
-import { PageHeader, Card } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { ChartManager } from "@/components/account/ChartManager";
 import { EditBirthData } from "@/components/account/EditBirthData";
 
@@ -58,33 +58,27 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
 
   return (
     <SiteShell nav={<AppSectionNav />}>
-      <PageHeader
-        title={row.name || "Saved chart"}
-        back={{ href: "/account", label: "Back to account" }}
+      <PageHeader title={row.name || "Saved chart"} back={{ href: "/account", label: "Back to account" }} />
+
+      <SynthesisView
+        data={data}
+        intakeBody={body}
+        chartId={row.id}
+        initialReading={initialReading}
+        rail={
+          <>
+            <ChartManager
+              id={row.id}
+              initialName={row.name ?? ""}
+              initialNotes={row.notes ?? ""}
+              practitioner={practitioner}
+              isPrimary={profile?.primary_chart_id === row.id}
+              primaryChartId={profile?.primary_chart_id ?? null}
+            />
+            <EditBirthData id={row.id} date={row.date} time={row.time} lat={row.lat} lng={row.lng} tz={row.tz} />
+          </>
+        }
       />
-
-      <div className="grid gap-4">
-        <ChartManager
-          id={row.id}
-          initialName={row.name ?? ""}
-          initialNotes={row.notes ?? ""}
-          practitioner={practitioner}
-          isPrimary={profile?.primary_chart_id === row.id}
-          primaryChartId={profile?.primary_chart_id ?? null}
-        />
-        <EditBirthData
-          id={row.id}
-          date={row.date}
-          time={row.time}
-          lat={row.lat}
-          lng={row.lng}
-          tz={row.tz}
-        />
-      </div>
-
-      <Card className="mt-8">
-        <SynthesisView data={data} intakeBody={body} chartId={row.id} initialReading={initialReading} />
-      </Card>
     </SiteShell>
   );
 }
