@@ -3,11 +3,13 @@ import { cn } from "@/lib/ui/cn";
 import { CONTAINER } from "@/components/ui/Container";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
+import { getNavRole } from "./role";
 
 /**
  * Standard page chrome: the shared header, an optional section sub-nav, a centered
  * main column at the one uniform site width, and the shared footer. Server
- * component (the header reads auth).
+ * component. The viewer's nav role is read once here and shared with the header and
+ * footer, so the role-based menus stay consistent without reading auth twice.
  *
  * Every page uses the same container width (see CONTAINER). The legacy `width`
  * prop is accepted but ignored so older call sites keep compiling; pass `nav` to
@@ -26,11 +28,12 @@ export async function SiteShell({
   main?: boolean;
   width?: string;
 }) {
+  const role = await getNavRole();
   return (
     <div className="flex min-h-screen flex-col text-foreground">
-      <SiteHeader />
+      <SiteHeader role={role} />
       {nav && (
-        <div className="sticky top-[57px] z-30 border-b border-border bg-midnight/70 backdrop-blur">
+        <div className="sticky top-0 z-30 border-b border-border bg-midnight/70 backdrop-blur sm:top-[57px]">
           <div className={CONTAINER}>{nav}</div>
         </div>
       )}
@@ -39,7 +42,7 @@ export async function SiteShell({
       ) : (
         <div className="flex-1">{children}</div>
       )}
-      <SiteFooter />
+      <SiteFooter role={role} />
     </div>
   );
 }
