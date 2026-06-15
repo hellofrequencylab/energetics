@@ -7,8 +7,12 @@ import { cn } from "@/lib/ui/cn";
 export interface SectionNavItem {
   href: string;
   label: string;
-  /** Treat any path under this href as active (default true for non-root hrefs). */
-  match?: (pathname: string) => boolean;
+  /**
+   * Also mark the tab active when the path is, or is under, this prefix (defaults
+   * to `href`). A plain string, not a function, so the item can be created in a
+   * server component and passed across to this client component.
+   */
+  activePrefix?: string;
 }
 
 /**
@@ -22,7 +26,8 @@ export function SectionNav({ items }: { items: SectionNavItem[] }) {
   return (
     <nav aria-label="Section" className="flex gap-1 overflow-x-auto">
       {items.map((item) => {
-        const active = item.match ? item.match(pathname) : pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const base = item.activePrefix ?? item.href;
+        const active = pathname === item.href || pathname === base || pathname.startsWith(`${base}/`);
         return (
           <Link
             key={item.href}

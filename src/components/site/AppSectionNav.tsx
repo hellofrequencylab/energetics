@@ -19,11 +19,11 @@ export async function AppSectionNav() {
   const isAdmin = Boolean(profile?.is_admin);
 
   const items: SectionNavItem[] = [
-    { href: "/account", label: "Charts", match: (p) => p === "/account" || p.startsWith("/account/") },
+    { href: "/account", label: "Charts" },
     { href: "/synastry", label: "Resonance" },
   ];
   if (isAdmin) {
-    items.push({ href: "/admin/systems", label: "Admin", match: (p) => p.startsWith("/admin") });
+    items.push({ href: "/admin/systems", label: "Admin", activePrefix: "/admin" });
   }
 
   return <SectionNav items={items} />;
