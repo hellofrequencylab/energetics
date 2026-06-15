@@ -7,6 +7,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-15
 
 ### Added
+- Production hardening. Route and root error boundaries (`error.tsx`,
+  `global-error.tsx`) and a loading state (`loading.tsx`); SEO via `sitemap.ts`,
+  `robots.ts`, a default OpenGraph share image (`opengraph-image.tsx`), and
+  `metadataBase` + OpenGraph/Twitter metadata (`SITE_URL` from
+  `NEXT_PUBLIC_SITE_URL`); a per-IP rate-limit guard (`src/lib/rate-limit.ts`)
+  applied to the compute and AI routes (compute/synastry/transits, the narrate
+  routes, geocode); and Privacy and Terms pages, linked from the footer.
+
+### Added
 - OneSky is now an installable app (PWA). A web app manifest (`app/manifest.ts`),
   a convergence app icon (`public/icon.svg`, plus generated favicon and iOS
   apple-touch-icon via `app/icon.tsx` and `app/apple-icon.tsx`), a theme color and

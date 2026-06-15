@@ -6,6 +6,7 @@ import { effectiveEnabledIds, effectiveOrderMap, sortByOrder } from "@/lib/core/
 import { createClient } from "@/lib/supabase/server";
 import { persistChart } from "@/lib/db/queries";
 
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 // Ephemeris is a native addon — must run on the Node runtime.
 export const runtime = "nodejs";
 
@@ -15,6 +16,8 @@ export const runtime = "nodejs";
  * DETERMINISTIC synthesis. Fast (no LLM). The narrative is a separate endpoint.
  */
 export async function POST(request: Request) {
+  const rl = rateLimit(request, { key: "compute", limit: 20, windowMs: 60_000 });
+  if (!rl.ok) return tooManyRequests(rl.retryAfter);
   let body: unknown;
   try {
     body = await request.json();

@@ -3,6 +3,7 @@ import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { computeTransits } from "@/lib/transits";
 
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 
 /**
@@ -11,6 +12,8 @@ export const runtime = "nodejs";
  * Returns current transits to the natal chart + seasonal Sun/Moon context.
  */
 export async function POST(request: Request) {
+  const rl = rateLimit(request, { key: "compute", limit: 20, windowMs: 60_000 });
+  if (!rl.ok) return tooManyRequests(rl.retryAfter);
   let body: Record<string, unknown>;
   try {
     body = await request.json();

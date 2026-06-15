@@ -4,6 +4,7 @@ import { computeChart } from "@/lib/compute";
 import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { computeSynastry } from "@/lib/synastry";
 
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 
 /**
@@ -12,6 +13,8 @@ export const runtime = "nodejs";
  * cross-chart aspects, shared ontology emphases, and complementary tensions.
  */
 export async function POST(request: Request) {
+  const rl = rateLimit(request, { key: "compute", limit: 20, windowMs: 60_000 });
+  if (!rl.ok) return tooManyRequests(rl.retryAfter);
   let body: { a?: unknown; b?: unknown };
   try {
     body = await request.json();

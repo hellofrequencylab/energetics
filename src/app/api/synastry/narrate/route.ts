@@ -5,6 +5,7 @@ import { computeSynastry } from "@/lib/synastry";
 import { resonanceNarration, type ResonanceMode } from "@/lib/synthesis/narrative";
 import { streamNarration } from "@/lib/synthesis/narrate-stream";
 
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 // The reading streams with adaptive thinking; allow time for the model.
 export const maxDuration = 120;
@@ -16,6 +17,8 @@ export const maxDuration = 120;
  * the prose reading over it through the chosen lens. Cached per comparison + lens.
  */
 export async function POST(request: Request) {
+  const rl = rateLimit(request, { key: "ai", limit: 10, windowMs: 60_000 });
+  if (!rl.ok) return tooManyRequests(rl.retryAfter);
   let body: { a?: unknown; b?: unknown; mode?: string };
   try {
     body = await request.json();
