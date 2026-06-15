@@ -22,6 +22,7 @@ export function SynthesisView({
   chartId,
   initialReading,
   rail,
+  railAfter,
 }: {
   data: ComputeResponse;
   intakeBody: unknown;
@@ -29,8 +30,10 @@ export function SynthesisView({
   chartId?: string;
   /** A reading already saved for this chart, shown at once. */
   initialReading?: { text: string; model?: string } | null;
-  /** Page-specific cards for the top of the details rail (e.g. manage, edit). */
+  /** Page-specific card at the top of the details rail (e.g. the editable profile). */
   rail?: ReactNode;
+  /** Page-specific cards placed just under the at-a-glance card (e.g. notes, record). */
+  railAfter?: ReactNode;
 }) {
   const { computations, unavailable, synthesis, event, name, ephemerisVersion } = data;
   const crossConfirmed = synthesis.convergences.filter((c) => c.independentGroups >= 2);
@@ -107,73 +110,6 @@ export function SynthesisView({
             idleBlurb="Prose over the synthesis. It reads the convergences and tensions and never computes them. Once written, it stays saved on this chart until you refresh it."
           />
 
-          {/* Convergences. */}
-          <section>
-            <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent">Convergences</h3>
-            <p className="mb-4 text-sm leading-relaxed text-muted">
-              The themes more than one independent tradition reached on its own. Ranked by agreement,
-              never blended into a single score.
-            </p>
-            {crossConfirmed.length > 0 ? (
-              <ul className="space-y-2">
-                {crossConfirmed.map((c, i) => (
-                  <li key={i} className="rounded-lg border border-accent/30 bg-accent/5 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-[15px] font-medium">
-                        {humanizeValue(c.value)} <span className="text-sm text-muted">· {c.axis}</span>
-                      </span>
-                      <span className="shrink-0 rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-semibold text-accent">
-                        {c.independentGroups} independent sources
-                      </span>
-                    </div>
-                    <p className="mt-1.5 text-sm text-muted">
-                      {[...new Set(c.contributors.map((a) => a.systemId))].join(" · ")}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted">No cross-source convergences at this precision.</p>
-            )}
-            {singleLens.length > 0 && (
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm text-muted">
-                  Single-lens signals ({singleLens.length}), supported by one source group
-                </summary>
-                <ul className="mt-2 flex flex-wrap gap-2">
-                  {singleLens.map((c, i) => (
-                    <li key={i} className="rounded border border-border bg-surface/40 px-2.5 py-1 text-sm text-muted">
-                      {humanizeValue(c.value)} <span className="opacity-60">· {c.axis}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </section>
-
-          {/* Tensions. */}
-          {synthesis.tensions.length > 0 && (
-            <section>
-              <h3 className="mb-1 text-base font-semibold uppercase tracking-wider text-accent-2">Tensions</h3>
-              <p className="mb-4 text-sm leading-relaxed text-muted">
-                Two opposite pulls that both show up strongly. Your energy holds both at once, rather
-                than settling at the midpoint. These are where growth and friction live.
-              </p>
-              <ul className="space-y-2">
-                {synthesis.tensions.map((t, i) => (
-                  <li key={i} className="rounded-lg border border-border bg-surface/40 p-4 text-sm">
-                    <div className="flex items-center justify-center gap-3 text-center">
-                      <Pole value={t.sides[0].value} sources={t.sides[0].contributors.map((a) => a.systemId)} />
-                      <span className="text-accent-2">⟷</span>
-                      <Pole value={t.sides[1].value} sources={t.sides[1].contributors.map((a) => a.systemId)} />
-                    </div>
-                    <p className="mt-1.5 text-center text-xs uppercase tracking-wide text-muted">{t.axis}</p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
           {/* Daily / seasonal transits. */}
           <TransitsSection intakeBody={intakeBody} />
 
@@ -241,6 +177,56 @@ export function SynthesisView({
             )}
           </Card>
 
+          {railAfter}
+
+          {/* Convergences: all of them, in the rail. */}
+          <Card>
+            <CardLabel>Convergences</CardLabel>
+            {crossConfirmed.length > 0 ? (
+              <ul className="mt-2 space-y-1.5">
+                {crossConfirmed.map((c, i) => (
+                  <li key={i} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="min-w-0 truncate">
+                      {humanizeValue(c.value)} <span className="text-xs text-muted">· {c.axis}</span>
+                    </span>
+                    <span
+                      className="shrink-0 rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-semibold text-accent"
+                      title={`${c.independentGroups} independent sources: ${[...new Set(c.contributors.map((a) => a.systemId))].join(", ")}`}
+                    >
+                      {c.independentGroups}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-muted">No cross-source convergences at this precision.</p>
+            )}
+            {singleLens.length > 0 && (
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs text-muted">Single-lens signals ({singleLens.length})</summary>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted">
+                  {singleLens.map((c) => humanizeValue(c.value)).join(" · ")}
+                </p>
+              </details>
+            )}
+          </Card>
+
+          {/* Tensions: all of them, in the rail. */}
+          {synthesis.tensions.length > 0 && (
+            <Card>
+              <p className="text-xs font-semibold uppercase tracking-wide text-accent-2">Tensions</p>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {synthesis.tensions.map((t, i) => (
+                  <li key={i} className="flex items-center justify-center gap-2 text-center">
+                    <span>{humanizeValue(t.sides[0].value)}</span>
+                    <span className="text-accent-2">⟷</span>
+                    <span>{humanizeValue(t.sides[1].value)}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
           <Card>
             <CardLabel>Jump to a system</CardLabel>
             <nav className="mt-2 flex flex-wrap gap-2" aria-label="Jump to a system">
@@ -270,15 +256,6 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="flex items-baseline justify-between gap-3">
       <dt className="text-muted">{label}</dt>
       <dd className="text-right font-medium">{value}</dd>
-    </div>
-  );
-}
-
-function Pole({ value, sources }: { value: string; sources: string[] }) {
-  return (
-    <div className="flex-1">
-      <div className="font-medium">{humanizeValue(value)}</div>
-      <div className="text-xs text-muted">{[...new Set(sources)].join(", ")}</div>
     </div>
   );
 }

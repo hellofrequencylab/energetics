@@ -7,6 +7,14 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-15
 
 ### Changed
+- Chart page details rail, reorganized. The rail now opens with an editable Profile
+  card (the person's name and birth chart info, name and birth data edited in one
+  place), then at-a-glance, then a Notes card and a Record card (set as My Sky,
+  compare, delete), then all convergences and tensions, jump-to-system, and
+  provenance. The separate Manage and Birth data cards are gone, merged into Profile
+  and Record. (`ChartProfile.tsx`, `ChartRecords.tsx`, `SynthesisView.tsx`;
+  `ChartManager.tsx` and `EditBirthData.tsx` removed.)
+
 - The reader is restructured for usability: the convergence chart now spans the full
   width at the top, and everything below splits into two columns: the page content
   (reading, convergences, tensions, transits, the per-system cards) on the left, and

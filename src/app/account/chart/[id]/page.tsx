@@ -12,8 +12,8 @@ import { SynthesisView } from "@/components/SynthesisView";
 import { SiteShell } from "@/components/site/SiteShell";
 import { AppSectionNav } from "@/components/site/AppSectionNav";
 import { PageHeader } from "@/components/ui";
-import { ChartManager } from "@/components/account/ChartManager";
-import { EditBirthData } from "@/components/account/EditBirthData";
+import { ChartProfile } from "@/components/account/ChartProfile";
+import { ChartRecords } from "@/components/account/ChartRecords";
 
 export const runtime = "nodejs";
 
@@ -54,7 +54,6 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const data: ComputeResponse = { event, name, computations: ordered, unavailable, synthesis, ephemerisVersion };
 
   const profile = await getProfile(supabase, user.id).catch(() => null);
-  const practitioner = profile?.account_type === "practitioner";
 
   return (
     <SiteShell nav={<AppSectionNav />}>
@@ -66,17 +65,23 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
         chartId={row.id}
         initialReading={initialReading}
         rail={
-          <>
-            <ChartManager
-              id={row.id}
-              initialName={row.name ?? ""}
-              initialNotes={row.notes ?? ""}
-              practitioner={practitioner}
-              isPrimary={profile?.primary_chart_id === row.id}
-              primaryChartId={profile?.primary_chart_id ?? null}
-            />
-            <EditBirthData id={row.id} date={row.date} time={row.time} lat={row.lat} lng={row.lng} tz={row.tz} />
-          </>
+          <ChartProfile
+            id={row.id}
+            initialName={row.name ?? ""}
+            date={row.date}
+            time={row.time}
+            lat={row.lat}
+            lng={row.lng}
+            tz={row.tz}
+          />
+        }
+        railAfter={
+          <ChartRecords
+            id={row.id}
+            initialNotes={row.notes ?? ""}
+            isPrimary={profile?.primary_chart_id === row.id}
+            primaryChartId={profile?.primary_chart_id ?? null}
+          />
         }
       />
     </SiteShell>
