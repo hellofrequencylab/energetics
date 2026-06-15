@@ -40,10 +40,8 @@ export async function POST(request: Request) {
   try {
     await setSystemEnabled(supabase, systemId, body.enabled);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not save." },
-      { status: 500 },
-    );
+    console.error("admin systems POST failed", err);
+    return NextResponse.json({ error: "Could not save." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

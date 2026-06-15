@@ -216,6 +216,7 @@ export async function listSavedCharts(supabase: DbClient, limit = 50) {
  */
 export async function updateBirthEvent(
   supabase: DbClient,
+  userId: string,
   id: string,
   input: {
     name?: string | null;
@@ -238,13 +239,14 @@ export async function updateBirthEvent(
   if (input.tz !== undefined) patch.tz = input.tz;
   if (input.precision !== undefined) patch.precision = input.precision;
   if (Object.keys(patch).length === 0) return;
-  const { error } = await supabase.from("birth_events").update(patch).eq("id", id);
+  // Defense in depth: scope to the owner explicitly, not RLS alone.
+  const { error } = await supabase.from("birth_events").update(patch).eq("id", id).eq("user_id", userId);
   if (error) throw error;
 }
 
 /** Delete a saved chart (cascades to its cached computations). RLS-scoped. */
-export async function deleteBirthEvent(supabase: DbClient, id: string): Promise<void> {
-  const { error } = await supabase.from("birth_events").delete().eq("id", id);
+export async function deleteBirthEvent(supabase: DbClient, userId: string, id: string): Promise<void> {
+  const { error } = await supabase.from("birth_events").delete().eq("id", id).eq("user_id", userId);
   if (error) throw error;
 }
 
@@ -315,7 +317,7 @@ export async function listResonances(supabase: DbClient, limit = 50): Promise<Sa
 }
 
 /** Delete a saved resonance (the underlying charts are untouched). RLS-scoped. */
-export async function deleteResonance(supabase: DbClient, id: string): Promise<void> {
-  const { error } = await supabase.from("resonances").delete().eq("id", id);
+export async function deleteResonance(supabase: DbClient, userId: string, id: string): Promise<void> {
+  const { error } = await supabase.from("resonances").delete().eq("id", id).eq("user_id", userId);
   if (error) throw error;
 }

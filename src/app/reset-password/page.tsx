@@ -4,6 +4,7 @@ import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 export const metadata = {
   title: "Set a new password · ONESKY",
   description: "Choose a new password for your OneSky account.",
+  robots: { index: false, follow: false },
 };
 
 export default function ResetPasswordPage() {

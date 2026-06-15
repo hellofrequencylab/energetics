@@ -23,6 +23,30 @@ also appear in the in-app Help Center ("what's new"), sourced from
 - API 500s no longer return raw database error messages to clients (which could
   disclose schema or policy detail); they log server-side and return a generic
   message.
+- Second review pass. Defense in depth on the account routes: editing or deleting
+  a saved chart or resonance now scopes the write to the owner in the query itself
+  (`.eq("user_id", ...)`), not RLS alone. The per-IP rate limiter derives the
+  client IP from a trusted platform header instead of the leftmost
+  `X-Forwarded-For` (which a client can spoof to mint unlimited buckets), and it
+  now also covers `/api/search`; `search` and `geocode` bound their query length,
+  and the profile display name is capped. The admin-guard trigger function
+  `guard_profile_is_admin` is no longer executable as a PostgREST RPC by the API
+  roles (migration `0009`).
+
+### Performance
+- Database advisors addressed (migration `0009_perf_and_rls_hardening.sql`):
+  covering indexes for every foreign key the linter flagged
+  (`birth_events.user_id`, `profiles.primary_chart_id`, both `resonances` chart
+  refs, `syntheses.birth_event_id`), and all owner/admin RLS policies rewritten to
+  evaluate `auth.uid()` once per query via `(select auth.uid())` instead of once
+  per row.
+
+### Accessibility
+- Added a "Skip to content" link and a `<main id="main">` landmark on every page,
+  including the landing page, which previously had no main landmark at all. Birth
+  form errors are now announced to assistive tech (`role="alert"`).
+- Account, admin, and password-reset pages are marked `noindex` so they cannot be
+  surfaced by search engines.
 
 ### Fixed
 - Numerology (Pythagorean): the Life Path is now the full digit sum of the date,
@@ -37,6 +61,9 @@ also appear in the in-app Help Center ("what's new"), sourced from
 - Synthesis determinism: the cluster representative value and the convergence
   ranking now break ties lexically, so output never depends on system registry
   order.
+- Synastry and resonance output is order-independent too: the cross-aspect and
+  shared-emphasis sorts break ties deterministically, so the comparison and its
+  content-addressed cached reading never depend on iteration order.
 
 ### Changed
 - The BaZi and Nine Star Ki adapters now self-check every emitted value against the

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       : (existing?.account_type ?? "personal");
   const displayName =
     typeof body.displayName === "string"
-      ? body.displayName.trim() || null
+      ? body.displayName.trim().slice(0, 120) || null
       : (existing?.display_name ?? null);
 
   try {

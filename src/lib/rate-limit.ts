@@ -9,9 +9,20 @@ type Bucket = { count: number; reset: number };
 const buckets = new Map<string, Bucket>();
 
 function clientIp(req: Request): string {
+  // Trust only platform-set headers. A client can send an arbitrary
+  // X-Forwarded-For, and the edge proxy APPENDS the real peer on the right, so
+  // the leftmost entry is attacker-controlled (rotating it would mint unlimited
+  // buckets and defeat the limit). Prefer the single-value x-real-ip the
+  // platform sets, then fall back to the RIGHTMOST forwarded hop, never the
+  // leftmost.
+  const real = req.headers.get("x-real-ip");
+  if (real) return real.trim();
   const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0].trim();
-  return req.headers.get("x-real-ip") ?? "anon";
+  if (fwd) {
+    const hops = fwd.split(",");
+    return hops[hops.length - 1].trim();
+  }
+  return "anon";
 }
 
 export interface RateLimitResult {

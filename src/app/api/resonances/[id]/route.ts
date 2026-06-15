@@ -16,12 +16,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
 
   try {
-    await deleteResonance(supabase, id);
+    await deleteResonance(supabase, user.id, id);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not delete this resonance." },
-      { status: 500 },
-    );
+    console.error("resonance DELETE failed", err);
+    return NextResponse.json({ error: "Could not delete this resonance." }, { status: 500 });
   }
 }

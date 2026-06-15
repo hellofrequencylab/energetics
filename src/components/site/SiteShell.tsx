@@ -39,7 +39,7 @@ export async function SiteShell({
         </div>
       )}
       {main ? (
-        <main className={cn(CONTAINER, "flex-1 py-10 sm:py-14")}>{children}</main>
+        <main id="main" className={cn(CONTAINER, "flex-1 py-10 sm:py-14")}>{children}</main>
       ) : (
         <div className="flex-1">{children}</div>
       )}

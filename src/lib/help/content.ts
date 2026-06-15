@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "Accessibility, and a faster, safer foundation",
+    notes: [
+      "Added a skip-to-content link and clearer, announced form errors, so the app works better with a keyboard or screen reader.",
+      "Your account and admin pages are no longer indexed by search engines, and behind the scenes the database is faster and better protected.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "A site-wide review: safer accounts and more accurate numbers",
     notes: [
       "Tightened security so your saved charts, resonances, and readings stay yours, and your readings are no longer stored where anyone could read them.",

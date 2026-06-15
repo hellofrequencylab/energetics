@@ -38,10 +38,8 @@ export async function POST(request: Request) {
   try {
     await setSystemOrder(supabase, ids);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not save the order." },
-      { status: 500 },
-    );
+    console.error("admin systems order POST failed", err);
+    return NextResponse.json({ error: "Could not save the order." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

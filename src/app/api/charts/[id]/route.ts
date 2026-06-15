@@ -28,7 +28,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const input: Parameters<typeof updateBirthEvent>[2] = {};
+  const input: Parameters<typeof updateBirthEvent>[3] = {};
   if (typeof body.name === "string") input.name = body.name.trim() || null;
   if (typeof body.notes === "string") input.notes = body.notes;
 
@@ -57,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   try {
-    await updateBirthEvent(supabase, id, input);
+    await updateBirthEvent(supabase, user.id, id, input);
   } catch (err) {
     console.error("charts PATCH failed", err);
     return NextResponse.json({ error: "Could not save." }, { status: 500 });
@@ -77,7 +77,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
 
   try {
-    await deleteBirthEvent(supabase, id);
+    await deleteBirthEvent(supabase, user.id, id);
   } catch (err) {
     console.error("charts DELETE failed", err);
     return NextResponse.json({ error: "Could not delete." }, { status: 500 });
