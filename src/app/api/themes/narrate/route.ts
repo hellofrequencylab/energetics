@@ -1,6 +1,7 @@
 import { themeNarration } from "@/lib/synthesis/narrative";
 import { streamNarration } from "@/lib/synthesis/narrate-stream";
 
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 // The reading streams with adaptive thinking; allow time for the model.
 export const maxDuration = 120;
@@ -15,6 +16,8 @@ export const maxDuration = 120;
  * never re-bills.
  */
 export async function POST(request: Request) {
+  const rl = rateLimit(request, { key: "ai", limit: 15, windowMs: 60_000 });
+  if (!rl.ok) return tooManyRequests(rl.retryAfter);
   let body: unknown;
   try {
     body = await request.json();

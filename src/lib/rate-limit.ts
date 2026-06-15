@@ -1,0 +1,51 @@
+/**
+ * A small in-memory, per-IP rate limiter for the compute and AI routes. It is a
+ * first line of defense (fixed window, token count per IP). On serverless it is
+ * per-instance and resets on cold start, so for hard multi-instance limits back
+ * it with a shared store (e.g. Upstash). Good enough to blunt abuse and runaway
+ * loops today.
+ */
+type Bucket = { count: number; reset: number };
+const buckets = new Map<string, Bucket>();
+
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return req.headers.get("x-real-ip") ?? "anon";
+}
+
+export interface RateLimitResult {
+  ok: boolean;
+  retryAfter?: number;
+}
+
+export function rateLimit(
+  req: Request,
+  opts: { key: string; limit: number; windowMs: number },
+): RateLimitResult {
+  const now = Date.now();
+  // Opportunistic cleanup so the map cannot grow without bound.
+  if (buckets.size > 5000) {
+    for (const [k, b] of buckets) if (now > b.reset) buckets.delete(k);
+  }
+  const id = `${opts.key}:${clientIp(req)}`;
+  const b = buckets.get(id);
+  if (!b || now > b.reset) {
+    buckets.set(id, { count: 1, reset: now + opts.windowMs });
+    return { ok: true };
+  }
+  if (b.count >= opts.limit) return { ok: false, retryAfter: Math.ceil((b.reset - now) / 1000) };
+  b.count += 1;
+  return { ok: true };
+}
+
+/** The 429 response to return when a limit is hit. */
+export function tooManyRequests(retryAfter?: number): Response {
+  return new Response(JSON.stringify({ error: "Too many requests. Please slow down and try again." }), {
+    status: 429,
+    headers: {
+      "content-type": "application/json",
+      ...(retryAfter ? { "retry-after": String(retryAfter) } : {}),
+    },
+  });
+}

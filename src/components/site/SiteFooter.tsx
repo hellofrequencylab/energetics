@@ -90,7 +90,13 @@ export async function SiteFooter({ role }: { role?: NavRole } = {}) {
             Your birth data is yours. You can read a full chart without an account, and delete saved
             charts anytime.
           </p>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-5">
+            <Link href="/privacy" className="transition hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition hover:text-foreground">
+              Terms
+            </Link>
             <a href="mailto:hello@onesky.app" className="transition hover:text-foreground">
               Contact
             </a>

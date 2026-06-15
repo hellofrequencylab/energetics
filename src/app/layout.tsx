@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Hanken_Grotesk, Geist_Mono } from "next/font/google";
 import { PwaRegister } from "@/components/pwa/PwaRegister";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // Display serif with editorial warmth, used with restraint (hero, section leads).
@@ -24,12 +25,24 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const TITLE = "OneSky · Many traditions, one sky";
+const DESCRIPTION =
+  "See your birth moment through every tradition, and where they agree. Compute a full birth chart across Western, Vedic, Chinese, numerology and more, then read where independent systems converge.";
+
 export const metadata: Metadata = {
-  title: "ONESKY · Multi-System Birth Chart Synthesis",
-  description:
-    "See your birth moment through every tradition, and where they agree. Compute a full birth chart across Western, Vedic, Chinese, numerology and more, then read where independent systems converge.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: TITLE, template: "%s · OneSky" },
+  description: DESCRIPTION,
   applicationName: "OneSky",
   appleWebApp: { capable: true, title: "OneSky", statusBarStyle: "black-translucent" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "OneSky",
+    type: "website",
+    url: SITE_URL,
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

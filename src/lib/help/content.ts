@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "Privacy and Terms, and a steadier app",
+    notes: [
+      "Added clear Privacy and Terms pages, linked in the footer.",
+      "Friendlier error and loading screens, and limits that keep the app responsive under load.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Install OneSky as an app",
     notes: [
       "Add OneSky to your home screen and it runs full screen like a native app.",

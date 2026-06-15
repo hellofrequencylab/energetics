@@ -26,6 +26,12 @@ on only when Supabase is configured; the narrative switches on only with a key.
 | `ANTHROPIC_API_KEY` | narrative | Server only. The reading streams when this is set. |
 | `SUPABASE_SERVICE_ROLE_KEY` | narrative cache (optional) | Server only. Lets the server write the narrative cache so readings are reused instead of re-billed. Without it, readings still stream, they just regenerate each time. Never expose in a `NEXT_PUBLIC_` variable. |
 | `SE_EPHE_PATH` | higher precision (optional) | Path to `.se1` files. Without it, `sweph` uses the built-in Moshier model, which is fine for a baseline. |
+| `NEXT_PUBLIC_SITE_URL` | SEO / sharing (optional) | The canonical origin (e.g. `https://onesky.app`). Used by `sitemap.xml`, `robots.txt`, OpenGraph, and `metadataBase`. Falls back to a default for local and preview builds. |
+
+The compute and AI routes are rate-limited per IP (`src/lib/rate-limit.ts`). The
+limiter is in-memory, so on serverless it is per-instance and resets on cold start.
+For hard, multi-instance limits, back it with a shared store (for example Upstash
+Redis); the call site stays the same.
 
 ## First-time activation (Supabase)
 
