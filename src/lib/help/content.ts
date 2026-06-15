@@ -243,20 +243,16 @@ export const CATEGORIES: HelpCategory[] = [
     articles: [
       {
         slug: "sign-in",
-        title: "Sign in with a magic link",
-        summary: "Enter your email, click the link, you are in. No password.",
+        title: "Sign in or create an account",
+        summary: "Use a password, or get a one-time magic link by email.",
         body: [
           {
-            type: "steps",
-            items: [
-              "Go to the sign in page and enter your email.",
-              "Open the email and click the link.",
-              "You return to OneSky already signed in.",
-            ],
+            type: "p",
+            text: "You can sign in two ways. With a password: choose create an account, enter your email and a password, and you are in. Next time, enter the same email and password. With a magic link: switch to the magic link tab, enter your email, and we send you a one-time link, so there is no password to remember.",
           },
           {
             type: "p",
-            text: "If the email does not arrive within a minute, check your spam folder, then request a new link.",
+            text: "Forgot your password? On the password tab, choose forgot password and we email you a link to set a new one. If an email does not arrive within a minute, check your spam folder, then request a new one.",
           },
         ],
       },
@@ -384,6 +380,14 @@ export const FAQ: FaqItem[] = [
  * CHANGELOG.md.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-15",
+    title: "Sign in with a password, or a magic link",
+    notes: [
+      "You can now create an account with an email and password, and sign in with them anytime.",
+      "Prefer no password? The one-time magic link is still there, and you can reset your password by email.",
+    ],
+  },
   {
     date: "2026-06-14",
     title: "The birth form fits your phone",

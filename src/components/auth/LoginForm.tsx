@@ -2,79 +2,208 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Button, Field, Input } from "@/components/ui";
+import { cn } from "@/lib/ui/cn";
 
-/** Magic-link sign-in form. Requests an OTP link to the entered email. */
+type Method = "password" | "magic";
+type Mode = "signin" | "signup";
+type Notice = { kind: "ok" | "error" | "info"; text: string } | null;
+
+/** Where to land after auth (defaults to the account). */
+function nextParam(): string {
+  if (typeof window === "undefined") return "/account";
+  return new URLSearchParams(window.location.search).get("next") || "/account";
+}
+/** The PKCE callback URL that completes an emailed link, then sends on to `next`. */
+function callbackUrl(next: string): string {
+  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+}
+
+/**
+ * The sign-in surface. Two methods: a password (sign in or create an account) and
+ * a one-time magic link by email. Includes a password reset, which emails a link
+ * back through /auth/callback to /reset-password.
+ */
 export function LoginForm() {
+  const [method, setMethod] = useState<Method>("password");
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [message, setMessage] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<Notice>(null);
 
   const supabase = createClient();
 
   // Surface a failed callback so a bad or expired link is not silent.
   useEffect(() => {
     if (!new URLSearchParams(window.location.search).get("error")) return;
-    const id = requestAnimationFrame(() => {
-      setStatus("error");
-      setMessage(
-        "That sign-in link did not work. Request a new one below and open it on this same device.",
-      );
-    });
+    const id = requestAnimationFrame(() =>
+      setNotice({
+        kind: "error",
+        text: "That sign-in link did not work. Request a new one and open it on this same device.",
+      }),
+    );
     return () => cancelAnimationFrame(id);
   }, []);
 
+  function client() {
+    if (!supabase) {
+      setNotice({ kind: "error", text: "Sign in is not configured yet. Set NEXT_PUBLIC_SUPABASE_URL and _ANON_KEY." });
+      return null;
+    }
+    return supabase;
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabase) {
-      setStatus("error");
-      setMessage("Auth is not configured. Set NEXT_PUBLIC_SUPABASE_URL and _ANON_KEY.");
-      return;
-    }
-    setStatus("sending");
-    const next =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("next") || "/account"
-        : "/account";
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-            : undefined,
-      },
-    });
-    if (error) {
-      setStatus("error");
-      setMessage(error.message);
-    } else {
-      setStatus("sent");
-      setMessage("Check your email for a magic sign-in link.");
+    const sb = client();
+    if (!sb) return;
+    setBusy(true);
+    setNotice(null);
+    const next = nextParam();
+    try {
+      if (method === "magic") {
+        const { error } = await sb.auth.signInWithOtp({
+          email: email.trim(),
+          options: { emailRedirectTo: callbackUrl(next) },
+        });
+        if (error) throw error;
+        setNotice({ kind: "ok", text: "Check your email for a magic sign-in link." });
+      } else if (mode === "signin") {
+        const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw error;
+        window.location.assign(next);
+        return;
+      } else {
+        const { data, error } = await sb.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { emailRedirectTo: callbackUrl(next) },
+        });
+        if (error) throw error;
+        // With email confirmation on, there is no session yet; otherwise we are in.
+        if (data.session) {
+          window.location.assign(next);
+          return;
+        }
+        setNotice({ kind: "ok", text: "Check your email to confirm your account, then come back and sign in." });
+      }
+    } catch (err) {
+      setNotice({ kind: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setBusy(false);
     }
   }
 
-  return (
-    <>
-      <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2.5 text-sm outline-none transition focus:border-accent"
-        />
-        <button
-          type="submit"
-          disabled={status === "sending"}
-          className="w-full rounded-lg bg-accent px-4 py-2.5 font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.45)] transition hover:brightness-110 disabled:opacity-50"
-        >
-          {status === "sending" ? "Sending…" : "Send magic link"}
-        </button>
-      </form>
-      {message && (
-        <p className={`mt-4 text-sm ${status === "error" ? "text-red-300" : "text-muted"}`}>{message}</p>
+  async function onForgot() {
+    const sb = client();
+    if (!sb) return;
+    if (!email.trim()) {
+      setNotice({ kind: "error", text: "Enter your email above first, then choose forgot password." });
+      return;
+    }
+    setBusy(true);
+    setNotice(null);
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: callbackUrl("/reset-password"),
+      });
+      if (error) throw error;
+      setNotice({ kind: "ok", text: "Check your email for a link to set a new password." });
+    } catch (err) {
+      setNotice({ kind: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const tab = (m: Method, label: string) => (
+    <button
+      type="button"
+      aria-pressed={method === m}
+      onClick={() => {
+        setMethod(m);
+        setNotice(null);
+      }}
+      className={cn(
+        "flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition",
+        method === m ? "bg-accent text-ink" : "text-muted hover:text-foreground",
       )}
-    </>
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div>
+      <div className="mb-5 inline-flex w-full rounded-xl border border-border p-1">
+        {tab("password", "Password")}
+        {tab("magic", "Magic link")}
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-3">
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+        </Field>
+
+        {method === "password" && (
+          <Field label="Password" htmlFor="password" hint={mode === "signup" ? "At least 8 characters." : undefined}>
+            <Input
+              id="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </Field>
+        )}
+
+        <Button type="submit" variant="primary" size="lg" disabled={busy} className="w-full">
+          {busy ? "Working…" : method === "magic" ? "Send magic link" : mode === "signin" ? "Sign in" : "Create account"}
+        </Button>
+      </form>
+
+      {method === "password" && (
+        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === "signin" ? "signup" : "signin");
+              setNotice(null);
+            }}
+            className="text-accent transition hover:underline"
+          >
+            {mode === "signin" ? "Create an account" : "I already have an account"}
+          </button>
+          {mode === "signin" && (
+            <button type="button" onClick={onForgot} className="text-muted transition hover:text-foreground">
+              Forgot password?
+            </button>
+          )}
+        </div>
+      )}
+
+      {notice && (
+        <p
+          className={cn(
+            "mt-4 text-sm",
+            notice.kind === "error" ? "text-red-300" : notice.kind === "ok" ? "text-accent" : "text-muted",
+          )}
+        >
+          {notice.text}
+        </p>
+      )}
+    </div>
   );
 }
