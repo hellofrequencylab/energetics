@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { geocodePlace } from "@/lib/geocode";
+import { logError } from "@/lib/log";
 
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     const results = await geocodePlace(q);
     return NextResponse.json({ results });
   } catch (err) {
-    console.error("geocode failed", err);
+    logError("geocode", err);
     return NextResponse.json({ results: [], error: "Geocoding unavailable." }, { status: 502 });
   }
 }

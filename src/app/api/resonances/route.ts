@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createResonance, type ResonanceMode } from "@/lib/db/queries";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     .select("id")
     .in("id", [body.aChartId, body.bChartId]);
   if (ownErr) {
-    console.error("resonances: ownership check failed", ownErr);
+    logError("resonances.ownership", ownErr);
     return NextResponse.json({ error: "Could not save this resonance." }, { status: 500 });
   }
   const ownedIds = new Set((owned ?? []).map((r) => r.id as string));
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ id });
   } catch (err) {
-    console.error("resonances: create failed", err);
+    logError("resonances.create", err);
     return NextResponse.json({ error: "Could not save this resonance." }, { status: 500 });
   }
 }

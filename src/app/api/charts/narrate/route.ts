@@ -5,7 +5,7 @@ import { effectiveEnabledIds } from "@/lib/core/system-settings";
 import { chartNarration } from "@/lib/synthesis/narrative";
 import { streamNarration } from "@/lib/synthesis/narrate-stream";
 
-import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { rateLimitShared, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 // The reading streams with adaptive thinking; allow time for the model.
 export const maxDuration = 120;
@@ -18,7 +18,7 @@ export const maxDuration = 120;
  * the structural map renders immediately and the prose loads on demand.
  */
 export async function POST(request: Request) {
-  const rl = rateLimit(request, { key: "ai", limit: 10, windowMs: 60_000 });
+  const rl = await rateLimitShared(request, { key: "ai", limit: 10, windowMs: 60_000 });
   if (!rl.ok) return tooManyRequests(rl.retryAfter);
   let body: unknown;
   try {

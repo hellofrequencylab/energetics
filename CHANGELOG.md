@@ -32,8 +32,18 @@ also appear in the in-app Help Center ("what's new"), sourced from
   and the profile display name is capped. The admin-guard trigger function
   `guard_profile_is_admin` is no longer executable as a PostgREST RPC by the API
   roles (migration `0009`).
+- Hardening round. A CSRF guard in middleware rejects cross-site, state-changing
+  `/api` requests (via `Sec-Fetch-Site`, with an `Origin`-vs-host fallback), as
+  defense in depth alongside SameSite cookies. Server errors now go through one
+  structured JSON logger (`src/lib/log.ts`), a single choke point for adding an
+  error tracker later. The costly AI routes can share a per-IP limit across
+  serverless instances via Upstash Redis when `UPSTASH_REDIS_REST_*` are set,
+  falling back to the in-memory window otherwise.
 
 ### Performance
+- The service worker now serves static assets stale-while-revalidate (instant
+  from cache, refreshed in the background), so stable assets like icons and fonts
+  stay fresh without a hard cache bump. Cache version `onesky-v2`.
 - Opening a saved chart now reads the version-keyed native-result cache
   (`chart_computations`) and re-runs only the cheap, pure adapters instead of
   every engine (`src/lib/compute-cache.ts`). Strict all-or-nothing: any missing

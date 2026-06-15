@@ -50,6 +50,45 @@ export function rateLimit(
   return { ok: true };
 }
 
+/**
+ * Distributed rate limit for the costly AI routes, backed by Upstash Redis when
+ * configured (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`) so the limit
+ * holds across serverless instances instead of resetting per cold start. Falls
+ * back to the in-memory limiter when Upstash is absent or errors, so a
+ * misconfiguration or outage never blocks legitimate use (fail-open to local).
+ */
+export async function rateLimitShared(
+  req: Request,
+  opts: { key: string; limit: number; windowMs: number },
+): Promise<RateLimitResult> {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return rateLimit(req, opts);
+
+  const id = `rl:${opts.key}:${clientIp(req)}`;
+  try {
+    // One round trip: INCR the counter and set the window TTL only on the first
+    // hit (PEXPIRE ... NX). The pipeline returns the post-increment count first.
+    const res = await fetch(`${url}/pipeline`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify([
+        ["INCR", id],
+        ["PEXPIRE", id, String(opts.windowMs), "NX"],
+      ]),
+      cache: "no-store",
+    });
+    if (!res.ok) return rateLimit(req, opts);
+    const out = (await res.json()) as { result: unknown }[];
+    const count = Number(out?.[0]?.result);
+    if (!Number.isFinite(count) || count <= 0) return rateLimit(req, opts);
+    if (count > opts.limit) return { ok: false, retryAfter: Math.ceil(opts.windowMs / 1000) };
+    return { ok: true };
+  } catch {
+    return rateLimit(req, opts);
+  }
+}
+
 /** The 429 response to return when a limit is hit. */
 export function tooManyRequests(retryAfter?: number): Response {
   return new Response(JSON.stringify({ error: "Too many requests. Please slow down and try again." }), {

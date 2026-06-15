@@ -1,7 +1,8 @@
 // OneSky service worker: a conservative offline shell. Navigations are
-// network-first with an offline fallback; static assets are cached; API and auth
-// are never cached. Bump CACHE to invalidate.
-const CACHE = "onesky-v1";
+// network-first with an offline fallback; static assets are served
+// stale-while-revalidate (instant from cache, refreshed in the background); API
+// and auth are never cached. Bump CACHE to invalidate.
+const CACHE = "onesky-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/icon.svg"];
 
@@ -42,17 +43,20 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/icon") ||
     /\.(svg|png|jpe?g|webp|woff2?)$/.test(url.pathname);
   if (isStatic) {
+    // Stale-while-revalidate: serve the cached copy at once, fetch a fresh one in
+    // the background to update the cache for next time. Hashed assets have unique
+    // URLs, so this only ever refreshes the stable ones (icons, fonts).
     event.respondWith(
-      caches.match(request).then(
-        (cached) =>
-          cached ||
-          fetch(request)
+      caches.open(CACHE).then((cache) =>
+        cache.match(request).then((cached) => {
+          const network = fetch(request)
             .then((res) => {
-              const copy = res.clone();
-              caches.open(CACHE).then((c) => c.put(request, copy));
+              if (res && res.ok) cache.put(request, res.clone());
               return res;
             })
-            .catch(() => cached),
+            .catch(() => cached);
+          return cached || network;
+        }),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { deleteResonance } from "@/lib/db/queries";
+import { logError } from "@/lib/log";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     await deleteResonance(supabase, user.id, id);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("resonance DELETE failed", err);
+    logError("resonances.delete", err);
     return NextResponse.json({ error: "Could not delete this resonance." }, { status: 500 });
   }
 }
