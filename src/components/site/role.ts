@@ -1,19 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-import { getProfile } from "@/lib/db/queries";
+import { currentUser, currentProfile } from "@/lib/auth/session";
 import type { NavRole } from "./nav";
 
 /**
- * Read the viewer's nav role once (are they signed in, are they an admin), with
- * safe defaults on any error or when auth is not configured. SiteShell calls this
- * a single time and passes the result to the header and footer.
+ * Read the viewer's nav role (are they signed in, are they an admin), with safe
+ * defaults on any error or when auth is not configured. Backed by the per-request
+ * session cache, so the header, footer, and section nav share a single auth read.
  */
 export async function getNavRole(): Promise<NavRole> {
-  const supabase = await createClient();
-  if (!supabase) return { signedIn: false, isAdmin: false };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) return { signedIn: false, isAdmin: false };
-  const profile = await getProfile(supabase, user.id).catch(() => null);
+  const profile = await currentProfile();
   return { signedIn: true, isAdmin: Boolean(profile?.is_admin) };
 }

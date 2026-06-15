@@ -42,10 +42,8 @@ export async function POST(request: Request) {
       await setPrimaryChart(supabase, user.id, pid);
     }
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not save your profile." },
-      { status: 500 },
-    );
+    console.error("profile save failed", err);
+    return NextResponse.json({ error: "Could not save your profile." }, { status: 500 });
   }
   return NextResponse.json({ ok: true, accountType, displayName });
 }

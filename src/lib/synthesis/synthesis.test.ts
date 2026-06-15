@@ -20,9 +20,11 @@ describe("engine golden values", () => {
     expect((western?.native.factors.sun.value as { sign: string }).sign).toBe("Pisces");
   });
 
-  it("computes Pythagorean Life Path 6", () => {
+  it("computes Pythagorean Life Path 33 (master), from the full date digit sum", () => {
+    // 1+8+7+9+0+3+1+4 = 33, kept as a master number. The old component-reduce
+    // method wrongly dropped this to 6 by over-reducing each part first.
     const num = computations.find((c) => c.meta.id === "numerology-pythagorean");
-    expect(num?.native.factors["life-path"].value).toBe(6);
+    expect(num?.native.factors["life-path"].value).toBe(33);
   });
 
   it("runs every satisfiable system at date-time-place precision", () => {

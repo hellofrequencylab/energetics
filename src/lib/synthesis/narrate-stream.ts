@@ -1,5 +1,4 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NARRATIVE_MODEL, narrationKey, type NarrationRequest } from "./narrative";
 
@@ -34,9 +33,13 @@ function headersFor(meta: { available: boolean; cached: boolean; model?: string 
 
 async function readCache(key: string): Promise<string | null> {
   try {
-    const supabase = await createClient();
-    if (!supabase) return null;
-    const { data } = await supabase.from("narratives").select("body").eq("cache_key", key).maybeSingle();
+    // Read with the service role, never the per-request client. A reading can
+    // mention user-entered names (resonance, theme), so the cache table is not
+    // exposed to anon/authenticated. Without a service key the cache is simply
+    // off and readings regenerate, which is the same graceful degrade as writes.
+    const admin = createAdminClient();
+    if (!admin) return null;
+    const { data } = await admin.from("narratives").select("body").eq("cache_key", key).maybeSingle();
     return (data?.body as string | undefined) ?? null;
   } catch {
     return null;

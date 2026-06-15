@@ -59,10 +59,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   try {
     await updateBirthEvent(supabase, id, input);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not save." },
-      { status: 500 },
-    );
+    console.error("charts PATCH failed", err);
+    return NextResponse.json({ error: "Could not save." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }
@@ -81,10 +79,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   try {
     await deleteBirthEvent(supabase, id);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not delete." },
-      { status: 500 },
-    );
+    console.error("charts DELETE failed", err);
+    return NextResponse.json({ error: "Could not delete." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

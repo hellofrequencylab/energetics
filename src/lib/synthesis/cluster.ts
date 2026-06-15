@@ -43,10 +43,15 @@ export function cluster(primitives: Primitive[]): Cluster[] {
     }
 
     for (const comp of components.values()) {
-      // Representative value = the one with the greatest total native weight.
+      // Representative value = the one with the greatest total native weight. Ties
+      // break lexically (not by Map insertion / registry order), so the cluster's
+      // value, and every downstream tension/synastry key built from it, is a pure
+      // function of the inputs.
       const weightByValue = new Map<string, number>();
       for (const p of comp) weightByValue.set(p.value, (weightByValue.get(p.value) ?? 0) + p.weight);
-      const representative = [...weightByValue.entries()].sort((a, b) => b[1] - a[1])[0][0];
+      const representative = [...weightByValue.entries()].sort(
+        (a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0),
+      )[0][0];
 
       clusters.push({
         axis,

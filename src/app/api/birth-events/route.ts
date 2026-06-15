@@ -53,7 +53,10 @@ export async function POST(request: Request) {
     },
     { onConflict: "id" },
   );
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("birth-events upsert failed", error);
+    return NextResponse.json({ error: "Could not save this chart." }, { status: 500 });
+  }
 
   return NextResponse.json({ event, name });
 }
@@ -70,9 +73,7 @@ export async function GET() {
     const birthEvents = await recentBirthEvents(supabase);
     return NextResponse.json({ birthEvents });
   } catch (err) {
-    return NextResponse.json(
-      { birthEvents: [], error: err instanceof Error ? err.message : "Query failed." },
-      { status: 500 },
-    );
+    console.error("birth-events list failed", err);
+    return NextResponse.json({ birthEvents: [], error: "Query failed." }, { status: 500 });
   }
 }

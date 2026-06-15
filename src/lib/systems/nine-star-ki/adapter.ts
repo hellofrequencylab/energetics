@@ -1,4 +1,5 @@
 import type { NativeResult, Primitive, SemanticAdapter } from "@/lib/core/contracts";
+import { isRegistered } from "@/lib/ontology/axes";
 import { ONTOLOGY_VERSION } from "@/lib/ontology/version";
 import { meta } from "./engine";
 
@@ -42,6 +43,11 @@ export const adapter: SemanticAdapter = {
   ontologyVersion: ONTOLOGY_VERSION,
   toPrimitives(native: NativeResult): Primitive[] {
     const primitives: Primitive[] = [];
+    // Self-check every emitted value against the registered vocabulary, so a
+    // future star/element/theme change can never silently leak an unknown term.
+    const push = (p: Primitive) => {
+      if (isRegistered(p.axis, p.value)) primitives.push(p);
+    };
 
     // (factor key, element weight, polarity weight, theme weight, domain weight)
     const slots: [string, number, number, number, number][] = [
@@ -60,7 +66,7 @@ export const adapter: SemanticAdapter = {
       };
 
       if (element) {
-        primitives.push({
+        push({
           axis: "element",
           value: `chinese:${element}`,
           weight: elW,
@@ -70,7 +76,7 @@ export const adapter: SemanticAdapter = {
         });
       }
       if (polW > 0 && polarity) {
-        primitives.push({
+        push({
           axis: "polarity",
           value: polarityValue(polarity),
           weight: polW,
@@ -81,7 +87,7 @@ export const adapter: SemanticAdapter = {
       }
       const theme = STAR_THEME[star];
       if (theme) {
-        primitives.push({
+        push({
           axis: "theme",
           value: theme,
           weight: themeW,
@@ -92,7 +98,7 @@ export const adapter: SemanticAdapter = {
       }
       const domain = STAR_DOMAIN[star];
       if (domW > 0 && domain) {
-        primitives.push({
+        push({
           axis: "domain",
           value: domain,
           weight: domW,

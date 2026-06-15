@@ -90,13 +90,12 @@ memoized in `energetics.narratives`, keyed by a content hash. Reopening a chart,
 or two people with identical charts, serves the stored reading instead of calling
 the model again.
 
-- Cache reads use the normal client and the world-readable `select` policy. The
-  key is a hash with no birth data, and the value is reproducible by anyone with
-  the same structure, so it is safe to share.
-- Cache writes happen only server-side with `SUPABASE_SERVICE_ROLE_KEY`, and only
-  of text the server just generated. Clients can read but never write, so the
-  cache cannot be poisoned. Without the service key, readings still stream, they
-  just regenerate each time (no caching).
+- Both cache reads and writes happen only server-side with
+  `SUPABASE_SERVICE_ROLE_KEY`. The table is not exposed to `anon`/`authenticated`
+  (migration `0008` dropped the old world-readable policy), because a reading can
+  mention user-entered names (resonance and theme readings). Clients never touch
+  the table. Without the service key, readings still stream, they just regenerate
+  each time (no caching) and nothing is stored.
 - To clear the cache, truncate `energetics.narratives`. Readings regenerate on
   next view. Editing a chart's birth data changes its structure, so it
   content-addresses to a fresh reading automatically.
@@ -112,7 +111,10 @@ catalog default (`src/lib/core/catalog.ts`) overlaid with admin toggles stored i
   `update energetics.profiles p set is_admin = true from auth.users u where u.id =
   p.user_id and lower(u.email) = '<email>';`. The repo migration does not hardcode
   any email; seed the owner this way after they have signed in once (a profile row
-  must exist).
+  must exist). A trigger (`guard_profile_is_admin`, migration `0008`) blocks any
+  attempt to set or change `is_admin` from a request carrying a user token, so this
+  grant must run as the service role or via direct SQL (the SQL editor, where
+  `auth.uid()` is null), which is exactly the command above.
 - **Switching systems on or off.** Sign in as an admin and open `/admin/systems`.
   Toggles take effect immediately for everyone: compute reads the live effective
   set on every chart path. Writes are admin-only by row level security.

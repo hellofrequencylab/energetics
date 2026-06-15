@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getBirthEvent, getProfile } from "@/lib/db/queries";
+import { getBirthEvent } from "@/lib/db/queries";
+import { currentUser, currentProfile } from "@/lib/auth/session";
 import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { effectiveEnabledIds, effectiveOrderMap, sortByOrder } from "@/lib/core/system-settings";
@@ -24,9 +25,7 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const supabase = await createClient();
   if (!supabase) redirect("/login?next=/account");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) redirect(`/login?next=/account/chart/${id}`);
 
   const row = await getBirthEvent(supabase, id).catch(() => null);
@@ -53,7 +52,7 @@ export default async function SavedChartPage({ params }: { params: Promise<{ id:
   const ordered = sortByOrder(computations, (c) => c.meta.id, order);
   const data: ComputeResponse = { event, name, computations: ordered, unavailable, synthesis, ephemerisVersion };
 
-  const profile = await getProfile(supabase, user.id).catch(() => null);
+  const profile = await currentProfile();
 
   return (
     <SiteShell nav={<AppSectionNav />}>

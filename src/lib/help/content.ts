@@ -382,6 +382,15 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "A site-wide review: safer accounts and more accurate numbers",
+    notes: [
+      "Tightened security so your saved charts, resonances, and readings stay yours, and your readings are no longer stored where anyone could read them.",
+      "Numerology now keeps master numbers (11, 22, 33) in your Life Path, so some life paths read more precisely than before.",
+      "Fixed Nine Star Ki for births in the first days of January, and made cross-system convergences fully consistent.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Privacy and Terms, and a steadier app",
     notes: [
       "Added clear Privacy and Terms pages, linked in the footer.",

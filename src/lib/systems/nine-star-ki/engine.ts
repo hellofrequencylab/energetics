@@ -66,16 +66,16 @@ function yearStar(y: number): number {
  * runs from its opening day to the next month's opening day.
  */
 function solarMonthIndex(month: number, day: number): number {
-  // Walk the twelve openings; the last one at or before the date wins.
-  // Month 12 (小寒, early Jan) wraps to the start of the calendar year.
-  let idx = 11; // default: before 立春 in Feb → previous year's 12th month (小寒)
+  // Walk the eleven February-to-December openings; the last one at or before the
+  // date wins. The default (idx 11, 小寒) covers two cases that the loop cannot:
+  // late January on/after 小寒 (Jan 6), and early February before 立春 (Feb 4).
+  let idx = 11;
   for (let i = 0; i < 11; i++) {
     const s = MONTH_STARTS[i];
     if (month > s.month || (month === s.month && day >= s.day)) idx = i;
   }
-  // January handling: if month is 1, it is the 12th solar month (idx 11) unless
-  // it is on/after 小寒's day, which it always is by this point, so idx stays 11.
-  if (month === 1) idx = 11;
+  // Early January, before 小寒 (Jan 6), still belongs to the prior 大雪 month.
+  if (month === 1 && day < MONTH_STARTS[11].day) idx = 10;
   return idx;
 }
 
