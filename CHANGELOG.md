@@ -4,6 +4,24 @@ The technical record of notable changes, newest first. User-facing highlights
 also appear in the in-app Help Center ("what's new"), sourced from
 `src/lib/help/content.ts`. Dates are ISO (UTC).
 
+## 2026-06-15
+
+### Fixed
+- Server error on every signed-in page (account, chart, resonance, admin): the
+  role-aware section nav passed a function prop from a server component to a client
+  component, which is not allowed and threw at request time. The nav item now uses
+  a serializable `activePrefix` string instead. (`SectionNav.tsx`, `AppSectionNav.tsx`.)
+
+### Changed
+- Birth form on mobile: the reading button now sits directly under the fields, with
+  the "Your profile" preview below it (responsive `order`; desktop layout
+  unchanged). (`BirthForm.tsx`.)
+- Welcome page on mobile: the header is no longer sticky, so it scrolls away as you
+  reach the form and the form gets the whole screen, and the form lands at the top
+  without clipping. The fixed bottom call-to-action bar is removed. This replaces
+  the earlier `intake-focus` chrome-hiding approach, which shifted the layout and
+  clipped the top of the form. (`WelcomeShell.tsx`, `welcome/page.tsx`, `globals.css`.)
+
 ## 2026-06-14
 
 ### Fixed

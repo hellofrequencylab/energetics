@@ -249,16 +249,6 @@ h1, h2, h3, h4 {
   will-change: transform;
 }
 
-/* Welcome intake focus: on small screens, once the birth form is the locked-in
-   view, clear the competing chrome (the welcome header and the bottom CTA bar) so
-   only the form fills the screen. WelcomeShell toggles `intake-focus` on <html>. */
-@media (max-width: 640px) {
-  html.intake-focus [data-welcome-header],
-  html.intake-focus [data-welcome-cta] {
-    display: none;
-  }
-}
-
 /* Reduced motion: render settled states at once. No drawing, looping, or drift. */
 @media (prefers-reduced-motion: reduce) {
   *,
