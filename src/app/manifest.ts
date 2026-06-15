@@ -2,8 +2,10 @@ import type { MetadataRoute } from "next";
 
 /**
  * Web app manifest, so OneSky installs to the home screen and runs standalone.
- * The convergence mark ships as an SVG (scales to any size, doubles as maskable);
- * iOS uses the PNG apple-icon route. Theme and background match the twilight base.
+ * The convergence mark ships as a scalable SVG plus raster PNGs (192 and 512) for
+ * installers that want fixed sizes, and a dedicated maskable PNG with safe-zone
+ * padding so Android's adaptive mask never crops the mark. iOS uses the PNG
+ * apple-icon route. Theme and background match the twilight base.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -19,7 +21,9 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["lifestyle", "reference"],
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

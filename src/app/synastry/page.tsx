@@ -7,8 +7,9 @@ import { AppSectionNav } from "@/components/site/AppSectionNav";
 import { PageHeader } from "@/components/ui";
 
 export const metadata = {
-  title: "Resonance · ONESKY",
+  title: "Resonance",
   description: "Compare two charts: shared ground, complementary tensions, and cross-chart aspects.",
+  alternates: { canonical: "/synastry" },
 };
 export const runtime = "nodejs";
 

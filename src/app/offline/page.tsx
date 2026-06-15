@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SandMark } from "@/components/ui";
 
-export const metadata = { title: "Offline · OneSky" };
+export const metadata = { title: "Offline" };
 
 /**
  * The offline fallback the service worker serves when a navigation fails with no

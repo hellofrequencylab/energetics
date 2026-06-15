@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const TITLE = "OneSky · Many traditions, one sky";
+const TITLE = "OneSky · Many traditions. One sky.";
 const DESCRIPTION =
   "See your birth moment through every tradition, and where they agree. Compute a full birth chart across Western, Vedic, Chinese, numerology and more, then read where independent systems converge.";
 

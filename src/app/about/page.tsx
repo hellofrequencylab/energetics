@@ -4,8 +4,9 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/ui";
 
 export const metadata = {
-  title: "About the systems · ONESKY",
-  description: "How ONESKY treats each tradition: named, lineage-labeled, predisposition not fate.",
+  title: "About the systems",
+  description: "How OneSky treats each tradition: named, lineage-labeled, predisposition not fate.",
+  alternates: { canonical: "/about" },
 };
 
 export default async function AboutPage() {
@@ -16,7 +17,7 @@ export default async function AboutPage() {
       <PageHeader
         eyebrow="Integrity"
         title="About these systems"
-        description="ONESKY draws on many traditions. We name each one, label its lineage honestly, and keep modern reconstructions separate from living traditions."
+        description="OneSky draws on many traditions. We name each one, label its lineage honestly, and keep modern reconstructions separate from living traditions."
       />
       <EthicsPanel systems={systems} />
     </SiteShell>

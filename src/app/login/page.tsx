@@ -2,7 +2,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { LoginForm } from "@/components/auth/LoginForm";
 
 export const metadata = {
-  title: "Sign in · ONESKY",
+  title: "Sign in",
   description: "Sign in or create an account with a password or a one-time magic link.",
 };
 

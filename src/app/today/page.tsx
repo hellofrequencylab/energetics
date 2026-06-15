@@ -22,6 +22,9 @@ export const runtime = "nodejs";
 // Today's sky is read from the current moment, so never cache this page.
 export const dynamic = "force-dynamic";
 
+// A private, signed-in page (it reads your saved charts), so keep it out of the index.
+export const metadata = { title: "Today", robots: { index: false, follow: false } };
+
 const DATE_FMT = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
   month: "long",

@@ -4,8 +4,9 @@ import { PageHeader } from "@/components/ui";
 import { StyleguideClient } from "./StyleguideClient";
 
 export const metadata: Metadata = {
-  title: "Style guide · OneSky",
+  title: "Style guide",
   description: "The living reference for the OneSky UI kit: tokens, type, and primitives.",
+  robots: { index: false, follow: false },
 };
 
 /**

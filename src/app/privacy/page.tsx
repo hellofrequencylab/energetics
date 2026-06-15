@@ -3,8 +3,9 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/ui";
 
 export const metadata = {
-  title: "Privacy · OneSky",
+  title: "Privacy",
   description: "What OneSky collects, how it is used, and how to remove it.",
+  alternates: { canonical: "/privacy" },
 };
 
 function Section({ title, children }: { title: string; children: ReactNode }) {

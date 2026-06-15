@@ -13,9 +13,12 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "OneSky · Many traditions. One sky.",
+  // Absolute so the home title is the full brand line, not suffixed by the
+  // layout's "%s · OneSky" template.
+  title: { absolute: "OneSky · Many traditions. One sky." },
   description:
     "Read your birth chart across Western astrology, Human Design, numerology, the Maya calendar, Chinese BaZi, and Tarot at once. OneSky keeps each system whole, then shows the few things they independently agree on about you. Free to read.",
+  alternates: { canonical: "/welcome" },
 };
 
 const CTA_LABEL = "Read my chart, free";

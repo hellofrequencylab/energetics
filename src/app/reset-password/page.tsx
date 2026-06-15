@@ -2,7 +2,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 
 export const metadata = {
-  title: "Set a new password · ONESKY",
+  title: "Set a new password",
   description: "Choose a new password for your OneSky account.",
   robots: { index: false, follow: false },
 };

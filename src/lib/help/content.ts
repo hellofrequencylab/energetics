@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "A faster start, and a sharper home-screen icon",
+    notes: [
+      "The opening page loads lighter and quicker now, and your reader loads the moment you enter your birth details.",
+      "Added to your home screen, OneSky shows a crisp icon that sits neatly inside the rounded shape on any phone.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "A daily home: your sky today",
     notes: [
       "Pin a primary chart and the new Today page shows the day's movements read against it, with your Sun, Moon, and Rising at a glance.",
