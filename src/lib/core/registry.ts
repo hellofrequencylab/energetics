@@ -2,9 +2,10 @@
  * The ONLY place systems are wired together (spec §4). Everything else
  * discovers systems through REGISTRY. Adding a system = add a folder + one line.
  *
- * Ordered by phase then source group. Real engines emit native output today;
- * the rest are registered scaffolds (corpusVersion "0") returning {} until built
- * — the synthesis pipeline handles empty native results gracefully.
+ * Ordered by phase then source group. Every registered system now has a real
+ * engine and adapter that emit native output and ontology primitives. The catalog
+ * still curates which are offered by default (see catalog.ts); the rest are
+ * available for an admin to switch on.
  */
 import type { Precision } from "./birth-event";
 import type { RegisteredSystem, SystemMeta } from "./contracts";
@@ -18,7 +19,7 @@ import * as tzolkin from "@/lib/systems/tzolkin";
 import * as vedicJyotish from "@/lib/systems/vedic-jyotish";
 import * as chineseBazi from "@/lib/systems/chinese-bazi";
 
-// Scaffolds (corpusVersion "0")
+// Further systems (now all real engines)
 import * as humanDesign from "@/lib/systems/human-design";
 import * as geneKeys from "@/lib/systems/gene-keys";
 import * as hellenistic from "@/lib/systems/hellenistic";

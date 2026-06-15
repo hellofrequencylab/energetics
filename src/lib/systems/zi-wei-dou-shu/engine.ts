@@ -30,6 +30,10 @@ const BUREAU_BY_ELEMENT: Record<string, { n: number; name: string }> = {
   土: { n: 5, name: "土五局 (Earth 5)" },
   火: { n: 6, name: "火六局 (Fire 6)" },
 };
+// Bureau element character → five-phase element name (for the ontology mapping).
+const BUREAU_TO_ELEMENT: Record<string, string> = {
+  水: "water", 木: "wood", 金: "metal", 土: "earth", 火: "fire",
+};
 
 const PALACES = [
   "Life", "Siblings", "Spouse", "Children", "Wealth", "Health",
@@ -47,6 +51,23 @@ const TIANFU_SERIES: [string, number][] = [
 ];
 
 const mod12 = (n: number) => ((n % 12) + 12) % 12;
+
+// Earthly branch (子…亥) → five-phase element + zodiac animal. The branch of a
+// palace is a confident, well-defined value (unlike the validation-pending star
+// placements), so these support the ontology mapping.
+const BRANCH_ELEMENT: Record<string, string> = {
+  子: "water", 丑: "earth", 寅: "wood", 卯: "wood", 辰: "earth", 巳: "fire",
+  午: "fire", 未: "earth", 申: "metal", 酉: "metal", 戌: "earth", 亥: "water",
+};
+const BRANCH_ANIMAL: Record<string, string> = {
+  子: "Rat", 丑: "Ox", 寅: "Tiger", 卯: "Rabbit", 辰: "Dragon", 巳: "Snake",
+  午: "Horse", 未: "Goat", 申: "Monkey", 酉: "Rooster", 戌: "Dog", 亥: "Pig",
+};
+// Heavenly stem (甲…癸) → yang/yin polarity. Odd stems are yang, even are yin.
+const STEM_POLARITY: Record<string, string> = {
+  甲: "Yang", 乙: "Yin", 丙: "Yang", 丁: "Yin", 戊: "Yang",
+  己: "Yin", 庚: "Yang", 辛: "Yin", 壬: "Yang", 癸: "Yin",
+};
 
 /** 紫微 placement from the Five Elements Bureau number + lunar day (classic rule). */
 function ziweiBranch(bureau: number, day: number): number {
@@ -103,16 +124,34 @@ export const engine: SystemEngine = {
       (starsByBranch[ZHI[b]] ??= []).push(name.split(" ")[0]);
     }
 
+    // Confident, well-defined readings of the frame (independent of the
+    // validation-pending star placement): the year polarity, and the element +
+    // animal of the Life and Body palace branches.
+    const yearPolarity = STEM_POLARITY[yearGan] ?? "";
+    const lifeBranch = ZHI[ming];
+    const bodyBranch = ZHI[shen];
+    const bureauElement = BUREAU_TO_ELEMENT[elementChar] ?? "";
+
     const factors: Record<string, NativeFactor> = {
       lunar: {
         key: "lunar",
         label: "Lunar Date",
-        value: { yearGanZhi: lunar.getYearInGanZhi(), month: lm, day: ld },
+        value: { yearGanZhi: lunar.getYearInGanZhi(), month: lm, day: ld, polarity: yearPolarity },
         display: `${lunar.getYearInGanZhi()} · month ${lm}, day ${ld}`,
       },
-      "life-palace": { key: "life-palace", label: "Life Palace (命宫)", value: ZHI[ming], display: ZHI[ming] },
-      "body-palace": { key: "body-palace", label: "Body Palace (身宫)", value: ZHI[shen], display: ZHI[shen] },
-      bureau: { key: "bureau", label: "Five Elements Bureau", value: bureau, display: bureau.name },
+      "life-palace": {
+        key: "life-palace",
+        label: "Life Palace (命宫)",
+        value: { branch: lifeBranch, element: BRANCH_ELEMENT[lifeBranch] ?? "", animal: BRANCH_ANIMAL[lifeBranch] ?? "" },
+        display: `${lifeBranch} · ${cap(BRANCH_ELEMENT[lifeBranch] ?? "")} ${BRANCH_ANIMAL[lifeBranch] ?? ""}`,
+      },
+      "body-palace": {
+        key: "body-palace",
+        label: "Body Palace (身宫)",
+        value: { branch: bodyBranch, element: BRANCH_ELEMENT[bodyBranch] ?? "", animal: BRANCH_ANIMAL[bodyBranch] ?? "" },
+        display: `${bodyBranch} · ${cap(BRANCH_ELEMENT[bodyBranch] ?? "")} ${BRANCH_ANIMAL[bodyBranch] ?? ""}`,
+      },
+      bureau: { key: "bureau", label: "Five Elements Bureau", value: { ...bureau, element: bureauElement }, display: bureau.name },
       "zi-wei": { key: "zi-wei", label: "Zi Wei (紫微) Palace", value: ZHI[zi], display: ZHI[zi] },
       stars: {
         key: "stars",
@@ -121,6 +160,12 @@ export const engine: SystemEngine = {
         display: Object.entries(starsByBranch).map(([b, s]) => `${b}: ${s.join("·")}`).join("  "),
       },
       palaces: { key: "palaces", label: "Palaces", value: palaces, display: PALACES.map((p) => `${p}→${palaces[p]}`).join(", ") },
+      polarity: {
+        key: "polarity",
+        label: "Chart Polarity",
+        value: { polarity: yearPolarity },
+        display: yearPolarity ? `${yearPolarity} (year stem)` : "",
+      },
       note: {
         key: "note",
         label: "Note",
@@ -132,3 +177,7 @@ export const engine: SystemEngine = {
     return { systemId: meta.id, factors };
   },
 };
+
+function cap(s: string): string {
+  return s ? s[0].toUpperCase() + s.slice(1) : s;
+}

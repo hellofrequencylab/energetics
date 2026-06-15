@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "Every system goes deeper",
+    notes: [
+      "Each tradition now reads more of your chart and explains more on its own page.",
+      "Every system also shares more with the others, so your convergences and tensions are richer.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Save your resonance comparisons",
     notes: [
       "When you compare two of your saved charts, you can now save that resonance to your account.",

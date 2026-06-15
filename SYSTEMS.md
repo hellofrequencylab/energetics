@@ -34,9 +34,9 @@ and admin" below). `status` is the build state, independent of whether it is off
 | `akan-day-names` | — | ✅ | traditional | — | — | date | — | 3 |
 | `norse-runes` | — | ✅\* | modern-reconstruction | — | — | date | — | 3 |
 | `egyptian-decans` | — | ✅ | traditional | — | — | ephemeris | — | 3 |
-| `kabbalah-tree-of-life` | — | ⬜ | traditional | — | — | name | — | 4 |
-| `tibetan-astrology` | — | ⬜ | traditional | — | — | date | — | 4 |
-| `numerology-lo-shu` | — | ⬜ | traditional | — | — | date | — | 4 |
+| `kabbalah-tree-of-life` | — | ✅ | traditional | — | — | name | — | 4 |
+| `tibetan-astrology` | — | ✅ | traditional | — | — | date | — | 4 |
+| `numerology-lo-shu` | — | ✅ | traditional | — | — | date | — | 4 |
 
 `(✓)` = optional but enriches output: `western-tropical` runs date-only and adds
 detail as precision rises (signs → degrees+aspects → houses/angles). `dreamspell`

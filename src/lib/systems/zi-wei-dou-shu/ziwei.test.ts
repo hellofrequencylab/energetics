@@ -11,10 +11,17 @@ const res = engine.compute(
 describe("zi wei dou shu (frame verified; stars self-consistent, validation-pending)", () => {
   it("computes lunar basis, Life/Body palace, and a Five Elements Bureau", () => {
     expect(res.factors.lunar).toBeDefined();
-    expect(ZHI).toContain(res.factors["life-palace"].value);
-    expect(ZHI).toContain(res.factors["body-palace"].value);
+    expect(ZHI).toContain((res.factors["life-palace"].value as { branch: string }).branch);
+    expect(ZHI).toContain((res.factors["body-palace"].value as { branch: string }).branch);
     expect((res.factors.bureau.value as { n: number }).n).toBeGreaterThanOrEqual(2);
     expect((res.factors.bureau.value as { n: number }).n).toBeLessThanOrEqual(6);
+  });
+
+  it("reads element + animal off the Life Palace branch and a year polarity", () => {
+    const life = res.factors["life-palace"].value as { element: string; animal: string };
+    expect(["wood", "fire", "earth", "metal", "water"]).toContain(life.element);
+    expect(life.animal).toBeTruthy();
+    expect(["Yang", "Yin"]).toContain((res.factors.polarity.value as { polarity: string }).polarity);
   });
 
   it("places all 14 major stars in valid branches", () => {

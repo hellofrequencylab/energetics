@@ -7,6 +7,22 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-15
 
 ### Added
+- More depth for every system in the catalog. Each of the 21 systems now has a real
+  engine and adapter (the last scaffolds, Kabbalah Tree of Life, Tibetan astrology,
+  and Lo Shu grid numerology, are now built), exposes more native factors, maps more
+  of them onto the shared ontology so it forms more cross-system convergences and
+  tensions, and has a full reader overview on its detail page. Highlights: Western
+  adds sect, triplicity, decan, chart ruler, and chart shape; Vedic adds nakshatra
+  lord, dasha lord, atmakaraka, and tatva balance; Hellenistic adds sect, triplicity
+  lords, and the Lot of Spirit; Human Design adds profile angle, signature, not-self,
+  and open centers; Gene Keys gains the full Hologenetic profile (Activation, Venus,
+  Pearl); BaZi adds the Ten Gods, day-master strength, na yin, and a useful element;
+  numerology adds pinnacles, challenges, and Chaldean cornerstone/capstone/hidden
+  passion; Tzolk'in adds tone phase, direction, and year-bearer; tarot, runes, the
+  Celtic tree, and Akan day-names gain elements, polarity, and domains. All ontology
+  values stay within the registered vocabulary; engines stay pure.
+
+### Added
 - Save and manage resonance comparisons. A new `energetics.resonances` table
   (migration `0007`, owner-scoped RLS) stores a pairing of two saved charts plus the
   lens (platonic or intimate). The comparison page shows a "Save this resonance"

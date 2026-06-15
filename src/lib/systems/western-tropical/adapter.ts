@@ -100,6 +100,51 @@ const HOUSE_DOMAIN: Record<number, string> = {
 
 const BODY_KEYS = Object.keys(BODY_THEMES);
 
+/** Classical planet → theme, for dignity layers (triplicity, decan, chart ruler). */
+const PLANET_THEME: Record<string, string> = {
+  Sun: "sovereignty",
+  Moon: "nurture",
+  Mercury: "communication",
+  Venus: "devotion",
+  Mars: "leadership",
+  Jupiter: "vision",
+  Saturn: "discipline",
+};
+
+/**
+ * Lunar phase → theme. The waxing half builds and reaches out, the waning half
+ * distills and turns inward. The quarters mark turning points.
+ */
+const PHASE_THEME: Record<string, string> = {
+  "New Moon": "vision",
+  "Waxing Crescent": "exploration",
+  "First Quarter": "leadership",
+  "Waxing Gibbous": "analysis",
+  "Full Moon": "devotion",
+  "Waning Gibbous": "service",
+  "Last Quarter": "transformation",
+  "Waning Crescent": "intuition",
+};
+
+/** Lunar phase → polarity. Waxing half leans active, waning half receptive. */
+const PHASE_POLARITY: Record<string, string> = {
+  "New Moon": "balanced",
+  "Waxing Crescent": "active",
+  "First Quarter": "active",
+  "Waxing Gibbous": "active",
+  "Full Moon": "balanced",
+  "Waning Gibbous": "receptive",
+  "Last Quarter": "receptive",
+  "Waning Crescent": "receptive",
+};
+
+/** Quadruplicity (angular/succedent/cadent) → theme: drive, hold, adapt. */
+const QUADRUPLICITY_THEME: Record<string, string> = {
+  angular: "leadership",
+  succedent: "structure",
+  cadent: "exploration",
+};
+
 export const adapter: SemanticAdapter = {
   systemId: meta.id,
   ontologyVersion: ONTOLOGY_VERSION,
@@ -162,6 +207,71 @@ export const adapter: SemanticAdapter = {
       if (d.polarity) emit("polarity", d.polarity, SIGNATURE_WEIGHT, "dominant", d);
       const signatureThemes = new Set([ELEMENT_THEME[d.element], MODALITY_THEME[d.modality]]);
       for (const t of signatureThemes) if (t) emit("theme", t, SIGNATURE_WEIGHT, "dominant", d);
+    }
+
+    // Sect: a day chart leans active (diurnal, outward), a night chart receptive
+    // (nocturnal, inward). A whole-chart temperament note, lightly weighted.
+    const sect = native.factors.sect;
+    if (sect) {
+      const s = sect.value as { sect: string };
+      emit("polarity", s.sect === "day" ? "active" : "receptive", 0.4, "sect", s);
+    }
+
+    // Sun's active triplicity ruler → its planetary theme. The dignity lord of
+    // the Sun's element adds a focused theme without re-emitting an element.
+    const triplicity = native.factors.triplicity;
+    if (triplicity) {
+      const t = triplicity.value as { active: string | null; day: string };
+      const ruler = t.active ?? t.day;
+      const theme = PLANET_THEME[ruler];
+      if (theme) emit("theme", theme, 0.4, "triplicity", t);
+    }
+
+    // Sun's decan face ruler → its planetary theme. A finer solar accent.
+    const decan = native.factors.decan;
+    if (decan) {
+      const d = decan.value as { ruler: string };
+      const theme = PLANET_THEME[d.ruler];
+      if (theme) emit("theme", theme, 0.4, "decan", d);
+    }
+
+    // Chart ruler: the domicile lord of the Ascendant. It speaks for the whole
+    // nativity, so it earns a strong theme, plus the element and domain of where
+    // it actually sits when those are known.
+    const chartRuler = native.factors["chart-ruler"];
+    if (chartRuler) {
+      const cr = chartRuler.value as { ruler: string; signIndex: number | null; house: number | null };
+      const theme = PLANET_THEME[cr.ruler];
+      if (theme) emit("theme", theme, 0.7, "chart-ruler", cr);
+      if (cr.signIndex != null && SIGNS[cr.signIndex]) {
+        emit("element", `western:${SIGNS[cr.signIndex].element}`, 0.5, "chart-ruler", cr);
+      }
+      if (cr.house != null) {
+        const domain = HOUSE_DOMAIN[cr.house];
+        if (domain) emit("domain", domain, 0.5, "chart-ruler", cr);
+      }
+    }
+
+    // Chart shape: hemisphere and quadruplicity emphasis. The dominant
+    // quadruplicity adds a temperament theme and polarity, lightly weighted as
+    // a whole-chart aggregate.
+    const shape = native.factors["chart-shape"];
+    if (shape) {
+      const sh = shape.value as { hemisphereVertical: string; dominantQuadruplicity: string };
+      const theme = QUADRUPLICITY_THEME[sh.dominantQuadruplicity];
+      if (theme) emit("theme", theme, 0.4, "chart-shape", sh);
+      // Weight above the horizon leans active (public, outward), below receptive.
+      emit("polarity", sh.hemisphereVertical === "above" ? "active" : "receptive", 0.35, "chart-shape", sh);
+    }
+
+    // Lunar phase: a polarity (waxing active, waning receptive) and a phase theme.
+    const phase = native.factors["lunar-phase"];
+    if (phase) {
+      const name = phase.value as string;
+      const pol = PHASE_POLARITY[name];
+      if (pol) emit("polarity", pol, 0.4, "lunar-phase", name);
+      const theme = PHASE_THEME[name];
+      if (theme) emit("theme", theme, 0.4, "lunar-phase", name);
     }
 
     return primitives;

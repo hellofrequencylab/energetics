@@ -43,6 +43,17 @@ const BODIES: { body: Body; label: string; glyph: string }[] = [
   { body: "chiron", label: "Chiron", glyph: "⚷" },
 ];
 
+/** Classical-ruler name → core body, for resolving the chart ruler's placement. */
+const BODY_FROM_NAME: Record<string, CoreBody> = {
+  Sun: "sun",
+  Moon: "moon",
+  Mercury: "mercury",
+  Venus: "venus",
+  Mars: "mars",
+  Jupiter: "jupiter",
+  Saturn: "saturn",
+};
+
 export interface WesternPlacement {
   sign: string;
   signIndex: number;
@@ -56,6 +67,28 @@ const PHASES = [
   "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
   "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent",
 ];
+
+/**
+ * Triplicity (element) rulers, day / night / participating, in the traditional
+ * (Dorothean) scheme. Each element trine has a planet that rules it by day, one
+ * by night, and a participating ruler shared across the trine. Surfaced as a
+ * dignity layer the reader can lean on for "who is in charge of your fire".
+ */
+const TRIPLICITY: Record<string, { day: string; night: string; partner: string }> = {
+  fire: { day: "Sun", night: "Jupiter", partner: "Saturn" },
+  earth: { day: "Venus", night: "Moon", partner: "Mars" },
+  air: { day: "Saturn", night: "Mercury", partner: "Jupiter" },
+  water: { day: "Venus", night: "Mars", partner: "Moon" },
+};
+
+/** Classical sign (domicile) rulers, 0 = Aries. Used for the chart ruler. */
+const DOMICILE = [
+  "Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury",
+  "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter",
+];
+
+/** Decan (face) rulers in Chaldean order, Mars-first at Aries I. Cycles 0..35. */
+const DECAN_FACE = ["Mars", "Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter"];
 
 export const engine: SystemEngine = {
   meta,
@@ -152,6 +185,83 @@ export const engine: SystemEngine = {
       display: `${cap(domElement)} · ${cap(domModality)} · ${cap(polarityLean)}`,
     };
 
+    // Sun's triplicity (element) ruler set: a dignity layer over the Sun's
+    // element. The active day/night ruler depends on sect, which needs houses;
+    // date-only still reports the trine's rulers without picking the active one.
+    const sunSign = SIGNS[Math.floor(norm360(positions.sun.longitude) / 30) % 12];
+    const sunTrip = TRIPLICITY[sunSign.element];
+    // Day chart when the Sun sits above the horizon (houses 7..12). Only known
+    // with houses; default to undefined so the factor stays honest at low precision.
+    const sunHouse = houses ? houseOf(positions.sun.longitude, houses.cusps) : undefined;
+    const isDay = sunHouse !== undefined ? sunHouse >= 7 && sunHouse <= 12 : undefined;
+    if (isDay !== undefined) {
+      factors.sect = {
+        key: "sect",
+        label: "Sect",
+        value: { sect: isDay ? "day" : "night", luminary: isDay ? "Sun" : "Moon" },
+        display: isDay ? "Day chart (Sun by day)" : "Night chart (Moon by night)",
+      };
+    }
+    factors["triplicity"] = {
+      key: "triplicity",
+      label: "Sun Triplicity Ruler",
+      value: {
+        element: sunSign.element,
+        day: sunTrip.day,
+        night: sunTrip.night,
+        partner: sunTrip.partner,
+        active: isDay === undefined ? null : isDay ? sunTrip.day : sunTrip.night,
+      },
+      display:
+        isDay === undefined
+          ? `${cap(sunSign.element)}: ${sunTrip.day} / ${sunTrip.night}`
+          : `${isDay ? sunTrip.day : sunTrip.night} (${cap(sunSign.element)} ${isDay ? "by day" : "by night"})`,
+    };
+
+    // Sun's decan (each 10° third of a sign) and its Chaldean face ruler. A
+    // finer reading of the solar placement, available at date precision.
+    const sunLonNorm = norm360(positions.sun.longitude);
+    const sunDecanIndex = Math.floor(sunLonNorm / 10) % 36;
+    const sunDecanInSign = Math.floor((sunLonNorm % 30) / 10) + 1;
+    const sunDecanRuler = DECAN_FACE[sunDecanIndex % 7];
+    factors.decan = {
+      key: "decan",
+      label: "Sun Decan",
+      value: { sign: sunSign.name, signIndex: sunSign.index, decanInSign: sunDecanInSign, decanIndex: sunDecanIndex, ruler: sunDecanRuler },
+      display: `${sunSign.name} decan ${sunDecanInSign} · ${sunDecanRuler}`,
+    };
+
+    // Chart ruler: the classical domicile lord of the rising sign. Only with an
+    // Ascendant. Records the ruler's own placement so the adapter can weight it.
+    if (houses) {
+      const ascIdx = toSignPosition(houses.ascendant).sign.index;
+      const rulerName = DOMICILE[ascIdx];
+      const rulerBody = BODY_FROM_NAME[rulerName];
+      const rulerPos = rulerBody ? positions[rulerBody] : undefined;
+      const rulerSp = rulerPos ? toSignPosition(rulerPos.longitude) : undefined;
+      factors["chart-ruler"] = {
+        key: "chart-ruler",
+        label: "Chart Ruler",
+        value: {
+          ruler: rulerName,
+          ascSign: SIGNS[ascIdx].name,
+          signIndex: rulerSp?.sign.index ?? null,
+          house: rulerPos ? houseOf(rulerPos.longitude, houses.cusps) : null,
+        },
+        display: `${rulerName}${rulerSp ? ` in ${rulerSp.sign.name}` : ""} (ruler of ${SIGNS[ascIdx].name} Asc)`,
+      };
+
+      // Quadrant emphasis: hemispheres + angular/succedent/cadent houses, a
+      // shape read of where the chart's weight sits. Counts the ten planets.
+      const quad = quadrants(positions, houses.cusps);
+      factors["chart-shape"] = {
+        key: "chart-shape",
+        label: "Chart Emphasis",
+        value: quad,
+        display: `${cap(quad.hemisphereVertical)} · ${cap(quad.hemisphereHorizontal)} · ${cap(quad.dominantQuadruplicity)}`,
+      };
+    }
+
     // Aspects + lunar phase require precise time.
     if (hasTime) {
       const aspectBodies: AspectBody[] = BODIES.filter((b) => positions[b.body]).map((b) => ({
@@ -242,6 +352,40 @@ function distribution(positions: PlanetaryLongitudes) {
     polarity[sign.polarity] += 1;
   }
   return { elements, modalities, polarity };
+}
+
+/**
+ * Quadrant / hemisphere emphasis over the ten planets. Vertical hemisphere is
+ * houses 1..6 (below the horizon) vs 7..12 (above). Horizontal hemisphere is
+ * houses 4..9 (eastern, self-driven) vs 10..3 (western, other-driven). The
+ * quadruplicity tally groups houses into angular (1,4,7,10), succedent
+ * (2,5,8,11), and cadent (3,6,9,12): drive vs consolidation vs adaptation.
+ */
+function quadrants(positions: PlanetaryLongitudes, cusps: number[]) {
+  const planets: CoreBody[] = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"];
+  let below = 0;
+  let above = 0;
+  let east = 0;
+  let west = 0;
+  const quadruplicity: Record<string, number> = { angular: 0, succedent: 0, cadent: 0 };
+  const ANGULAR = new Set([1, 4, 7, 10]);
+  const SUCCEDENT = new Set([2, 5, 8, 11]);
+  for (const p of planets) {
+    const h = houseOf(positions[p].longitude, cusps);
+    if (h <= 6) below += 1;
+    else above += 1;
+    if (h >= 4 && h <= 9) east += 1;
+    else west += 1;
+    if (ANGULAR.has(h)) quadruplicity.angular += 1;
+    else if (SUCCEDENT.has(h)) quadruplicity.succedent += 1;
+    else quadruplicity.cadent += 1;
+  }
+  return {
+    hemisphereVertical: above >= below ? "above" : "below",
+    hemisphereHorizontal: east >= west ? "eastern" : "western",
+    dominantQuadruplicity: dominantKey(quadruplicity),
+    quadruplicity,
+  };
 }
 
 /** Key with the highest count; ties resolve to the first key by insertion order. */
