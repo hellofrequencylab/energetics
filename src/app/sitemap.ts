@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/", priority: 1 },
     { path: "/welcome", priority: 0.9 },
     { path: "/about", priority: 0.7 },
+    { path: "/plus", priority: 0.7 },
     { path: "/help", priority: 0.7 },
     { path: "/glossary", priority: 0.6 },
     { path: "/synastry", priority: 0.6 },

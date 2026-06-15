@@ -11,6 +11,7 @@ const EXPLORE: NavItem[] = [
   { href: "/welcome", label: "Read your sky" },
   { href: "/synastry", label: "Resonance" },
   { href: "/glossary", label: "Glossary" },
+  { href: "/plus", label: "OneSky Plus" },
 ];
 const LEARN: NavItem[] = [
   { href: "/help", label: "Help center" },

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Field, Input } from "@/components/ui";
 import { cn } from "@/lib/ui/cn";
 import { safeNextPath } from "@/lib/auth/safe-next";
+import { Turnstile, turnstileSiteKey } from "@/components/auth/Turnstile";
+import { FREE_LIMITS } from "@/lib/billing/plans";
 
 type Method = "password" | "magic";
 type Mode = "signin" | "signup";
@@ -33,8 +35,10 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  const [captcha, setCaptcha] = useState<string | null>(null);
 
   const supabase = createClient();
+  const onToken = useCallback((t: string | null) => setCaptcha(t), []);
 
   // Surface a failed callback so a bad or expired link is not silent.
   useEffect(() => {
@@ -119,6 +123,25 @@ export function LoginForm() {
     }
   }
 
+  async function onGuest() {
+    const sb = client();
+    if (!sb) return;
+    if (turnstileSiteKey() && !captcha) {
+      setNotice({ kind: "error", text: "Please complete the human check first." });
+      return;
+    }
+    setBusy(true);
+    setNotice(null);
+    try {
+      const { error } = await sb.auth.signInAnonymously(captcha ? { options: { captchaToken: captcha } } : undefined);
+      if (error) throw error;
+      window.location.assign(nextParam());
+    } catch (err) {
+      setNotice({ kind: "error", text: err instanceof Error ? err.message : "Could not continue as guest." });
+      setBusy(false);
+    }
+  }
+
   const tab = (m: Method, label: string) => (
     <button
       type="button"
@@ -195,6 +218,24 @@ export function LoginForm() {
           )}
         </div>
       )}
+
+      <div className="mt-5 border-t border-border pt-4">
+        <p className="text-xs leading-relaxed text-muted">
+          Want to look first? Continue without an account. You can save up to {FREE_LIMITS.savedCharts} charts, and add
+          your email later to keep them. Your birth data stays yours.
+        </p>
+        <Turnstile onToken={onToken} />
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          disabled={busy}
+          className="mt-3 w-full"
+          onClick={onGuest}
+        >
+          Continue as guest
+        </Button>
+      </div>
 
       {notice && (
         <p

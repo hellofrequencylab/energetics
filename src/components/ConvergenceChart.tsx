@@ -9,6 +9,7 @@ import { downloadSvgAsPng } from "@/lib/svg-export";
 import { StrengthsBar } from "./chart/StrengthsBar";
 import { ArcView } from "./chart/ArcView";
 import { ChartDataTable } from "./chart/ChartDataTable";
+import { UpgradePrompt } from "@/components/billing/UpgradePrompt";
 import { GOLD, VIOLET, INK, THREAD, NODE_GLOW, GROUP_COLOR } from "@/lib/design/colors";
 
 /**
@@ -736,17 +737,29 @@ function Legend() {
 }
 
 function TellMore({ axis, value, systems, selfName }: { axis: string; value: string; systems: string[]; selfName: string }) {
-  const [state, setState] = useState<"idle" | "streaming" | "done" | "off">("idle");
+  const [state, setState] = useState<"idle" | "streaming" | "done" | "off" | "gated">("idle");
   const [text, setText] = useState("");
+  const [gate, setGate] = useState<{ message: string; upgrade: boolean } | null>(null);
   async function run() {
     setState("streaming");
     setText("");
+    setGate(null);
     try {
       const res = await fetch("/api/themes/narrate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ axis, value, systems, selfName }),
       });
+      // Drill-down is a Plus feature; a daily limit or budget pause can also gate.
+      if (res.status === 402 || res.status === 429 || res.status === 503) {
+        const info = (await res.json().catch(() => null)) as { error?: string; upgrade?: boolean } | null;
+        setGate({
+          message: info?.error ?? "This drill-down is part of OneSky Plus.",
+          upgrade: res.status === 402 || info?.upgrade === true,
+        });
+        setState("gated");
+        return;
+      }
       if (res.headers.get("x-narrative-available") === "false") {
         setText(await res.text());
         setState("off");
@@ -780,6 +793,19 @@ function TellMore({ axis, value, systems, selfName }: { axis: string; value: str
       >
         ✦ Tell me more
       </button>
+    );
+  if (state === "gated" && gate)
+    return (
+      <UpgradePrompt
+        className="mt-3"
+        message={gate.message}
+        cta={gate.upgrade ? "See OneSky Plus" : "Got it"}
+        href={gate.upgrade ? "/plus" : "#"}
+        onDismiss={() => {
+          setGate(null);
+          setState("idle");
+        }}
+      />
     );
   return (
     <div className="mt-3 space-y-2 text-sm leading-relaxed text-foreground/85">

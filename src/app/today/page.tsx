@@ -17,6 +17,8 @@ import { computeTransits, type TransitHit } from "@/lib/transits";
 import { SiteShell } from "@/components/site/SiteShell";
 import { AppSectionNav } from "@/components/site/AppSectionNav";
 import { PageHeader, Card, Badge, ButtonLink } from "@/components/ui";
+import { getEntitlement } from "@/lib/billing/entitlement";
+import { UpgradePrompt } from "@/components/billing/UpgradePrompt";
 
 export const runtime = "nodejs";
 // Today's sky is read from the current moment, so never cache this page.
@@ -50,6 +52,7 @@ export default async function TodayPage() {
   if (!user) redirect("/login?next=/today");
 
   const profile = await currentProfile();
+  const isPlus = (await getEntitlement()) === "plus";
   const [recent, resonances] = await Promise.all([
     recentBirthEvents(supabase).catch(() => []),
     listResonances(supabase).catch(() => []),
@@ -146,7 +149,12 @@ export default async function TodayPage() {
           <p className="mt-1 text-sm text-muted">
             How the sky right now touches your natal chart, tightest first.
           </p>
-          {transits && transits.hits.length > 0 ? (
+          {!isPlus ? (
+            <UpgradePrompt
+              className="mt-3"
+              message="Following the day's sky against your chart is part of OneSky Plus. Your full chart and basic reading stay free."
+            />
+          ) : transits && transits.hits.length > 0 ? (
             <ul className="mt-3 space-y-2 text-sm">
               {transits.hits.slice(0, 8).map((h, i) => (
                 <li key={`${h.transiting}-${h.natal}-${i}`} className="flex items-baseline gap-2">

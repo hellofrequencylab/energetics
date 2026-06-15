@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { UpgradePrompt } from "@/components/billing/UpgradePrompt";
 
 /**
  * The prose reading panel, shared by the single-chart reader and the resonance
@@ -30,8 +31,9 @@ export function NarrativePanel({
   /** A reading already saved for this chart. Shown at once, refreshed on demand. */
   initial?: { text: string; model?: string } | null;
 }) {
-  const [state, setState] = useState<"idle" | "streaming" | "done">(initial ? "done" : "idle");
+  const [state, setState] = useState<"idle" | "streaming" | "done" | "gated">(initial ? "done" : "idle");
   const [text, setText] = useState(initial?.text ?? "");
+  const [gate, setGate] = useState<{ message: string; upgrade: boolean } | null>(null);
   const [meta, setMeta] = useState<{ available: boolean; cached: boolean; model?: string }>({
     available: true,
     cached: !!initial,
@@ -52,12 +54,24 @@ export function NarrativePanel({
   async function run() {
     setState("streaming");
     setText("");
+    setGate(null);
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
+      // A gate response (Plus feature, daily limit, or budget pause) arrives as
+      // JSON, not prose. Show an invitation instead of streaming it as text.
+      if (res.status === 402 || res.status === 429 || res.status === 503) {
+        const info = (await res.json().catch(() => null)) as { error?: string; upgrade?: boolean } | null;
+        setGate({
+          message: info?.error ?? "This reading is not available right now.",
+          upgrade: res.status === 402 || info?.upgrade === true,
+        });
+        setState("gated");
+        return;
+      }
       setMeta({
         available: res.headers.get("x-narrative-available") !== "false",
         cached: res.headers.get("x-narrative-cached") === "true",
@@ -107,6 +121,18 @@ export function NarrativePanel({
       </div>
 
       {state === "idle" && <p className="text-sm text-muted">{idleBlurb}</p>}
+
+      {state === "gated" && gate && (
+        <UpgradePrompt
+          message={gate.message}
+          cta={gate.upgrade ? "See OneSky Plus" : "Got it"}
+          href={gate.upgrade ? "/plus" : "#"}
+          onDismiss={() => {
+            setGate(null);
+            setState("idle");
+          }}
+        />
+      )}
 
       {state === "streaming" && !text && <p className="text-sm text-muted">Reading the synthesis…</p>}
 

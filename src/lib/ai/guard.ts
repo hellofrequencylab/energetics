@@ -91,18 +91,24 @@ export async function openNarrateGate(request: Request, feature: AiFeature): Pro
 
   const viewer = await resolveViewer(request);
 
-  // 2. Turnstile for visitors with no session (the highest-risk surface).
+  // 2. Turnstile for visitors with no session (the highest-risk surface). We
+  // verify a token when one is sent (so a Turnstile-wired client is enforced) but
+  // do not hard-block when it is absent: the per-IP daily quota and the global
+  // budget below are the cost guard, so enabling Turnstile never breaks the public
+  // reader before its widget is wired in.
   if (viewer.tier === "visitor") {
     const token = request.headers.get("x-turnstile-token");
-    const human = await verifyTurnstile(token, clientIp(request));
-    if (!human) {
-      return {
-        ok: false,
-        response: new Response(JSON.stringify({ error: "Please complete the human check and try again." }), {
-          status: 403,
-          headers: { "content-type": "application/json" },
-        }),
-      };
+    if (token) {
+      const human = await verifyTurnstile(token, clientIp(request));
+      if (!human) {
+        return {
+          ok: false,
+          response: new Response(JSON.stringify({ error: "Please complete the human check and try again." }), {
+            status: 403,
+            headers: { "content-type": "application/json" },
+          }),
+        };
+      }
     }
   }
 
