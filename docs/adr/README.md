@@ -7,6 +7,7 @@ Format: Status, Context, Decision, Consequences. Keep each to a page.
 
 | ADR | Title | Status |
 |---|---|---|
+| 0008 | [Freemium with a Plus subscription, and hard AI cost safety](0008-freemium-subscription-and-ai-cost-safety.md) | Accepted |
 | 0007 | [Declared independence groups for honest synthesis breadth](0007-declared-independence-groups.md) | Accepted |
 | 0006 | [A systems catalog with a live admin, most systems off by default](0006-systems-catalog-and-admin.md) | Accepted |
 | 0005 | [Stream the narrative and cache it content-addressed](0005-narrative-streaming-cache.md) | Accepted |

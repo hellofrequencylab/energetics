@@ -6,6 +6,30 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-15
 
+### Added
+- Monetization and AI cost safety (ADR-0008). OneSky is now freemium: the full
+  basic chart and reading stay free with no account, and a Plus subscription
+  ($8.99/mo or $59.99/yr, 7-day trial) unlocks depth (theme drill-down, unlimited
+  resonance, the daily Today page, saving beyond 3 charts, practitioner tools).
+  - Entitlement is server-enforced (`src/lib/billing/entitlement.ts`, `is_plus`
+    in SQL), never client-trusted. New migration `0010_billing.sql`: `customers`
+    (service-role only), `subscriptions` (owner-read), an `ai_usage` ledger, and a
+    DB-enforced free cap of 3 saved charts.
+  - The three narrate routes share one gate: a per-viewer daily quota (visitor 3,
+    anon 5, free 10, Plus 50), drill-down is Plus-only, resonance is 3 free runs
+    then Plus, an opt-in global daily budget breaker (`AI_DAILY_BUDGET_USD`), and
+    Turnstile (verified when a token is sent). Quota and budget are consumed only
+    on a real generation, so cache hits stay free and never count.
+  - Anonymous (guest) sign-in: "Continue as guest" on the login form via Supabase
+    anonymous sign-ins, gated by Turnstile when configured. Guests get a real user
+    id, so the cap and quotas apply and the id (and saved charts) carry over when
+    they add an email.
+  - Stripe scaffolding (hosted Checkout + Customer Portal + a single
+    sync-on-webhook source of truth) ships inert until keys are set; everyone is
+    free until then. Routes: `/api/billing/checkout`, `/portal`, `/webhook`. New
+    `/plus` page with an honest free-vs-Plus comparison; a Membership card on the
+    account page.
+
 ### Security
 - Full-site review fixes, all enforced at the database layer (migration
   `0008_security_hardening.sql`). Closed an admin privilege-escalation hole: a
