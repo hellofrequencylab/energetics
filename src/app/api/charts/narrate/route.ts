@@ -2,10 +2,11 @@ import { intake } from "@/lib/core/birth-event";
 import { computeChart } from "@/lib/compute";
 import { synthesize } from "@/lib/synthesis";
 import { effectiveEnabledIds } from "@/lib/core/system-settings";
-import { chartNarration } from "@/lib/synthesis/narrative";
-import { streamNarration } from "@/lib/synthesis/narrate-stream";
+import { chartNarration, NARRATIVE_MODEL } from "@/lib/synthesis/narrative";
+import { streamNarration, NARRATIVE_MAX_TOKENS } from "@/lib/synthesis/narrate-stream";
+import { openNarrateGate } from "@/lib/ai/guard";
+import { estimateGenerationCostUsd } from "@/lib/ai/pricing";
 
-import { rateLimitShared, tooManyRequests } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 // The reading streams with adaptive thinking; allow time for the model.
 export const maxDuration = 120;
@@ -16,10 +17,14 @@ export const maxDuration = 120;
  * streams the prose NARRATIVE layer over it as text/plain. Cached per synthesis
  * so reopening a chart is instant and never re-bills. Separate from /compute so
  * the structural map renders immediately and the prose loads on demand.
+ *
+ * The basic reading is free for everyone (subject to the daily AI quota and the
+ * global budget, enforced by the gate). Cache hits never count.
  */
 export async function POST(request: Request) {
-  const rl = await rateLimitShared(request, { key: "ai", limit: 10, windowMs: 60_000 });
-  if (!rl.ok) return tooManyRequests(rl.retryAfter);
+  const gate = await openNarrateGate(request, "chart");
+  if (!gate.ok) return gate.response;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -37,5 +42,11 @@ export async function POST(request: Request) {
   const only = await effectiveEnabledIds();
   const { computations } = computeChart(event, { only });
   const synthesis = synthesize(event.id, computations);
-  return streamNarration("chart", chartNarration(synthesis, computations));
+  const req = chartNarration(synthesis, computations);
+  const estCost = estimateGenerationCostUsd({
+    model: NARRATIVE_MODEL,
+    inputText: req.system + req.prompt,
+    maxTokens: NARRATIVE_MAX_TOKENS,
+  });
+  return streamNarration("chart", req, { beforeGenerate: () => gate.reserve(estCost) });
 }

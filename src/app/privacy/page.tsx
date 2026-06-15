@@ -36,6 +36,12 @@ export default function PrivacyPage() {
             create an account, we store your email (to sign you in), the charts you choose to save, your
             profile (a display name and account type), and any notes you add to a chart.
           </p>
+          <p className="mt-3">
+            You can also continue as a guest, which creates an anonymous account with no email so you
+            can save up to a few charts. Add your email later to keep them. If you subscribe to OneSky
+            Plus, our payment processor stores your billing details, and we store only your subscription
+            status (never your card).
+          </p>
         </Section>
 
         <Section title="How we use it">
@@ -50,8 +56,9 @@ export default function PrivacyPage() {
         <Section title="Where it is stored">
           <p>
             Saved data lives in our database (Supabase) under row-level security, so only your account
-            can read your charts. The app is hosted on Vercel. Place search uses a geocoding service, and
-            readings use an AI provider. These processors handle data only to provide the service.
+            can read your charts. The app is hosted on Vercel. Place search uses a geocoding service,
+            readings use an AI provider, and payments (for OneSky Plus) are handled by Stripe, which
+            never sees your chart. These processors handle data only to provide the service.
           </p>
         </Section>
 

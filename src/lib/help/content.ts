@@ -355,7 +355,12 @@ export const FAQ: FaqItem[] = [
   {
     question: "Is OneSky free?",
     answer:
-      "You can compute a full birth chart and see where the traditions converge without paying. Paid plans for deeper, ongoing features are on the way.",
+      "Yes, the core is always free. You can compute your full birth chart, read the basic reading, and see where the traditions converge, with no account. Free accounts can save up to 3 charts and run resonance 3 times.",
+  },
+  {
+    question: "What is OneSky Plus?",
+    answer:
+      "Plus is an optional subscription ($8.99 a month or $59.99 a year, with a 7-day free trial) that opens the depth: drill into any theme, unlimited resonance, the daily Today page, saving beyond 3 charts, and practitioner tools. You can cancel anytime, and your basic chart and reading stay free either way.",
   },
   {
     question: "How is my birth data handled?",
@@ -380,6 +385,15 @@ export const FAQ: FaqItem[] = [
  * CHANGELOG.md.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-15",
+    title: "Introducing OneSky Plus",
+    notes: [
+      "Your full chart and its basic reading stay free, always, with no account. New free accounts can save up to 3 charts and run resonance 3 times.",
+      "OneSky Plus opens the depth: drill into any theme, unlimited resonance, the daily Today page, more saved charts, and practitioner tools. It is $8.99 a month or $59.99 a year, with a 7-day free trial, and you can cancel anytime.",
+      "You can also continue as a guest now, with no email, and add one later to keep your charts.",
+    ],
+  },
   {
     date: "2026-06-15",
     title: "A faster start, and a sharper home-screen icon",

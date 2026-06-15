@@ -29,6 +29,14 @@ on only when Supabase is configured; the narrative switches on only with a key.
 | `NEXT_PUBLIC_SITE_URL` | SEO / sharing (optional) | The canonical origin (e.g. `https://onesky.app`). Used by `sitemap.xml`, `robots.txt`, OpenGraph, and `metadataBase`. Falls back to a default for local and preview builds. |
 | `UPSTASH_REDIS_REST_URL` | shared AI rate limit (optional) | Server only. With its token, the narrate routes share a per-IP limit across instances. Absent, the limiter is per-instance in-memory. |
 | `UPSTASH_REDIS_REST_TOKEN` | shared AI rate limit (optional) | Server only. Pairs with the URL above. Never expose in a `NEXT_PUBLIC_` variable. |
+| `AI_DAILY_BUDGET_USD` | global AI spend cap (optional) | Server only. A hard daily ceiling in USD across all users. Each call is pre-authorized at worst-case cost; over budget, readings degrade to a friendly pause. Unset means no global cap (per-user quotas still apply). |
+| `AI_USAGE_SALT` | usage ledger (optional) | Server only. Salt for hashing client IPs in `ai_usage` (anonymous attribution is stored hashed). |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | bot protection (optional) | Browser safe. Renders the Turnstile widget on guest sign-in. |
+| `TURNSTILE_SECRET_KEY` | bot protection (optional) | Server only. Verifies Turnstile tokens. Absent, checks are skipped (quotas still protect cost). |
+| `STRIPE_SECRET_KEY` | OneSky Plus (optional) | Server only. Absent, billing routes report "not set up yet" and everyone is free. |
+| `STRIPE_WEBHOOK_SECRET` | OneSky Plus (optional) | Server only. Signing secret for the `/api/billing/webhook` endpoint. |
+| `STRIPE_PRICE_MONTHLY` | OneSky Plus (optional) | Server only. The recurring monthly price id from Stripe. |
+| `STRIPE_PRICE_YEARLY` | OneSky Plus (optional) | Server only. The recurring yearly price id from Stripe. |
 
 The compute and AI routes are rate-limited per IP (`src/lib/rate-limit.ts`). The
 client IP comes from the platform-trusted header (`x-real-ip`, then the rightmost
@@ -134,6 +142,44 @@ catalog default (`src/lib/core/catalog.ts`) overlaid with admin toggles stored i
   shown but excluded) lives only here, not in the database.
 - **To reset a system to its catalog default,** delete its row from
   `energetics.system_settings`.
+
+## Plans, billing, and AI cost safety (ADR-0008)
+
+OneSky is freemium: the full basic chart and its reading are free, with Plus (a
+subscription) unlocking depth. Entitlement and cost safety are enforced
+server-side and work with no Stripe configured (everyone is free until then).
+
+- **Migration.** Apply `supabase/migrations/0010_billing.sql` (customers,
+  subscriptions, the `ai_usage` ledger, the `is_plus` helper, and the 3-chart free
+  cap). Add the new tables' schema to PostgREST's exposed schemas if needed (it is
+  already the `energetics` schema).
+- **AI cost safety (no setup needed).** Per-user daily quotas (visitor 3, anon 5,
+  free 10, Plus 50) and the free Resonance allowance (3) are always on when the
+  service role is configured (the ledger needs it; without it, the routes fall
+  back to the per-IP burst limit). Set `AI_DAILY_BUDGET_USD` to add a hard global
+  daily ceiling. Tune the numbers in `src/lib/ai/usage.ts`.
+- **Anonymous (guest) sign-in.** Enable it in Supabase: Authentication →
+  Providers → "Anonymous Sign-Ins". Strongly recommended alongside Turnstile
+  (set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`) and a
+  conservative Auth rate limit, since anonymous sign-ups can be abused. Guests get
+  a real user id, so the 3-chart cap and quotas apply; adding an email later keeps
+  their id and data.
+- **Prune stale guests.** Anonymous users have no auto-cleanup and count toward
+  MAU. Run on a schedule (e.g. `pg_cron`):
+  `delete from auth.users where is_anonymous is true and created_at < now() - interval '30 days';`
+- **Stripe (to sell Plus).** In the Stripe dashboard: create a Product "OneSky
+  Plus" with two recurring prices ($8.99/month, $59.99/year) and set their ids as
+  `STRIPE_PRICE_MONTHLY`/`STRIPE_PRICE_YEARLY`. Set `STRIPE_SECRET_KEY`. Add a
+  webhook to `https://<host>/api/billing/webhook` for `checkout.session.completed`,
+  `customer.subscription.*`, and `invoice.paid`/`invoice.payment_failed`, and set
+  its signing secret as `STRIPE_WEBHOOK_SECRET`. Enable the Customer Portal. The
+  7-day free trial is applied automatically at checkout. To preview Plus without
+  Stripe, set an admin's `is_admin` (admins resolve as Plus).
+- **Where entitlement is decided.** `src/lib/billing/entitlement.ts`
+  (`is_plus` in SQL mirrors it). The webhook re-syncs the whole subscription from
+  Stripe on every event (`src/lib/billing/sync.ts`), so duplicate or out-of-order
+  deliveries are safe. Access is revoked on `customer.subscription.deleted`, so a
+  cancellation keeps access until the period ends.
 
 ## Deploy
 

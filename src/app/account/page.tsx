@@ -13,6 +13,9 @@ import { DisplayNameEditor } from "@/components/account/DisplayNameEditor";
 import { ChartRoster } from "@/components/account/ChartRoster";
 import { AddChartPanel } from "@/components/account/AddChartPanel";
 import { ResonanceRoster } from "@/components/account/ResonanceRoster";
+import { getEntitlement } from "@/lib/billing/entitlement";
+import { ManageSubscriptionButton } from "@/components/billing/BillingButtons";
+import { PLUS } from "@/lib/billing/plans";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 export const runtime = "nodejs";
@@ -27,7 +30,12 @@ function SignOut() {
   );
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
+  const { checkout } = await searchParams;
   const supabase = await createClient();
   if (!supabase) {
     return (
@@ -63,6 +71,7 @@ export default async function AccountPage() {
     aName: nameOf.get(r.a_chart_id) ?? null,
     bName: nameOf.get(r.b_chart_id) ?? null,
   }));
+  const isPlus = (await getEntitlement()) === "plus";
   const practitioner = profile.account_type === "practitioner";
   const rosterLabel = practitioner ? "Clients" : "People";
   const addLabel = practitioner ? "Add a client" : "Add a chart";
@@ -95,6 +104,31 @@ export default async function AccountPage() {
           <SignOut />
         </div>
       </div>
+
+      {checkout === "success" && (
+        <Card variant="accent" className="mt-8">
+          <p className="text-sm font-medium text-accent">You are on OneSky Plus. Welcome in, and thank you.</p>
+        </Card>
+      )}
+
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-semibold">Membership</h2>
+        <Card className="mt-3 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Badge variant={isPlus ? "accent" : "neutral"}>{isPlus ? "OneSky Plus" : "Free"}</Badge>
+            </div>
+            <p className="mt-2 max-w-prose text-sm text-muted">
+              {isPlus
+                ? "Full depth across every tradition, unlimited resonance, and the day's sky. Manage or cancel anytime."
+                : `Your chart and basic reading are free. OneSky Plus opens the depth, with a ${PLUS.trialDays}-day free trial.`}
+            </p>
+          </div>
+          <div className="shrink-0">
+            {isPlus ? <ManageSubscriptionButton /> : <ButtonLink href="/plus">See OneSky Plus</ButtonLink>}
+          </div>
+        </Card>
+      </section>
 
       <div className="mt-8">
         <Link href="/glossary" className="block">
