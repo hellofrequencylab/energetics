@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "Install OneSky as an app",
+    notes: [
+      "Add OneSky to your home screen and it runs full screen like a native app.",
+      "On phones, a bottom tab bar makes moving around quick, and a friendly offline screen shows when you lose connection.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Every system goes deeper",
     notes: [
       "Each tradition now reads more of your chart and explains more on its own page.",

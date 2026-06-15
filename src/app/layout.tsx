@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Hanken_Grotesk, Geist_Mono } from "next/font/google";
+import { PwaRegister } from "@/components/pwa/PwaRegister";
 import "./globals.css";
 
 // Display serif with editorial warmth, used with restraint (hero, section leads).
@@ -27,6 +28,16 @@ export const metadata: Metadata = {
   title: "ONESKY · Multi-System Birth Chart Synthesis",
   description:
     "See your birth moment through every tradition, and where they agree. Compute a full birth chart across Western, Vedic, Chinese, numerology and more, then read where independent systems converge.",
+  applicationName: "OneSky",
+  appleWebApp: { capable: true, title: "OneSky", statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#161229",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -39,7 +50,10 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${hanken.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <PwaRegister />
+      </body>
     </html>
   );
 }
