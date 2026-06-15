@@ -268,3 +268,54 @@ export async function getBirthEvent(supabase: DbClient, id: string) {
     notes: string | null;
   } | null;
 }
+
+// --- Saved resonances ------------------------------------------------------
+
+export type ResonanceMode = "platonic" | "intimate";
+
+export interface SavedResonance {
+  id: string;
+  a_chart_id: string;
+  b_chart_id: string;
+  mode: ResonanceMode;
+  label: string | null;
+  created_at: string;
+}
+
+/** Save a resonance: a pairing of two saved charts plus the lens. RLS-scoped. */
+export async function createResonance(
+  supabase: DbClient,
+  userId: string,
+  input: { aChartId: string; bChartId: string; mode: ResonanceMode; label?: string | null },
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("resonances")
+    .insert({
+      user_id: userId,
+      a_chart_id: input.aChartId,
+      b_chart_id: input.bChartId,
+      mode: input.mode,
+      label: input.label ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return (data as { id: string }).id;
+}
+
+/** The signed-in user's saved resonances, newest first. RLS-scoped. */
+export async function listResonances(supabase: DbClient, limit = 50): Promise<SavedResonance[]> {
+  const { data, error } = await supabase
+    .from("resonances")
+    .select("id, a_chart_id, b_chart_id, mode, label, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as SavedResonance[];
+}
+
+/** Delete a saved resonance (the underlying charts are untouched). RLS-scoped. */
+export async function deleteResonance(supabase: DbClient, id: string): Promise<void> {
+  const { error } = await supabase.from("resonances").delete().eq("id", id);
+  if (error) throw error;
+}
