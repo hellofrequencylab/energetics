@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getProfile } from "@/lib/db/queries";
+import { currentUser, currentProfile } from "@/lib/auth/session";
 import { allMeta } from "@/lib/core/registry";
 import { catalogEntry } from "@/lib/core/catalog";
 import { effectiveEnabledMap, effectiveOrderMap, sortByOrder } from "@/lib/core/system-settings";
@@ -22,12 +22,10 @@ export default async function AdminSystemsPage() {
   const supabase = await createClient();
   if (!supabase) redirect("/account");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) redirect("/login?next=/admin/systems");
 
-  const profile = await getProfile(supabase, user.id).catch(() => null);
+  const profile = await currentProfile();
   if (!profile?.is_admin) {
     return (
       <SiteShell nav={<AppSectionNav />}>

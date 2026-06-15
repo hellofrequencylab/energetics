@@ -30,6 +30,22 @@ export async function POST(request: Request) {
   const mode: ResonanceMode = body.mode === "intimate" ? "intimate" : "platonic";
   const label = typeof body.label === "string" ? body.label.trim() || null : null;
 
+  // Verify both charts belong to the caller before saving. RLS scopes this select
+  // to the user, so a chart they do not own simply will not be returned. This also
+  // gives a clean error instead of a foreign-key failure on someone else's id.
+  const { data: owned, error: ownErr } = await supabase
+    .from("birth_events")
+    .select("id")
+    .in("id", [body.aChartId, body.bChartId]);
+  if (ownErr) {
+    console.error("resonances: ownership check failed", ownErr);
+    return NextResponse.json({ error: "Could not save this resonance." }, { status: 500 });
+  }
+  const ownedIds = new Set((owned ?? []).map((r) => r.id as string));
+  if (!ownedIds.has(body.aChartId) || !ownedIds.has(body.bChartId)) {
+    return NextResponse.json({ error: "Both charts must be your own saved charts." }, { status: 403 });
+  }
+
   try {
     const id = await createResonance(supabase, user.id, {
       aChartId: body.aChartId,
@@ -39,9 +55,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ id });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not save this resonance." },
-      { status: 500 },
-    );
+    console.error("resonances: create failed", err);
+    return NextResponse.json({ error: "Could not save this resonance." }, { status: 500 });
   }
 }

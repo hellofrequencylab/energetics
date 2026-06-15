@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { DB_SCHEMA } from "@/lib/supabase/schema";
+import { safeNextPath } from "@/lib/auth/safe-next";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,9 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/account";
+  // `next` is attacker-influenced (it travels in emailed links), so it is
+  // sanitized to a same-site path before it is ever used as a redirect target.
+  const next = safeNextPath(searchParams.get("next"));
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

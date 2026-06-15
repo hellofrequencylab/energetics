@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getProfile, recentBirthEvents, listResonances, listSavedCharts } from "@/lib/db/queries";
+import { recentBirthEvents, listResonances, listSavedCharts } from "@/lib/db/queries";
+import { currentUser, currentProfile } from "@/lib/auth/session";
 import { SiteShell } from "@/components/site/SiteShell";
 import { AppSectionNav } from "@/components/site/AppSectionNav";
 import Link from "next/link";
@@ -36,12 +37,10 @@ export default async function AccountPage() {
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) redirect("/login?next=/account");
 
-  const profile = await getProfile(supabase, user.id).catch(() => null);
+  const profile = await currentProfile();
 
   if (!profile) {
     return (

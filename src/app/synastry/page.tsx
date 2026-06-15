@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { getBirthEvent, getProfile, listSavedCharts } from "@/lib/db/queries";
+import { getBirthEvent, listSavedCharts } from "@/lib/db/queries";
+import { currentUser, currentProfile } from "@/lib/auth/session";
 import { SynastryForm, fromSaved, type Person, type ResonanceMode, type SavedChart } from "@/components/SynastryForm";
 import { SiteShell } from "@/components/site/SiteShell";
 import { AppSectionNav } from "@/components/site/AppSectionNav";
@@ -28,13 +29,14 @@ export default async function SynastryPage({
   let signedIn = false;
 
   if (supabase) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (user) {
       signedIn = true;
-      saved = await listSavedCharts(supabase).catch(() => []);
-      const profile = await getProfile(supabase, user.id).catch(() => null);
+      const [savedCharts, profile] = await Promise.all([
+        listSavedCharts(supabase).catch(() => []),
+        currentProfile(),
+      ]);
+      saved = savedCharts;
 
       const aId = a;
       // If only one chart is named, compare it against My Sky by default.
@@ -43,19 +45,18 @@ export default async function SynastryPage({
           ? profile.primary_chart_id
           : undefined);
 
-      if (aId) {
-        const row = await getBirthEvent(supabase, aId).catch(() => null);
-        if (row) {
-          initialA = fromSaved(row);
-          initialAId = aId;
-        }
+      // Both saved charts load in parallel rather than one after the other.
+      const [aRow, bRow] = await Promise.all([
+        aId ? getBirthEvent(supabase, aId).catch(() => null) : Promise.resolve(null),
+        bId ? getBirthEvent(supabase, bId).catch(() => null) : Promise.resolve(null),
+      ]);
+      if (aId && aRow) {
+        initialA = fromSaved(aRow);
+        initialAId = aId;
       }
-      if (bId) {
-        const row = await getBirthEvent(supabase, bId).catch(() => null);
-        if (row) {
-          initialB = fromSaved(row);
-          initialBId = bId;
-        }
+      if (bId && bRow) {
+        initialB = fromSaved(bRow);
+        initialBId = bId;
       }
     }
   }

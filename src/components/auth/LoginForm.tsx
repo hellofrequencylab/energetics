@@ -4,15 +4,17 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Field, Input } from "@/components/ui";
 import { cn } from "@/lib/ui/cn";
+import { safeNextPath } from "@/lib/auth/safe-next";
 
 type Method = "password" | "magic";
 type Mode = "signin" | "signup";
 type Notice = { kind: "ok" | "error" | "info"; text: string } | null;
 
-/** Where to land after auth (defaults to the account). */
+/** Where to land after auth (defaults to the account). Sanitized to a same-site
+ *  path so a crafted ?next= can never redirect off-origin. */
 function nextParam(): string {
   if (typeof window === "undefined") return "/account";
-  return new URLSearchParams(window.location.search).get("next") || "/account";
+  return safeNextPath(new URLSearchParams(window.location.search).get("next"));
 }
 /** The PKCE callback URL that completes an emailed link, then sends on to `next`. */
 function callbackUrl(next: string): string {

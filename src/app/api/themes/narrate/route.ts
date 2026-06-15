@@ -32,11 +32,16 @@ export async function POST(request: Request) {
     selfName?: unknown;
   };
 
+  // Bound every field so this route cannot be used as an open relay to the model:
+  // the structural inputs are short axis/value tokens and a handful of system ids.
   if (
     typeof axis !== "string" ||
+    axis.length > 64 ||
     typeof value !== "string" ||
+    value.length > 64 ||
     !Array.isArray(systems) ||
-    !systems.every((s) => typeof s === "string")
+    systems.length > 40 ||
+    !systems.every((s) => typeof s === "string" && s.length <= 64)
   ) {
     return new Response("Invalid request.", { status: 400 });
   }
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
       axis,
       value,
       systems,
-      selfName: typeof selfName === "string" ? selfName : undefined,
+      selfName: typeof selfName === "string" ? selfName.slice(0, 80) : undefined,
     }),
   );
 }

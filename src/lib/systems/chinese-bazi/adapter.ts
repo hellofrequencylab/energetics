@@ -1,4 +1,5 @@
 import type { NativeResult, Primitive, SemanticAdapter } from "@/lib/core/contracts";
+import { isRegistered } from "@/lib/ontology/axes";
 import { ONTOLOGY_VERSION } from "@/lib/ontology/version";
 import { meta } from "./engine";
 
@@ -68,13 +69,18 @@ export const adapter: SemanticAdapter = {
   ontologyVersion: ONTOLOGY_VERSION,
   toPrimitives(native: NativeResult): Primitive[] {
     const primitives: Primitive[] = [];
+    // Self-check every emitted value against the registered vocabulary, so an
+    // unexpected element/theme/domain token can never silently leak downstream.
+    const push = (p: Primitive) => {
+      if (isRegistered(p.axis, p.value)) primitives.push(p);
+    };
 
     const dm = native.factors["day-master"];
     if (dm) {
       const { element, polarity } = dm.value as { element: string; polarity: string };
       if (element) {
         // Namespaced Chinese element, links to Western elements only via crosswalks.
-        primitives.push({
+        push({
           axis: "element",
           value: `chinese:${element}`,
           weight: 0.9,
@@ -86,7 +92,7 @@ export const adapter: SemanticAdapter = {
         // BaZi reading, so it earns a strong theme weight.
         const elementTheme = ELEMENT_THEME[element];
         if (elementTheme) {
-          primitives.push({
+          push({
             axis: "theme",
             value: elementTheme,
             weight: 0.8,
@@ -98,7 +104,7 @@ export const adapter: SemanticAdapter = {
       }
       if (polarity) {
         // Yang → active, Yin → receptive.
-        primitives.push({
+        push({
           axis: "polarity",
           value: polarity === "Yang" ? "active" : "receptive",
           weight: 0.7,
@@ -116,7 +122,7 @@ export const adapter: SemanticAdapter = {
     if (elementsFactor) {
       const { dominant } = elementsFactor.value as { dominant: string };
       if (dominant) {
-        primitives.push({
+        push({
           axis: "element",
           value: `chinese:${dominant}`,
           weight: 0.5,
@@ -132,7 +138,7 @@ export const adapter: SemanticAdapter = {
       const { animal } = animalFactor.value as { animal: string };
       const theme = ANIMAL_THEME[animal];
       if (theme) {
-        primitives.push({
+        push({
           axis: "theme",
           value: theme,
           weight: 0.6,
@@ -157,7 +163,7 @@ export const adapter: SemanticAdapter = {
         const domain = GOD_DOMAIN[god];
         if (domain && !seenDomains.has(domain)) {
           seenDomains.add(domain);
-          primitives.push({
+          push({
             axis: "domain",
             value: domain,
             weight,
@@ -169,7 +175,7 @@ export const adapter: SemanticAdapter = {
         const theme = GOD_THEME[god];
         if (theme && !seenThemes.has(theme)) {
           seenThemes.add(theme);
-          primitives.push({
+          push({
             axis: "theme",
             value: theme,
             weight: weight * 0.8,
@@ -188,7 +194,7 @@ export const adapter: SemanticAdapter = {
     if (strength) {
       const { rooting } = strength.value as { rooting: string };
       if (rooting) {
-        primitives.push({
+        push({
           axis: "polarity",
           value: rooting === "strong" ? "active" : "receptive",
           weight: 0.35,
@@ -205,7 +211,7 @@ export const adapter: SemanticAdapter = {
     if (nayin) {
       const { element } = nayin.value as { element: string };
       if (element) {
-        primitives.push({
+        push({
           axis: "element",
           value: `chinese:${element}`,
           weight: 0.3,
@@ -223,7 +229,7 @@ export const adapter: SemanticAdapter = {
     if (useful) {
       const { element } = useful.value as { element: string };
       if (element) {
-        primitives.push({
+        push({
           axis: "element",
           value: `chinese:${element}`,
           weight: 0.4,
@@ -233,7 +239,7 @@ export const adapter: SemanticAdapter = {
         });
         const theme = ELEMENT_THEME[element];
         if (theme) {
-          primitives.push({
+          push({
             axis: "theme",
             value: theme,
             weight: 0.3,

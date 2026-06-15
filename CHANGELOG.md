@@ -6,6 +6,45 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-15
 
+### Security
+- Full-site review fixes, all enforced at the database layer (migration
+  `0008_security_hardening.sql`). Closed an admin privilege-escalation hole: a
+  signed-in user could set their own `profiles.is_admin` to true through the public
+  API. A trigger now forbids setting or changing `is_admin` from any request
+  carrying a user token (only server-side/service-role and direct SQL can grant
+  admin). Closed a resonance IDOR: a saved resonance must now reference two charts
+  the caller owns (enforced in the RLS with-check and re-checked in the route).
+  Closed the narrative cache: a reading can mention names, so the cache table is no
+  longer world-readable; the server reads it with the service role.
+- Auth redirects are sanitized. The post-sign-in `next` target (which travels in
+  magic-link and reset emails) is validated to a same-site path
+  (`src/lib/auth/safe-next.ts`), preventing open redirects. The on-demand theme
+  reading route now bounds its inputs so it cannot be used as an open model relay.
+- API 500s no longer return raw database error messages to clients (which could
+  disclose schema or policy detail); they log server-side and return a generic
+  message.
+
+### Fixed
+- Numerology (Pythagorean): the Life Path is now the full digit sum of the date,
+  reduced once, so master numbers (11/22/33) are preserved and a master inside the
+  month or day no longer leaks into the total. Challenges and pinnacles are built
+  from single-digit date parts, so every challenge stays within 0..8 (the Main
+  Challenge could previously exceed it for November/Feb-29 births). `corpusVersion`
+  bumped to 3; added a unit test.
+- Nine Star Ki: births in early January (before 小寒, ~Jan 6) are now placed in the
+  prior solar month (大雪) instead of being forced into 小寒, correcting the Monthly
+  Star for those dates.
+- Synthesis determinism: the cluster representative value and the convergence
+  ranking now break ties lexically, so output never depends on system registry
+  order.
+
+### Changed
+- The BaZi and Nine Star Ki adapters now self-check every emitted value against the
+  registered ontology (`isRegistered`), matching the other adapters.
+- Signed-in pages read the session and profile once per request (React `cache()` in
+  `src/lib/auth/session.ts`), removing two or three duplicate `profiles` reads per
+  page render.
+
 ### Added
 - Production hardening. Route and root error boundaries (`error.tsx`,
   `global-error.tsx`) and a loading state (`loading.tsx`); SEO via `sitemap.ts`,
