@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "A daily home: your sky today",
+    notes: [
+      "Pin a primary chart and the new Today page shows the day's movements read against it, with your Sun, Moon, and Rising at a glance.",
+      "It keeps your recent charts and resonances one tap away, on the web and on your phone's tab bar.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Convergences that credit each tradition fairly",
     notes: [
       "When several genuinely different traditions land on the same theme, that now counts as stronger cross-confirmation than before.",

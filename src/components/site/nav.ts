@@ -23,15 +23,21 @@ export const PRODUCT_NAV: NavItem[] = [
   { href: "/about", label: "About" },
 ];
 
-/** Header links by role: the product links, plus Admin for admins. */
+/** Header links by role: Today (signed in) + product links, plus Admin for admins. */
 export function headerNav(role: NavRole): NavItem[] {
-  return role.isAdmin ? [...PRODUCT_NAV, { href: "/admin/systems", label: "Admin" }] : PRODUCT_NAV;
+  const base: NavItem[] = role.signedIn
+    ? [{ href: "/today", label: "Today" }, ...PRODUCT_NAV]
+    : PRODUCT_NAV;
+  return role.isAdmin ? [...base, { href: "/admin/systems", label: "Admin" }] : base;
 }
 
 /** Footer "Your account" column by role. */
 export function accountNav(role: NavRole): NavItem[] {
   if (!role.signedIn) return [{ href: "/login", label: "Sign in" }];
-  const items: NavItem[] = [{ href: "/account", label: "Your charts" }];
+  const items: NavItem[] = [
+    { href: "/today", label: "Today" },
+    { href: "/account", label: "Your charts" },
+  ];
   if (role.isAdmin) items.push({ href: "/admin/systems", label: "Admin" });
   return items;
 }

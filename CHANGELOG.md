@@ -97,6 +97,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
   page render.
 
 ### Added
+- A daily-use home at `/today` for signed-in users. It reads the current sky
+  against your primary chart: a season strip (Sun sign, Moon sign, Moon phase),
+  your natal Sun/Moon/Rising at a glance, today's transits to your chart (tightest
+  first, applying vs separating), and quick links to recent charts and resonances.
+  Deterministic (no model calls), cache-backed via the saved-chart loader, and
+  linked from the header, the signed-in section nav, the footer, and the mobile
+  tab bar. When no primary chart is pinned, it invites you to choose one.
+
+### Added
 - Production hardening. Route and root error boundaries (`error.tsx`,
   `global-error.tsx`) and a loading state (`loading.tsx`); SEO via `sitemap.ts`,
   `robots.ts`, a default OpenGraph share image (`opengraph-image.tsx`), and

@@ -15,6 +15,7 @@ export async function AppSectionNav() {
   const isAdmin = Boolean(profile?.is_admin);
 
   const items: SectionNavItem[] = [
+    { href: "/today", label: "Today" },
     { href: "/account", label: "Charts" },
     { href: "/synastry", label: "Resonance" },
   ];
