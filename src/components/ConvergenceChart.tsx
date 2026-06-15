@@ -655,10 +655,10 @@ function isSel(sel: Selection | null, kind: Selection["kind"], i?: number): bool
  * same arrangement.
  */
 function relax(pts: XY[]): void {
-  const MIN = 50; // center-to-center, leaving room for the node and its label
-  const maxR = R_SYS - 44;
-  const minR = 24;
-  for (let iter = 0; iter < 400; iter++) {
+  const MIN = 58; // center-to-center, leaving room for the node and its label
+  const maxR = R_SYS - 36;
+  const minR = 46; // keep a clear center so nodes never sit on the self node or its label
+  for (let iter = 0; iter < 500; iter++) {
     let moved = false;
     for (let i = 0; i < pts.length; i++) {
       for (let j = i + 1; j < pts.length; j++) {

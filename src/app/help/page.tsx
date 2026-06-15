@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { offeredMeta } from "@/lib/core/registry";
 import { isBuilt } from "@/lib/core/registry";
 import { SiteShell } from "@/components/site/SiteShell";
+import { Badge, Card, Divider, PageHeader } from "@/components/ui";
 import {
   CATEGORIES,
   CHANGELOG,
@@ -58,7 +59,7 @@ export default function HelpPage() {
   };
 
   return (
-    <SiteShell width="max-w-3xl">
+    <SiteShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
@@ -70,14 +71,11 @@ export default function HelpPage() {
         <a href="#whats-new" className="hover:text-foreground">What is new</a>
       </div>
 
-      <header className="mb-10">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-accent">Help Center</p>
-        <h1 className="text-3xl font-bold sm:text-4xl">How OneSky works</h1>
-        <p className="mt-3 max-w-xl text-muted">
-          How to read your chart, how the synthesis finds agreement, how your data is handled, and
-          how OneSky is built. Your birth data stays yours.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Help Center"
+        title="How OneSky works"
+        description="How to read your chart, how the synthesis finds agreement, how your data is handled, and how OneSky is built. Your birth data stays yours."
+      />
 
       {/* Categories and articles */}
       <div className="space-y-12">
@@ -87,16 +85,14 @@ export default function HelpPage() {
             <p className="mt-1 text-sm text-muted">{cat.blurb}</p>
             <div className="mt-5 space-y-6">
               {cat.articles.map((a) => (
-                <article
-                  key={a.slug}
-                  id={`${cat.slug}-${a.slug}`}
-                  className="scroll-mt-20 rounded-xl border border-border bg-surface/40 p-5"
-                >
-                  <h3 className="font-semibold">{a.title}</h3>
-                  <p className="mt-1 text-sm italic text-muted/80">{a.summary}</p>
-                  {a.body.map((block, i) => (
-                    <BlockView key={i} block={block} />
-                  ))}
+                <article key={a.slug} id={`${cat.slug}-${a.slug}`} className="scroll-mt-20">
+                  <Card>
+                    <h3 className="font-semibold">{a.title}</h3>
+                    <p className="mt-1 text-sm italic text-muted/80">{a.summary}</p>
+                    {a.body.map((block, i) => (
+                      <BlockView key={i} block={block} />
+                    ))}
+                  </Card>
                 </article>
               ))}
             </div>
@@ -112,27 +108,23 @@ export default function HelpPage() {
           </p>
           <div className="mt-5 space-y-2">
             {systems.map((m) => (
-              <div
+              <Card
                 key={m.id}
-                className="flex flex-col gap-1 rounded-lg border border-border bg-surface/40 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
               >
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{m.displayName}</span>
-                    {!isBuilt(m) && (
-                      <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted">
-                        In progress
-                      </span>
-                    )}
+                    {!isBuilt(m) && <Badge>In progress</Badge>}
                   </div>
                   <p className="mt-0.5 text-sm text-muted">
                     {SYSTEM_BLURBS[m.id] ?? "A tradition OneSky reads from your birth moment."}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs text-accent">
+                <Badge variant="lineage" className="shrink-0">
                   {LINEAGE_LABEL[m.lineage] ?? m.lineage}
-                </span>
-              </div>
+                </Badge>
+              </Card>
             ))}
           </div>
         </section>
@@ -142,15 +134,17 @@ export default function HelpPage() {
           <h2 className="text-xl font-semibold">Common questions</h2>
           <div className="mt-5 space-y-2">
             {FAQ.map((f, i) => (
-              <details key={i} className="group rounded-lg border border-border bg-surface/40 p-4">
-                <summary className="cursor-pointer list-none font-medium marker:hidden">
-                  <span className="flex items-center justify-between gap-3">
-                    {f.question}
-                    <span className="text-muted transition group-open:rotate-45">+</span>
-                  </span>
-                </summary>
-                <p className="mt-3 text-sm leading-relaxed text-muted">{f.answer}</p>
-              </details>
+              <Card key={i}>
+                <details className="group">
+                  <summary className="cursor-pointer list-none font-medium marker:hidden">
+                    <span className="flex items-center justify-between gap-3">
+                      {f.question}
+                      <span className="text-muted transition group-open:rotate-45">+</span>
+                    </span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-muted">{f.answer}</p>
+                </details>
+              </Card>
             ))}
           </div>
         </section>
@@ -177,7 +171,8 @@ export default function HelpPage() {
         </section>
       </div>
 
-      <footer className="mt-14 border-t border-border pt-6 text-sm text-muted">
+      <Divider className="mt-14" />
+      <footer className="mt-6 text-sm text-muted">
         Still stuck? Email{" "}
         <a className="text-accent hover:underline" href="mailto:hello@onesky.app">
           hello@onesky.app
