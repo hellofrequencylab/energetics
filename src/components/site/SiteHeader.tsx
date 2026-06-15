@@ -1,29 +1,25 @@
 import Link from "next/link";
-import { getUser } from "@/lib/supabase/server";
 import { ConvergenceGraph } from "@/components/marketing/ConvergenceGraph";
 import { CONTAINER } from "@/components/ui/Container";
 import { buttonClasses } from "@/components/ui/Button";
 import { cn } from "@/lib/ui/cn";
-
-const NAV = [
-  { href: "/synastry", label: "Resonance" },
-  { href: "/glossary", label: "Glossary" },
-  { href: "/help", label: "Help" },
-  { href: "/about", label: "About" },
-];
+import { getNavRole } from "./role";
+import { headerNav, type NavRole } from "./nav";
 
 /**
- * The standardized site header: wordmark, primary navigation, and an auth-aware
- * action, on the one uniform site width. Used across every page so the chrome is
- * consistent. Reads the session server-side, so it must render from a server
- * component. Role-specific destinations (account, admin) live in the section
- * sub-nav (AppSectionNav), shown on signed-in pages.
+ * The one site header, identical on every page (including the splash). The menu is
+ * role based (see nav.ts): public product links for everyone, an Admin link for
+ * admins, and an action that is Sign in when signed out or Account when signed in.
+ * Non-sticky on mobile so it scrolls away, sticky on larger screens. `role` is
+ * optional: SiteShell passes it so auth is read once; standalone callers let the
+ * header read it.
  */
-export async function SiteHeader() {
-  const user = await getUser().catch(() => null);
+export async function SiteHeader({ role }: { role?: NavRole } = {}) {
+  const r = role ?? (await getNavRole());
+  const nav = headerNav(r);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-midnight/85 backdrop-blur">
+    <header className="static z-40 border-b border-border bg-midnight/85 backdrop-blur sm:sticky sm:top-0">
       <div className={cn(CONTAINER, "flex items-center justify-between gap-4 py-3")}>
         <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">
           <ConvergenceGraph animated={false} className="h-6 w-8" label="OneSky" />
@@ -31,7 +27,7 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm text-muted sm:flex">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link key={n.href} href={n.href} className="transition hover:text-foreground">
               {n.label}
             </Link>
@@ -39,7 +35,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3 text-sm">
-          {user ? (
+          {r.signedIn ? (
             <Link href="/account" className={buttonClasses("secondary", "sm")}>
               Account
             </Link>

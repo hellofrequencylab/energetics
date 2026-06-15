@@ -18,6 +18,15 @@ also appear in the in-app Help Center ("what's new"), sourced from
   (`auth/LoginForm.tsx`, `auth/ResetPasswordForm.tsx`, `reset-password/`, `login/`.)
 
 ### Changed
+- One header and footer on every page, driven by a single role-based menu config
+  (`src/components/site/nav.ts`). The splash now uses the shared `SiteHeader`
+  instead of its own, so navigation is identical site-wide. Menus adapt to role:
+  everyone sees the product links; admins also get an Admin link; the header action
+  is Sign in (signed out) or Account (signed in); the footer account column shows
+  Sign in, or Your charts plus Admin and Sign out. The role is read once in
+  `SiteShell` and shared with both. The header is non-sticky on mobile (scrolls
+  away), sticky on larger screens. (`SiteHeader.tsx`, `SiteFooter.tsx`,
+  `SiteShell.tsx`, `nav.ts`, `role.ts`, `welcome/page.tsx`.)
 - The remaining content pages (about, help, glossary) now use the design system:
   the uniform width, `PageHeader`, `Card`, and `Badge`, with semantic tokens. The
   whole site (splash aside) is now on one framework. (`about/`, `help/`, `glossary/`.)

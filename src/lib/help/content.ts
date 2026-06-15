@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "The same menu everywhere",
+    notes: [
+      "The top and bottom menus are now identical on every page, including the home page.",
+      "What you see fits your account: admins get an Admin link, and signed-in menus include your charts and a sign out.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "One consistent look across the site",
     notes: [
       "Every page now shares the same width, headings, cards, and buttons, so moving around feels of a piece.",

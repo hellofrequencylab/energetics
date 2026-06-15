@@ -9,6 +9,7 @@ import { Reveal } from "@/components/marketing/Reveal";
 import { CenterCTA } from "@/components/marketing/CenterCTA";
 import { CountUp } from "@/components/marketing/CountUp";
 import { WelcomeShell } from "@/components/marketing/WelcomeShell";
+import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const metadata: Metadata = {
@@ -81,23 +82,8 @@ export default function WelcomePage() {
 
   const hero = (
     <>
-      <header className="static z-30 border-b border-white/5 bg-midnight/60 backdrop-blur sm:sticky sm:top-0">
-        <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-3">
-          <Link href="/welcome" className="flex items-center gap-2" aria-label="OneSky home">
-            <ConvergenceGraph animated={false} className="h-6 w-8" label="OneSky" />
-            <span className="text-sm font-semibold uppercase tracking-[0.3em]">ONESKY</span>
-          </Link>
-          <div className="hidden items-center gap-6 text-sm text-star/70 sm:flex">
-            <a href="#how" className="hover:text-star">How it works</a>
-            <a href="#systems" className="hover:text-star">The systems</a>
-            <Link href="/help" className="hover:text-star">Help</Link>
-            <Link href="/account" className="hover:text-star">Account</Link>
-          </div>
-          <CenterCTA className="rounded-[10px] bg-horizon-amber px-4 py-2 text-sm font-semibold text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)] transition hover:brightness-110">
-            {CTA_LABEL}
-          </CenterCTA>
-        </nav>
-      </header>
+      {/* The same role-aware header as every other page. */}
+      <SiteHeader />
 
       {/* Cinematic hero. isolate + positive z so the photo layers correctly. */}
       <section className="relative isolate flex min-h-[80svh] items-center overflow-hidden bg-midnight">
