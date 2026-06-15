@@ -186,7 +186,11 @@ export function ConvergenceChart({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMinConn((m) => Math.min(m, maxConn));
   }, [maxConn]);
-  const nodeShown = (n: ConvNode): boolean => !n.strong || n.systemIds.length >= minConn;
+  // A node shows if it meets the connection threshold OR it is a tension pole.
+  // Tension poles are exempt so raising the threshold never half-hides a tension
+  // (the filter is for thinning the strength web, not for breaking tensions).
+  const isTensionPole = (n: ConvNode): boolean => tensionPoleKeys.has(`${n.cv.axis}::${n.cv.value}`);
+  const nodeShown = (n: ConvNode): boolean => isTensionPole(n) || n.systemIds.length >= minConn;
 
   // Every tension draws as a line between its two theme nodes (both are on the map),
   // and follows them as they are dragged.

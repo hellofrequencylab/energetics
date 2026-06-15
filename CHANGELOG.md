@@ -7,7 +7,11 @@ also appear in the in-app Help Center ("what's new"), sourced from
 ## 2026-06-15
 
 ### Fixed
-- Server error on every signed-in page (account, chart, resonance, admin): the
+- Convergence map: raising "min connections" no longer breaks tensions. Tension
+  poles are now exempt from the connection filter, so a tension whose pole is also
+  a strong theme (for example Active or Fire) is never half-hidden, and no pole is
+  left as a lonely dot with no line. The filter still thins the strength web.
+  (`ConvergenceChart.tsx`, covered by `ConvergenceChart.test.tsx`.)
   role-aware section nav passed a function prop from a server component to a client
   component, which is not allowed and threw at request time. The nav item now uses
   a serializable `activePrefix` string instead. (`SectionNav.tsx`, `AppSectionNav.tsx`.)
