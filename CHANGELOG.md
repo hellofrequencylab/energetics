@@ -6,6 +6,14 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-15
 
+### Changed
+- The reader is restructured for usability: the convergence chart now spans the full
+  width at the top, and everything below splits into two columns: the page content
+  (reading, convergences, tensions, transits, the per-system cards) on the left, and
+  a details rail on the right (manage and edit on a saved chart, plus at-a-glance
+  counts, the strongest themes and central tension, jump-to-system, and provenance).
+  (`SynthesisView.tsx`, `account/chart/[id]/page.tsx`.)
+
 ### Added
 - A calm, on-brand 404 page using the convergence sand mark (`src/app/not-found.tsx`).
 - Full accounts: email and password sign in and sign up, alongside the existing

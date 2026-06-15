@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "A clearer chart page",
+    notes: [
+      "Your convergence chart now sits front and center at the top of the page.",
+      "Below it, your reading and systems are on the left, with a details rail on the right for managing the chart and seeing it at a glance.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "The same menu everywhere",
     notes: [
       "The top and bottom menus are now identical on every page, including the home page.",
