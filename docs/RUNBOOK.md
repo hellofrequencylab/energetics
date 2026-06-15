@@ -54,11 +54,23 @@ idempotent enough to repeat on a fresh project.
 
 ## Auth flow
 
-Magic-link sign in uses the PKCE flow. The login page requests a link with
-`emailRedirectTo = <origin>/auth/callback`. The `/auth/callback` route exchanges
-the code for a session, sets cookies, and redirects home. If a sign in lands on
-`/login?error=auth-callback`, the exchange failed: check the redirect URLs and
-the Supabase auth logs.
+Two methods, both through Supabase. **Magic link** uses the PKCE flow: the login
+page requests a link with `emailRedirectTo = <origin>/auth/callback`. **Email and
+password** uses `signInWithPassword` (sign in) and `signUp` (create account); the
+password session is set in cookies directly, so no callback is needed for sign in.
+
+Emailed links (magic link, sign-up confirmation, password reset) all return through
+`/auth/callback`, which exchanges the code (or verifies the token hash) for a
+session, writes cookies onto the redirect, and sends the user on to `next`. Password
+reset emails point at `next=/reset-password`, where `updateUser` saves the new
+password. If a sign in lands on `/login?error=auth-callback`, the exchange failed:
+check the redirect URLs and the Supabase auth logs.
+
+Supabase config: enable the **Email** provider (it covers both password and magic
+link). The **"Confirm email"** setting decides sign-up behavior: on, a new password
+account must confirm by email before it can sign in (the UI says so); off, sign-up
+signs the user in immediately. Add `<origin>/auth/callback` and
+`<origin>/reset-password` to the allowed redirect URLs.
 
 ## Narrative and its cache
 

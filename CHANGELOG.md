@@ -6,6 +6,16 @@ also appear in the in-app Help Center ("what's new"), sourced from
 
 ## 2026-06-15
 
+### Added
+- Full accounts: email and password sign in and sign up, alongside the existing
+  one-time magic link. The sign-in page has a Password / Magic link toggle and a
+  create-account switch; password sign-up respects the project's email-confirmation
+  setting (it confirms by email when that is on, otherwise signs in at once). Added
+  a password reset (forgot password emails a link through `/auth/callback` to a new
+  `/reset-password` page that calls `updateUser`). Profiles are still created lazily
+  on first sign-in, so new password accounts get the same onboarding.
+  (`auth/LoginForm.tsx`, `auth/ResetPasswordForm.tsx`, `reset-password/`, `login/`.)
+
 ### Fixed
 - Convergence map: raising "min connections" no longer breaks tensions. Tension
   poles are now exempt from the connection filter, so a tension whose pole is also
