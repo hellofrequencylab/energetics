@@ -2,7 +2,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { ButtonLink, SandMark } from "@/components/ui";
 
 export const metadata = {
-  title: "Not found · ONESKY",
+  title: "Not found",
 };
 
 /** A calm, on-brand 404 using the convergence sand mark. */

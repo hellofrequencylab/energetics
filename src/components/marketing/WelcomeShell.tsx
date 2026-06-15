@@ -1,9 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { BirthForm } from "@/components/BirthForm";
-import { Dashboard } from "@/components/marketing/Dashboard";
 import type { ComputeResponse } from "@/lib/api-types";
+
+// The reader (Dashboard pulls in the full SynthesisView) only renders after a
+// reading exists, so load it on demand and keep it out of the landing bundle.
+// The melt transition covers the brief fetch; this fallback matches the base.
+const Dashboard = dynamic(
+  () => import("@/components/marketing/Dashboard").then((m) => m.Dashboard),
+  { loading: () => <div className="min-h-screen bg-midnight" /> },
+);
 
 /** Smooth-scroll the input app to the top of the screen, where it reads as its own step. */
 function centerInput() {

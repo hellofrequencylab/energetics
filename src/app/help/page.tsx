@@ -13,9 +13,10 @@ import {
 } from "@/lib/help/content";
 
 export const metadata: Metadata = {
-  title: "Help · ONESKY",
+  title: "Help",
   description:
     "How to read your chart, how the synthesis works, how your data is handled, and how OneSky is built.",
+  alternates: { canonical: "/help" },
 };
 
 /** Renders one content block. Tiny on purpose: no markdown dependency. */

@@ -40,6 +40,22 @@ also appear in the in-app Help Center ("what's new"), sourced from
   serverless instances via Upstash Redis when `UPSTASH_REDIS_REST_*` are set,
   falling back to the in-memory window otherwise.
 
+### Polish
+- Page titles no longer double-brand. Sub-pages now set a bare title and the root
+  layout's `%s · OneSky` template appends the suffix once, so a title reads
+  `Help · OneSky` instead of `Help · ONESKY · OneSky`, with consistent casing. The
+  home page keeps its full brand line via `title.absolute`.
+- Per-page canonical URLs on every indexable page (welcome, about, help, glossary,
+  resonance, privacy, terms) via `alternates.canonical`, so query strings and the
+  `/` redirect consolidate to one URL. The signed-in `/today` page is now
+  `noindex`, joining account, admin, reset-password, and the style guide.
+- The web app manifest ships raster PNG icons (192 and 512) alongside the scalable
+  SVG, plus a dedicated maskable PNG with safe-zone padding so Android's adaptive
+  icon mask never crops the convergence mark.
+- The landing page ships less JavaScript up front: the reader (`Dashboard`, which
+  pulls in the full `SynthesisView`) now loads on demand with `next/dynamic` once a
+  reading is produced, rather than in the initial bundle.
+
 ### Performance
 - The service worker now serves static assets stale-while-revalidate (instant
   from cache, refreshed in the background), so stable assets like icons and fonts

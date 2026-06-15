@@ -3,8 +3,9 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { PageHeader } from "@/components/ui";
 
 export const metadata = {
-  title: "Terms · OneSky",
+  title: "Terms",
   description: "The terms for using OneSky.",
+  alternates: { canonical: "/terms" },
 };
 
 function Section({ title, children }: { title: string; children: ReactNode }) {

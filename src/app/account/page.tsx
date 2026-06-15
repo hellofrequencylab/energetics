@@ -14,7 +14,7 @@ import { ChartRoster } from "@/components/account/ChartRoster";
 import { AddChartPanel } from "@/components/account/AddChartPanel";
 import { ResonanceRoster } from "@/components/account/ResonanceRoster";
 
-export const metadata: Metadata = { title: "Your account · ONESKY", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 export const runtime = "nodejs";
 
 function SignOut() {
