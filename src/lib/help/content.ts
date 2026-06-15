@@ -382,6 +382,14 @@ export const FAQ: FaqItem[] = [
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-06-15",
+    title: "Convergences that credit each tradition fairly",
+    notes: [
+      "When several genuinely different traditions land on the same theme, that now counts as stronger cross-confirmation than before.",
+      "Systems that read the same thing (all the zodiac systems, all the Chinese systems, all numerology) still count as one voice, so nothing is double-counted.",
+    ],
+  },
+  {
+    date: "2026-06-15",
     title: "Accessibility, and a faster, safer foundation",
     notes: [
       "Added a skip-to-content link and clearer, announced form errors, so the app works better with a keyboard or screen reader.",

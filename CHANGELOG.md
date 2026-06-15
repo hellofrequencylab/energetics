@@ -66,6 +66,14 @@ also appear in the in-app Help Center ("what's new"), sourced from
   content-addressed cached reading never depend on iteration order.
 
 ### Changed
+- Synthesis breadth is now honest per tradition. Independence groups are declared
+  explicitly (`src/lib/synthesis/independence.ts`) by the signal a system reads,
+  not by the coarse `derivedFrom` class. Correlated families still count once (all
+  zodiac systems, all Chinese systems, all numerology), but genuinely distinct
+  date traditions (the Maya count, the Chinese cycle, seasonal bands) are now
+  independent of each other, so a theme they share can rank above the old
+  three-group ceiling. See ADR-0007. The narrative cache self-invalidates (its key
+  includes the group count), so no migration is needed.
 - The BaZi and Nine Star Ki adapters now self-check every emitted value against the
   registered ontology (`isRegistered`), matching the other adapters.
 - Signed-in pages read the session and profile once per request (React `cache()` in

@@ -42,21 +42,37 @@ describe("engine golden values", () => {
 });
 
 describe("independence grouping (spec §7.3)", () => {
-  it("puts the two ephemeris systems in the same group", () => {
-    expect(independenceGroupOf("western-tropical")).toBe(independenceGroupOf("vedic-jyotish"));
+  it("groups every zodiac system that reads planetary longitude as one voice", () => {
+    const sky = independenceGroupOf("western-tropical");
+    expect(independenceGroupOf("vedic-jyotish")).toBe(sky);
+    expect(independenceGroupOf("hellenistic")).toBe(sky);
+    expect(independenceGroupOf("egyptian-decans")).toBe(sky);
   });
-  it("puts date-derived systems in a group distinct from ephemeris", () => {
-    expect(independenceGroupOf("numerology-pythagorean")).toBe(independenceGroupOf("tzolkin"));
-    expect(independenceGroupOf("numerology-pythagorean")).not.toBe(independenceGroupOf("western-tropical"));
+  it("groups all numerology (same name and date reduction) as one voice", () => {
+    const num = independenceGroupOf("numerology-pythagorean");
+    expect(independenceGroupOf("numerology-chaldean")).toBe(num);
+    expect(independenceGroupOf("numerology-lo-shu")).toBe(num);
+  });
+  it("groups the Chinese calendrical systems as one voice", () => {
+    const chinese = independenceGroupOf("chinese-bazi");
+    expect(independenceGroupOf("nine-star-ki")).toBe(chinese);
+    expect(independenceGroupOf("zi-wei-dou-shu")).toBe(chinese);
+  });
+  it("keeps genuinely distinct traditions independent of one another", () => {
+    const distinct = [
+      "western-tropical", // sky
+      "human-design", // i ching gates
+      "chinese-bazi", // chinese
+      "tzolkin", // maya
+      "numerology-pythagorean", // numerology
+      "celtic-tree", // seasonal
+      "mahabote", // burmese
+    ].map(independenceGroupOf);
+    expect(new Set(distinct).size).toBe(distinct.length);
   });
   it("merges a hard-derivation dependent into its parent's group", () => {
     expect(independenceGroupOf("gene-keys")).toBe(independenceGroupOf("human-design"));
     expect(independenceGroupOf("tarot-birth-cards")).toBe(independenceGroupOf("numerology-pythagorean"));
-  });
-  it("puts the name-derived system in its own group", () => {
-    const name = independenceGroupOf("numerology-chaldean");
-    expect(name).not.toBe(independenceGroupOf("western-tropical"));
-    expect(name).not.toBe(independenceGroupOf("numerology-pythagorean"));
   });
 });
 
@@ -65,7 +81,6 @@ describe("deterministic synthesis", () => {
     for (const conv of synthesis.convergences) {
       const groups = new Set(conv.contributors.map((a) => independenceGroupOf(a.systemId)));
       expect(conv.independentGroups).toBe(groups.size);
-      expect(conv.independentGroups).toBeLessThanOrEqual(3); // ephemeris + date + name
     }
   });
 
