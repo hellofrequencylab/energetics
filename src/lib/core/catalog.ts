@@ -5,7 +5,7 @@
  *
  * Most systems are registered and correct but OFF by default, surfaced only to
  * an admin who can switch them on (see /admin/systems). The default here is the
- * baseline; an admin's live toggles in `energetics.system_settings` override
+ * baseline; an admin's live toggles in `onesky.system_settings` override
  * `enabled` on top of it (see lib/core/system-settings.ts).
  *
  * `inSynthesis` is a fixed design rule, not an admin toggle: a system can be

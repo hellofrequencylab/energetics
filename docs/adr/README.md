@@ -7,6 +7,7 @@ Format: Status, Context, Decision, Consequences. Keep each to a page.
 
 | ADR | Title | Status |
 |---|---|---|
+| 0009 | [Apps Studio: one project, many apps, isolated by schema](0009-apps-studio-multi-app-isolation.md) | Accepted |
 | 0008 | [Freemium with a Plus subscription, and hard AI cost safety](0008-freemium-subscription-and-ai-cost-safety.md) | Accepted |
 | 0007 | [Declared independence groups for honest synthesis breadth](0007-declared-independence-groups.md) | Accepted |
 | 0006 | [A systems catalog with a live admin, most systems off by default](0006-systems-catalog-and-admin.md) | Accepted |
