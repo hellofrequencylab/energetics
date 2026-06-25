@@ -7,11 +7,33 @@ deployed, update this file in the same pull request.
 ## Topology
 
 - **App**: Next.js (App Router) on Vercel. Production deploys from `main`.
-- **Database and auth**: Supabase. OneSky lives in its own isolated `energetics`
-  Postgres schema inside a shared project, so it never touches other apps' tables.
+- **Supabase org**: "Frequency" (Pro plan), two projects in play:
+  - **Frequency project** (flagship), ref `azsqfeonabsbmemvddqd`. The clean, pure
+    project. It does not host OneSky.
+  - **hook project** (the "Apps Studio"), ref `qakbtenvporcfkznivdh`. A multi-app
+    project that hosts Hook in the `public` schema (untouched), OneSky in the
+    isolated `onesky` schema, and later Resonance in the `resonance` schema.
+- **Database and auth**: Supabase. OneSky lives in its own isolated `onesky`
+  Postgres schema inside the hook Apps Studio project, so a bare `.from()` cannot
+  reach another app's tables. Birth data lives only in OneSky's `onesky` schema,
+  scoped to its owner by row level security.
 - **Astronomy**: Swiss Ephemeris via the native `sweph` package, Node runtime only.
 - **Narrative**: Anthropic API (optional prose layer over the deterministic synthesis).
 - **Geocoding**: Open-Meteo (no key).
+
+### Apps Studio (the hook project)
+
+The hook project is a shared "Apps Studio": one schema per app (`public` for Hook,
+`onesky` for OneSky, `resonance` for Resonance later) plus a `shared` schema for
+genuine cross-app commons. Each app's Supabase client pins `db.schema`, row level
+security is forced on for every table, per-schema grants are locked down, and
+PostgREST exposed schemas decides what is served. There are no cross-app foreign
+keys except into `shared` or `auth`. One honest ceiling: a single project has one
+`auth.users` table and one set of API roles, so every Studio app shares one login
+pool. Isolation is at the schema and RLS layer, not the credential layer. An app
+graduates to its own project once it earns real users (clean, since it is already
+its own schema). For the full topology see `docs/INFRA.md`, and for per-app
+operational steps see `docs/runbooks/`.
 
 ## Environment variables
 
@@ -53,25 +75,25 @@ clients (no `Origin`/`Sec-Fetch-Site`) are unaffected.
 
 ## First-time activation (Supabase)
 
-This is how OneSky was brought online inside the shared Supabase project. It is
+This is how OneSky was brought online inside the hook Apps Studio project. It is
 idempotent enough to repeat on a fresh project.
 
 1. **Apply the schema.** Run the migrations in `supabase/migrations/` in order
-   (`0001_init.sql` through the latest). `0001` creates the `energetics` schema,
+   (`0001_init.sql` through the latest). `0001` creates the `onesky` schema,
    the core tables, row level security policies, indexes, and grants to the API
    roles; later migrations add profiles, the primary chart, the narrative
    cache (`0004_narratives.sql`), security hardening (`0008`), and foreign-key
    indexes plus RLS init-plan optimization (`0009`). The `vector` extension lives
    in `public` and is referenced as `public.vector`.
 2. **Expose the schema to the Data API.** Supabase dashboard, Settings, Data API,
-   Exposed schemas: add `energetics` alongside `public`. Without this, the app
+   Exposed schemas: add `onesky` alongside `public`. Without this, the app
    connects but every table read returns a 404 from PostgREST. Do this in the
-   dashboard rather than by SQL, so you do not clobber the shared project's
-   PostgREST config.
+   dashboard rather than by SQL, so you do not clobber the hook project's
+   PostgREST config (Hook's `public` schema and any other Studio app).
 3. **Set the Vercel environment variables** above and redeploy.
 4. **Configure auth redirect URLs.** Supabase dashboard, Authentication, URL
-   Configuration. Leave the shared Site URL as it is. Add the OneSky origins to
-   Redirect URLs:
+   Configuration. Leave the project Site URL as it is (the hook project's login
+   pool is shared across Studio apps). Add the OneSky origins to Redirect URLs:
    - `https://<your-domain>/**`
    - `https://<preview-pattern>-*.vercel.app/**` (optional, for preview deploys)
    The app requests its own redirect (`/auth/callback`), so it does not depend on
@@ -105,7 +127,7 @@ deterministic synthesis and never computes it.
 
 Each reading is a deterministic function of the structure (model, system prompt,
 and the prompt built from the convergences, tensions, or comparison), so it is
-memoized in `energetics.narratives`, keyed by a content hash. Reopening a chart,
+memoized in `onesky.narratives`, keyed by a content hash. Reopening a chart,
 or two people with identical charts, serves the stored reading instead of calling
 the model again.
 
@@ -115,7 +137,7 @@ the model again.
   mention user-entered names (resonance and theme readings). Clients never touch
   the table. Without the service key, readings still stream, they just regenerate
   each time (no caching) and nothing is stored.
-- To clear the cache, truncate `energetics.narratives`. Readings regenerate on
+- To clear the cache, truncate `onesky.narratives`. Readings regenerate on
   next view. Editing a chart's birth data changes its structure, so it
   content-addresses to a fresh reading automatically.
 
@@ -123,11 +145,11 @@ the model again.
 
 Most systems are registered but offered off by default. The offered set is the
 catalog default (`src/lib/core/catalog.ts`) overlaid with admin toggles stored in
-`energetics.system_settings`.
+`onesky.system_settings`.
 
-- **Who is an admin.** Anyone whose `energetics.profiles.is_admin` is true. There
+- **Who is an admin.** Anyone whose `onesky.profiles.is_admin` is true. There
   is no admin UI for granting admin; set it directly:
-  `update energetics.profiles p set is_admin = true from auth.users u where u.id =
+  `update onesky.profiles p set is_admin = true from auth.users u where u.id =
   p.user_id and lower(u.email) = '<email>';`. The repo migration does not hardcode
   any email; seed the owner this way after they have signed in once (a profile row
   must exist). A trigger (`guard_profile_is_admin`, migration `0008`) blocks any
@@ -141,7 +163,7 @@ catalog default (`src/lib/core/catalog.ts`) overlaid with admin toggles stored i
   deploy. `inSynthesis` (whether a system feeds the synthesis, e.g. Dreamspell is
   shown but excluded) lives only here, not in the database.
 - **To reset a system to its catalog default,** delete its row from
-  `energetics.system_settings`.
+  `onesky.system_settings`.
 
 ## Plans, billing, and AI cost safety (ADR-0008)
 
@@ -152,7 +174,7 @@ server-side and work with no Stripe configured (everyone is free until then).
 - **Migration.** Apply `supabase/migrations/0010_billing.sql` (customers,
   subscriptions, the `ai_usage` ledger, the `is_plus` helper, and the 3-chart free
   cap). Add the new tables' schema to PostgREST's exposed schemas if needed (it is
-  already the `energetics` schema).
+  already the `onesky` schema).
 - **AI cost safety (no setup needed).** Per-user daily quotas (visitor 3, anon 5,
   free 10, Plus 50) and the free Resonance allowance (3) are always on when the
   service role is configured (the ledger needs it; without it, the routes fall
@@ -195,7 +217,7 @@ server-side and work with no Stripe configured (everyone is free until then).
   serverless bundle. We force-include it with `outputFileTracingIncludes` in
   `next.config.ts`. Verify the prebuilds appear in the route's `.nft.json` trace
   after a build.
-- **Table reads 404 over the API.** The `energetics` schema is not in Exposed
+- **Table reads 404 over the API.** The `onesky` schema is not in Exposed
   schemas. See activation step 2.
 - **Magic link does nothing.** The origin is not in Redirect URLs, or the build
   predates the env vars. Add the URL, redeploy, try again.
@@ -206,4 +228,4 @@ server-side and work with no Stripe configured (everyone is free until then).
 
 - `npm run typecheck`, `npm run lint`, `npm run test` gate every change.
 - After a deploy: load `/`, compute a chart, then sign in and save one. Confirm a
-  row appears in `energetics.birth_events`.
+  row appears in `onesky.birth_events`.

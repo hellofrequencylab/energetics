@@ -5,7 +5,7 @@ import { getStripe } from "@/lib/billing/stripe";
  * The Stripe <-> DB sync, the single source of truth (ADR-0008). Every webhook
  * event and the post-checkout return call the SAME `syncCustomer`, which re-reads
  * the customer's current subscription from Stripe and upserts it into
- * `energetics.subscriptions`. Re-reading current state makes out-of-order or
+ * `onesky.subscriptions`. Re-reading current state makes out-of-order or
  * duplicate webhook deliveries harmless (the pattern from t3dotgg's guide).
  *
  * All writes use the service role (no user JWT exists in a webhook).

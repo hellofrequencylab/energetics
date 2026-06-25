@@ -337,7 +337,7 @@ export const CATEGORIES: HelpCategory[] = [
               "npm run dev: start the local app.",
               "npm run test: run the engine and synthesis tests.",
               "npm run typecheck and npm run lint: gate every change.",
-              "Deploy: merge to main, and Vercel builds production. Data lives in the isolated energetics schema on Supabase.",
+              "Deploy: merge to main, and Vercel builds production. Data lives in the isolated onesky schema on Supabase.",
             ],
           },
         ],

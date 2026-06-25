@@ -9,7 +9,7 @@ import type { ComputedSystem, Synthesis } from "@/lib/synthesis/types";
 
 /**
  * The Supabase client these helpers operate on, derived from the factory so the
- * `energetics` schema typing (db.schema) stays in sync automatically. Both the
+ * `onesky` schema typing (db.schema) stays in sync automatically. Both the
  * server and browser clients share this shape.
  */
 export type DbClient = NonNullable<Awaited<ReturnType<typeof createClient>>>;

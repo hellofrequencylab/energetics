@@ -13,6 +13,11 @@ The map of OneSky's docs. Start here.
 - [`../AGENTS.md`](../AGENTS.md): architecture rules to follow before editing the engine.
 - [`../SYSTEMS.md`](../SYSTEMS.md): living roadmap of every system and its status.
 - [`RUNBOOK.md`](RUNBOOK.md): configure, deploy, and operate the app.
+- [`INFRA.md`](INFRA.md): the multi-app topology registry: which Supabase project
+  and schema each app lives in, the Apps Studio isolation rules, and how an app
+  graduates to its own project.
+- [`runbooks/`](runbooks/): per-app operational runbooks, including moving OneSky
+  and Resonance into the Apps Studio project.
 - [`DESIGN.md`](DESIGN.md): the OneSky design language and site scope.
 - [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md): the practical UI framework: tokens, the
   uniform width, navigation, and the component primitives. Living reference at
