@@ -9,7 +9,7 @@
 -- ONLY server-side with the service role, and only of text the server just
 -- generated, so clients can never poison the cache.
 
-create table if not exists energetics.narratives (
+create table if not exists onesky.narratives (
   cache_key text primary key,         -- sha256(model | system | prompt)
   kind text not null check (kind in ('chart', 'resonance')),
   model text not null,
@@ -17,15 +17,15 @@ create table if not exists energetics.narratives (
   created_at timestamptz default now()
 );
 
-alter table energetics.narratives enable row level security;
+alter table onesky.narratives enable row level security;
 
 -- World-readable: the value is a pure function of public divinatory math, keyed
 -- by a hash that carries no personal data.
 create policy "narratives are world-readable"
-  on energetics.narratives for select using (true);
+  on onesky.narratives for select using (true);
 
 -- No insert/update/delete policy: clients read but never write. The server writes
 -- cache entries with the service role, which bypasses RLS.
 
-grant select on energetics.narratives to anon, authenticated;
-grant all on energetics.narratives to service_role;
+grant select on onesky.narratives to anon, authenticated;
+grant all on onesky.narratives to service_role;

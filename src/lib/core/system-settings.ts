@@ -1,6 +1,6 @@
 /**
  * Effective system settings: the catalog defaults overlaid with an admin's live
- * on/off toggles and display order from `energetics.system_settings`. Server-only
+ * on/off toggles and display order from `onesky.system_settings`. Server-only
  * (reads the DB). Falls back to catalog defaults when Supabase is not configured
  * or unreachable, so the offered set and order are always well-defined.
  *

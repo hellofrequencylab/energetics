@@ -7,5 +7,5 @@
 -- entitlement via table selects, never this RPC, so revoking is safe and closes
 -- the advisor warning plus a minor "is this user a subscriber/admin" info leak.
 
-revoke all on function energetics.enforce_chart_limit() from public, anon, authenticated;
-revoke execute on function energetics.is_plus(uuid) from public, anon, authenticated;
+revoke all on function onesky.enforce_chart_limit() from public, anon, authenticated;
+revoke execute on function onesky.is_plus(uuid) from public, anon, authenticated;

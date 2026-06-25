@@ -4,6 +4,19 @@ The technical record of notable changes, newest first. User-facing highlights
 also appear in the in-app Help Center ("what's new"), sourced from
 `src/lib/help/content.ts`. Dates are ISO (UTC).
 
+## 2026-06-25
+
+### Changed
+- OneSky's Postgres schema renamed from `energetics` to `onesky`, and OneSky moved
+  out of the Frequency project (ref `azsqfeonabsbmemvddqd`) into the hook Apps
+  Studio project (ref `qakbtenvporcfkznivdh`) under a schema-per-app isolation
+  model (`public` for Hook, `onesky` for OneSky, `resonance` for Resonance later,
+  plus a `shared` schema for cross-app commons). Each app's client pins
+  `db.schema`, RLS is forced on every table, grants are per-schema, and PostgREST
+  exposed schemas controls what is served. Studio apps share one login pool
+  (one `auth.users`), so isolation is at the schema and RLS layer. The app codename
+  stays "energetics". See `docs/INFRA.md` and ADR-0009.
+
 ## 2026-06-15
 
 ### Added

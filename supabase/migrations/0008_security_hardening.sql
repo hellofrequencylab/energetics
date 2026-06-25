@@ -19,7 +19,7 @@
 --    service role, so the table is closed to anon/authenticated entirely.
 
 -- 1. Guard is_admin -----------------------------------------------------------
-create or replace function energetics.guard_profile_is_admin()
+create or replace function onesky.guard_profile_is_admin()
 returns trigger
 language plpgsql
 security definer
@@ -39,28 +39,28 @@ begin
 end;
 $$;
 
-drop trigger if exists guard_profile_is_admin on energetics.profiles;
+drop trigger if exists guard_profile_is_admin on onesky.profiles;
 create trigger guard_profile_is_admin
-  before insert or update on energetics.profiles
-  for each row execute function energetics.guard_profile_is_admin();
+  before insert or update on onesky.profiles
+  for each row execute function onesky.guard_profile_is_admin();
 
 -- 2. Resonances must reference the caller's own charts ------------------------
-drop policy if exists "own resonances" on energetics.resonances;
+drop policy if exists "own resonances" on onesky.resonances;
 create policy "own resonances"
-  on energetics.resonances for all
+  on onesky.resonances for all
   using (auth.uid() = user_id)
   with check (
     auth.uid() = user_id
     and exists (
-      select 1 from energetics.birth_events b
+      select 1 from onesky.birth_events b
       where b.id = a_chart_id and b.user_id = auth.uid()
     )
     and exists (
-      select 1 from energetics.birth_events b
+      select 1 from onesky.birth_events b
       where b.id = b_chart_id and b.user_id = auth.uid()
     )
   );
 
 -- 3. Close the narrative cache to clients (server reads via service role) ------
-drop policy if exists "narratives are world-readable" on energetics.narratives;
-revoke select on energetics.narratives from anon, authenticated;
+drop policy if exists "narratives are world-readable" on onesky.narratives;
+revoke select on onesky.narratives from anon, authenticated;
