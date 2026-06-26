@@ -257,6 +257,21 @@ export const CATEGORIES: HelpCategory[] = [
         ],
       },
       {
+        slug: "change-password",
+        title: "Change your password",
+        summary: "Set a new password any time from your account page.",
+        body: [
+          {
+            type: "p",
+            text: "Open your account page and find the password section. Enter a new password, confirm it, and select update password. It takes effect right away, so use the new one the next time you sign in.",
+          },
+          {
+            type: "p",
+            text: "If you signed in with a magic link and never set a password, this is also how you add one. If you are signed out and cannot get in, use forgot password on the sign-in page to reset it by email.",
+          },
+        ],
+      },
+      {
         slug: "your-data",
         title: "What we store, and what stays yours",
         summary: "Your birth data is yours, and you can compute without an account.",
@@ -385,6 +400,14 @@ export const FAQ: FaqItem[] = [
  * CHANGELOG.md.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    date: "2026-06-26",
+    title: "Change your password from your account",
+    notes: [
+      "You can set a new password any time on your account page, with no email round-trip.",
+      "Signed in with a magic link and want a password too? Add one the same way.",
+    ],
+  },
   {
     date: "2026-06-15",
     title: "Introducing OneSky Plus",
