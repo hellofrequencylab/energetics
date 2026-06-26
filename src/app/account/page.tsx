@@ -10,6 +10,7 @@ import { PageHeader, Card, Badge, Button, ButtonLink } from "@/components/ui";
 import { ProfileOnboarding } from "@/components/account/ProfileOnboarding";
 import { AccountTypeSwitch } from "@/components/account/AccountTypeSwitch";
 import { DisplayNameEditor } from "@/components/account/DisplayNameEditor";
+import { ChangePasswordForm } from "@/components/account/ChangePasswordForm";
 import { ChartRoster } from "@/components/account/ChartRoster";
 import { AddChartPanel } from "@/components/account/AddChartPanel";
 import { ResonanceRoster } from "@/components/account/ResonanceRoster";
@@ -127,6 +128,17 @@ export default async function AccountPage({
           <div className="shrink-0">
             {isPlus ? <ManageSubscriptionButton /> : <ButtonLink href="/plus">See OneSky Plus</ButtonLink>}
           </div>
+        </Card>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-semibold">Password</h2>
+        <p className="mt-1 max-w-prose text-sm text-muted">
+          Set a new password for {user.email ? user.email : "your account"}. It takes effect right
+          away, so use the new one the next time you sign in.
+        </p>
+        <Card className="mt-3">
+          <ChangePasswordForm />
         </Card>
       </section>
 

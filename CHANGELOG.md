@@ -4,6 +4,14 @@ The technical record of notable changes, newest first. User-facing highlights
 also appear in the in-app Help Center ("what's new"), sourced from
 `src/lib/help/content.ts`. Dates are ISO (UTC).
 
+## 2026-06-26
+
+### Added
+- In-app password change. Signed-in users can set a new password from the account
+  page (`ChangePasswordForm`, via Supabase `auth.updateUser`), which also lets a
+  magic-link account add a password. Help Center article and a "what's new" entry
+  added.
+
 ## 2026-06-25
 
 ### Changed
